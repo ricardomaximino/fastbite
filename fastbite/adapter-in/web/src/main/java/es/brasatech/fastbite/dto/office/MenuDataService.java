@@ -7,6 +7,7 @@ import es.brasatech.fastbite.domain.customization.CustomizationDto;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
 import es.brasatech.fastbite.domain.group.Group;
 import es.brasatech.fastbite.domain.product.ProductDto;
+import es.brasatech.fastbite.dto.menu.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
