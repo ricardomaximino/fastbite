@@ -1,0 +1,51 @@
+# Profile: JPA (H2/PostgreSQL/MySQL)
+# Uses JPA with relational database
+# Default: H2 file-based database (./data/fast_bite.db)
+DB_URL: jdbc:h2:file:./data/fast_bite.db
+DB_USER: sa
+DB_PASSWORD:
+DB_DRIVER: org.h2.Driver
+HIBERNATE_DIALECT: org.hibernate.dialect.H2Dialect
+
+# For PostgreSQL, use these environment variables:
+#DB_URL: jdbc:postgresql://localhost:5432/fast_bite
+#DB_USER: myuser
+#DB_PASSWORD: secret
+#DB_DRIVER: org.postgresql.Driver
+#HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+# For MySQL, use these environment variables:
+#DB_URL: jdbc:mysql://localhost:3306/fast_bite
+#DB_USER: root
+#DB_PASSWORD: password
+#DB_DRIVER: com.mysql.cj.jdbc.Driver
+#HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/fast_bite.db}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+        format_sql: true
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}
+      path: /h2-console
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+

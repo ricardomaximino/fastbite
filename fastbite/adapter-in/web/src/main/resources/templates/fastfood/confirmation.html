@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title th:text="#{page.title}">FastBite - Order Online</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}">
+
+    </head>
+    <body>
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#"><i class="fas fa-hamburger"></i> <span th:text="#{logo.title}">FastBite</span></a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container mt-4">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step completed" id="step1">1</div>
+                <div class="step completed" id="step2">2</div>
+                <div class="step completed" id="step3">3</div>
+                <div class="step completed" id="step4">4</div>
+            </div>
+
+            <!-- Success Section -->
+            <div id="successSection">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="text-center">
+                            <i class="fas fa-check-circle text-success fa-5x mb-3"></i>
+                            <h2 class="text-success mb-3" th:text="#{message.order.submitted.successfully}">Order Submitted Successfully!</h2>
+                            <p class="mb-4" th:text="#{message.thank.you}">Thank you for your order. Your order number is:</p>
+                            <h1 style="font-size: 6rem;" th:text="${orderNumber}" id="orderNumber">100</h1>
+                            <p class="text-muted mb-4" th:text="#{message.you.will.receive.a.confirmation.email.shortly}">You will receive a confirmation email shortly.</p>
+                            <a href="/menu" class="btn btn-primary btn-lg" id="startNewOrderBtn">
+                                <i class="fas fa-plus"></i> <span th:text="#{button.place.another.order}">Place Another Order</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

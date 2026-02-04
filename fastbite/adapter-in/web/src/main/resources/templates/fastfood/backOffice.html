@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title th:text="#{backoffice.title}">BackOffice - FastBite</title>
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/"><i class="fas fa-hamburger"></i> <span
+                        th:text="#{backoffice.brand}">FastBite - BackOffice</span></a>
+                <span class="text-white me-3">
+                    <i class="fas fa-user-shield"></i> <span sec:authentication="name">Admin User</span>
+                </span>
+                <a th:href="@{/dashboard}" href="/dashboard" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-tachometer-alt"></i> <span th:text="#{button.dashboard}">Dashboard</span>
+                </a>
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> <span th:text="#{button.logout}">Logout</span>
+                    </button>
+                </form>
+            </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="container-fluid" style="height: calc(100vh - 70px);">
+        <div class="row h-100">
+
+            <!-- Left Sidebar - Navigation -->
+            <div class="col-md-2 bg-light border-end p-0" style="overflow-y: auto;">
+                <div class="p-3">
+                    <h6 class="text-muted mb-3" th:text="#{backoffice.menu.management}">MENU MANAGEMENT</h6>
+
+                    <!-- Navigation Menu -->
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action active" id="nav-groups"
+                            onclick="showSection('groups')">
+                            <i class="fas fa-layer-group me-2"></i> <span
+                                th:text="#{backoffice.groups.list.title}">Groups</span>
+                            <span class="badge bg-primary float-end" id="groups-count">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="nav-customizations"
+                            onclick="showSection('customizations')">
+                            <i class="fas fa-sliders-h me-2"></i> <span
+                                th:text="#{backoffice.customizations.list.title}">Customizations</span>
+                            <span class="badge bg-primary float-end" id="customizations-count">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="nav-products"
+                            onclick="showSection('products')">
+                            <i class="fas fa-burger me-2"></i> <span
+                                th:text="#{backoffice.products.list.title}">Products</span>
+                            <span class="badge bg-primary float-end" id="products-count">0</span>
+                        </a>
+                    </div>
+
+                    <h6 class="text-muted mb-3 mt-4" th:text="#{backoffice.quick.actions}">QUICK ACTIONS</h6>
+                    <button class="btn btn-primary w-100 mb-2" onclick="createNew()">
+                        <i class="fas fa-plus"></i> <span th:text="#{backoffice.create.new}">Create New</span>
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 mb-2" onclick="toggleSideView()">
+                        <i class="fas fa-columns"></i> <span th:text="#{backoffice.toggle.side.view}">Toggle Side
+                            View</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center - Main View -->
+            <div class="col-md-7 p-0" style="overflow-y: auto;">
+                <div class="p-4">
+                    <!-- Groups Section -->
+                    <div id="groups-section" class="section-content">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3><i class="fas fa-layer-group"></i> <span th:text="#{backoffice.groups.title}">Groups
+                                    Management</span></h3>
+                            <button class="btn btn-primary" onclick="showGroupForm()">
+                                <i class="fas fa-plus"></i> <span th:text="#{backoffice.groups.new}">New Group</span>
+                            </button>
+                        </div>
+
+                        <!-- Groups List -->
+                        <div id="groups-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Group Form (Hidden by default) -->
+                        <div id="group-form" class="card product-card mb-4" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0" id="group-form-title" th:text="#{backoffice.groups.create.title}">
+                                    Create New Group</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="groupFormElement">
+                                    <input type="hidden" id="group-id">
+
+                                    <div class="mb-3">
+                                        <label for="group-name" class="form-label"
+                                            th:text="#{backoffice.groups.label.name}">Group Name *</label>
+                                        <input type="text" class="form-control" id="group-name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="group-description" class="form-label"
+                                            th:text="#{label.description}">Description</label>
+                                        <textarea class="form-control" id="group-description" rows="3"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="group-icon" class="form-label"
+                                            th:text="#{backoffice.groups.label.icon}">Icon (Font Awesome class)</label>
+                                        <input type="text" class="form-control" id="group-icon"
+                                            placeholder="fas fa-burger">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            th:text="#{backoffice.groups.label.assigned.products}">Assigned
+                                            Products</label>
+                                        <div id="group-products-list" class="border rounded p-2"
+                                            style="min-height: 100px; max-height: 200px; overflow-y: auto;">
+                                            <small class="text-muted"
+                                                th:text="#{backoffice.groups.placeholder.no.products}">No products
+                                                assigned yet</small>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                                            onclick="openProductSelector('group')">
+                                            <i class="fas fa-plus"></i> <span
+                                                th:text="#{backoffice.groups.button.add.products}">Add Products</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> <span
+                                                th:text="#{backoffice.groups.button.save}">Save Group</span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="cancelForm()">
+                                            <i class="fas fa-times"></i> <span th:text="#{button.cancel}">Cancel</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customizations Section -->
+                    <div id="customizations-section" class="section-content" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3><i class="fas fa-sliders-h"></i> <span
+                                    th:text="#{backoffice.customizations.title}">Customizations Management</span></h3>
+                            <button class="btn btn-primary" onclick="showCustomizationForm()">
+                                <i class="fas fa-plus"></i> <span th:text="#{backoffice.customizations.new}">New
+                                    Customization</span>
+                            </button>
+                        </div>
+
+                        <!-- Customizations List -->
+                        <div id="customizations-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Customization Form (Hidden by default) -->
+                        <div id="customization-form" class="card product-card mb-4" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0" id="customization-form-title"
+                                    th:text="#{backoffice.customizations.create.title}">Create New Customization</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="customizationFormElement">
+                                    <input type="hidden" id="customization-id">
+
+                                    <div class="mb-3">
+                                        <label for="customization-name" class="form-label"
+                                            th:text="#{backoffice.customizations.label.name}">Customization Name
+                                            *</label>
+                                        <input type="text" class="form-control" id="customization-name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="customization-type" class="form-label"
+                                            th:text="#{backoffice.customizations.label.type}">Type *</label>
+                                        <select class="form-select" id="customization-type" required>
+                                            <option value="" th:text="#{backoffice.customizations.type.select}">Select
+                                                type...</option>
+                                            <option value="radio" th:text="#{backoffice.customizations.type.radio}">
+                                                Radio (Single choice)</option>
+                                            <option value="checkbox"
+                                                th:text="#{backoffice.customizations.type.checkbox}">Checkbox (Multiple
+                                                choice)</option>
+                                            <option value="quantity"
+                                                th:text="#{backoffice.customizations.type.quantity}">Quantity
+                                                (Add/Remove)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            th:text="#{backoffice.customizations.label.options}">Options *</label>
+                                        <div id="customization-options-container">
+                                            <!-- Options will be added here -->
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="addCustomizationOption()">
+                                            <i class="fas fa-plus"></i> <span
+                                                th:text="#{backoffice.customizations.button.add.option}">Add
+                                                Option</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> <span
+                                                th:text="#{backoffice.customizations.button.save}">Save
+                                                Customization</span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="cancelForm()">
+                                            <i class="fas fa-times"></i> <span th:text="#{button.cancel}">Cancel</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Section -->
+                    <div id="products-section" class="section-content" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3><i class="fas fa-burger"></i> <span th:text="#{backoffice.products.title}">Products
+                                    Management</span></h3>
+                            <button class="btn btn-primary" onclick="showProductForm()">
+                                <i class="fas fa-plus"></i> <span th:text="#{backoffice.products.new}">New
+                                    Product</span>
+                            </button>
+                        </div>
+
+                        <!-- Products List -->
+                        <div id="products-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Product Form (Hidden by default) -->
+                        <div id="product-form" class="card product-card mb-4" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0" id="product-form-title" th:text="#{backoffice.products.create.title}">
+                                    Create New Product</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="productFormElement">
+                                    <input type="hidden" id="product-id">
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="product-name" class="form-label"
+                                                th:text="#{backoffice.products.label.name}">Product Name *</label>
+                                            <input type="text" class="form-control" id="product-name" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="product-price" class="form-label"
+                                                th:text="#{backoffice.products.label.price}">Price *</label>
+                                            <input type="number" step="0.01" class="form-control" id="product-price"
+                                                required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="product-description" class="form-label"
+                                            th:text="#{backoffice.products.label.description}">Description *</label>
+                                        <textarea class="form-control" id="product-description" rows="3"
+                                            required></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="product-image" class="form-label"
+                                            th:text="#{backoffice.products.label.image}">Product Image</label>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" id="product-image"
+                                                placeholder="Image URL" readonly>
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="openImageSelector()">
+                                                <i class="fas fa-images"></i> <span
+                                                    th:text="#{backoffice.products.button.select.image}">Select/Upload
+                                                    Image</span>
+                                            </button>
+                                        </div>
+                                        <div id="product-image-preview" style="display: none;">
+                                            <img id="product-image-preview-img" src="" alt="Product preview"
+                                                style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #ddd;">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"
+                                            th:text="#{backoffice.products.label.assigned.customizations}">Assigned
+                                            Customizations</label>
+                                        <div id="product-customizations-list" class="border rounded p-2"
+                                            style="min-height: 100px; max-height: 200px; overflow-y: auto;">
+                                            <small class="text-muted"
+                                                th:text="#{backoffice.products.placeholder.no.customizations}">No
+                                                customizations assigned yet</small>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                                            onclick="openCustomizationSelector()">
+                                            <i class="fas fa-plus"></i> <span
+                                                th:text="#{backoffice.products.button.add.customizations}">Add
+                                                Customizations</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                            onclick="showCustomizationFormPopup()">
+                                            <i class="fas fa-plus-circle"></i> <span
+                                                th:text="#{backoffice.products.button.create.customization}">Create New
+                                                Customization</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="product-active" checked>
+                                        <label class="form-check-label" for="product-active"
+                                            th:text="#{backoffice.products.label.active}">
+                                            Active (visible to customers)
+                                        </label>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> <span
+                                                th:text="#{backoffice.products.button.save}">Save Product</span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="cancelForm()">
+                                            <i class="fas fa-times"></i> <span th:text="#{button.cancel}">Cancel</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Side View (Can be toggled) -->
+            <div class="col-md-3 bg-light border-start p-0" id="side-view" style="overflow-y: auto;">
+                <div class="p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-muted mb-0" th:text="#{backoffice.quick.view}">QUICK VIEW</h6>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleSideView()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- Groups Quick View -->
+                    <div id="groups-quick-view" class="quick-view-section">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Customizations Quick View -->
+                    <div id="customizations-quick-view" class="quick-view-section" style="display: none;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Products Quick View -->
+                    <div id="products-quick-view" class="quick-view-section" style="display: none;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Selector Modal -->
+    <div class="modal fade" id="productSelectorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{backoffice.modal.select.products.title}">Select Products</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="product-selector-list">
+                        <!-- Products checkboxes will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        th:text="#{button.cancel}">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmProductSelection()"
+                        th:text="#{button.add}">Add Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customization Selector Modal -->
+    <div class="modal fade" id="customizationSelectorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{backoffice.modal.select.customizations.title}">Select
+                        Customizations</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="customization-selector-list">
+                        <!-- Customizations checkboxes will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        th:text="#{button.cancel}">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmCustomizationSelection()"
+                        th:text="#{button.add}">Add Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Customization Creation Modal -->
+    <div class="modal fade" id="quickCustomizationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{backoffice.modal.quick.customization.title}">Quick Create
+                        Customization</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted" th:text="#{backoffice.modal.quick.customization.desc}">Create a new
+                        customization quickly without leaving this form.</p>
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{backoffice.customizations.label.name}">Customization Name
+                            *</label>
+                        <input type="text" class="form-control" id="quick-customization-name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{backoffice.customizations.label.type}">Type *</label>
+                        <select class="form-select" id="quick-customization-type">
+                            <option value="radio" th:text="#{backoffice.customizations.type.radio}">Radio (Single
+                                choice)</option>
+                            <option value="checkbox" th:text="#{backoffice.customizations.type.checkbox}">Checkbox
+                                (Multiple choice)</option>
+                            <option value="quantity" th:text="#{backoffice.customizations.type.quantity}">Quantity
+                                (Add/Remove)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        th:text="#{button.cancel}">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveQuickCustomization()"
+                        th:text="#{backoffice.modal.quick.customization.button}">Create & Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Selector Modal -->
+    <div class="modal fade" id="imageSelectorModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{backoffice.modal.image.title}">Select or Upload Product Image
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs for System Images and User Images -->
+                    <ul class="nav nav-tabs mb-3" id="imageTabsNav" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="system-images-tab" data-bs-toggle="tab"
+                                data-bs-target="#system-images" type="button" role="tab">
+                                <i class="fas fa-folder"></i> <span
+                                    th:text="#{backoffice.modal.image.tab.system}">System Images</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="user-images-tab" data-bs-toggle="tab"
+                                data-bs-target="#user-images" type="button" role="tab">
+                                <i class="fas fa-cloud-upload-alt"></i> <span
+                                    th:text="#{backoffice.modal.image.tab.user}">Your Uploads</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="upload-new-tab" data-bs-toggle="tab"
+                                data-bs-target="#upload-new" type="button" role="tab">
+                                <i class="fas fa-plus-circle"></i> <span
+                                    th:text="#{backoffice.modal.image.tab.upload}">Upload New</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="imageTabContent">
+                        <!-- System Images Tab -->
+                        <div class="tab-pane fade show active" id="system-images" role="tabpanel">
+                            <div id="system-images-container" class="row g-3">
+                                <!-- System images will be loaded here -->
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                                    <p th:text="#{backoffice.modal.image.loading.system}">Loading system images...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Images Tab -->
+                        <div class="tab-pane fade" id="user-images" role="tabpanel">
+                            <div id="user-images-container" class="row g-3">
+                                <!-- User images will be loaded here -->
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                                    <p th:text="#{backoffice.modal.image.loading.user}">Loading your uploads...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload New Tab -->
+                        <div class="tab-pane fade" id="upload-new" role="tabpanel">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form id="imageUploadForm">
+                                        <div class="mb-3">
+                                            <label for="imageFile" class="form-label"
+                                                th:text="#{backoffice.modal.image.label.file}">Select Image File
+                                                *</label>
+                                            <input type="file" class="form-control" id="imageFile"
+                                                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" required>
+                                            <small class="text-muted"
+                                                th:text="#{backoffice.modal.image.help.file}">Allowed formats: JPG,
+                                                JPEG, PNG, GIF, WEBP (Max 5MB)</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="imageFolder" class="form-label"
+                                                th:text="#{backoffice.modal.image.label.folder}">Folder/Category
+                                                (Optional)</label>
+                                            <input type="text" class="form-control" id="imageFolder"
+                                                placeholder="e.g., burgers, drinks, desserts">
+                                            <small class="text-muted"
+                                                th:text="#{backoffice.modal.image.help.folder}">Leave empty to save in
+                                                root folder</small>
+                                        </div>
+                                        <div class="mb-3" id="imagePreviewContainer" style="display: none;">
+                                            <label class="form-label" th:text="#{label.preview}">Preview</label>
+                                            <div>
+                                                <img id="imagePreview" src="" alt="Preview"
+                                                    style="max-width: 300px; max-height: 200px; border-radius: 8px;">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-upload"></i> <span
+                                                th:text="#{backoffice.modal.image.button.upload}">Upload Image</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        th:text="#{button.cancel}">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="notification-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-message">
+                    Message here
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+    </div>
+
+    <div id="i18n-backoffice" style="display:none;" th:data-groups-empty="#{backoffice.groups.empty}"
+        th:data-groups-no-desc="#{backoffice.groups.no.description}"
+        th:data-groups-delete-confirm="#{backoffice.groups.delete.confirm}"
+        th:data-groups-save-success="#{backoffice.groups.save.success}"
+        th:data-groups-save-error="#{backoffice.groups.save.error}"
+        th:data-groups-delete-success="#{backoffice.groups.delete.success}"
+        th:data-groups-delete-error="#{backoffice.groups.delete.error}"
+        th:data-products-count="#{backoffice.groups.products.count}"
+        th:data-customizations-empty="#{backoffice.customizations.empty}"
+        th:data-customizations-options-count="#{backoffice.customizations.options.count}"
+        th:data-customizations-usage-count="#{backoffice.customizations.usage.count}"
+        th:data-customizations-default="#{backoffice.customizations.option.default}"
+        th:data-customizations-options-empty-hint="#{backoffice.customizations.options.empty.hint}"
+        th:data-customizations-label-name="#{backoffice.customizations.option.label.name}"
+        th:data-customizations-label-price="#{backoffice.customizations.option.label.price}"
+        th:data-customizations-label-default-value="#{backoffice.customizations.option.label.default.value}"
+        th:data-customizations-label-selected-default="#{backoffice.customizations.option.label.selected.default}"
+        th:data-customizations-delete-confirm="#{backoffice.customizations.delete.confirm}"
+        th:data-customizations-save-success="#{backoffice.customizations.save.success}"
+        th:data-customizations-save-error="#{backoffice.customizations.save.error}"
+        th:data-customizations-delete-success="#{backoffice.customizations.delete.success}"
+        th:data-customizations-delete-error="#{backoffice.customizations.delete.error}"
+        th:data-customizations-validation-error="#{backoffice.customizations.validation.error}"
+        th:data-products-empty="#{backoffice.products.empty}" th:data-products-active="#{label.active}"
+        th:data-products-inactive="#{label.inactive}"
+        th:data-products-customizations-count="#{backoffice.products.customizations.count}"
+        th:data-products-delete-confirm="#{backoffice.products.delete.confirm}"
+        th:data-products-save-success="#{backoffice.products.save.success}"
+        th:data-products-save-error="#{backoffice.products.save.error}"
+        th:data-products-delete-success="#{backoffice.products.delete.success}"
+        th:data-products-delete-error="#{backoffice.products.delete.error}"></div>
+
+    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/backOffice.js" th:src="@{/js/backOffice.js}" defer></script>
+</body>
+
+</html>

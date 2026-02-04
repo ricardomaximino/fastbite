@@ -1,0 +1,72 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    command: --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+
+  vectorDB:
+    image: 'pgvector/pgvector:pg16'
+    restart: unless-stopped
+    container_name: vectorDB
+    environment:
+      POSTGRES_DB: fast_bite
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    labels:
+      - "org.springframework.boot.service-connection=postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # RabbitMQ messaging port
+      - "15672:15672"     # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+  flex:
+    image: ricardomaximino/fastbite:latest
+    container_name: fastbite
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: "mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/?authSource=admin"
+      MONGO_DATABASE: fastbite
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  fastbite:
+    image: ricardomaximino/fastbite-non-native:latest
+    container_name: fastbite
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+
+
+
+volumes:
+  mongo_data:
+  postgres_data:

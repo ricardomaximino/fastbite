@@ -1,0 +1,160 @@
+-- Spring Session JDBC Tables for PostgreSQL/H2
+CREATE TABLE IF NOT EXISTS SPRING_SESSION (
+	PRIMARY_ID CHAR(36) NOT NULL,
+	SESSION_ID CHAR(36) NOT NULL,
+	CREATION_TIME BIGINT NOT NULL,
+	LAST_ACCESS_TIME BIGINT NOT NULL,
+	MAX_INACTIVE_INTERVAL INT NOT NULL,
+	EXPIRY_TIME BIGINT NOT NULL,
+	PRINCIPAL_NAME VARCHAR(100),
+	CONSTRAINT SPRING_SESSION_PK PRIMARY KEY (PRIMARY_ID)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS SPRING_SESSION_IX1 ON SPRING_SESSION (SESSION_ID);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX2 ON SPRING_SESSION (EXPIRY_TIME);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX3 ON SPRING_SESSION (PRINCIPAL_NAME);
+
+CREATE TABLE IF NOT EXISTS SPRING_SESSION_ATTRIBUTES (
+	SESSION_PRIMARY_ID CHAR(36) NOT NULL,
+	ATTRIBUTE_NAME VARCHAR(200) NOT NULL,
+	ATTRIBUTE_BYTES BYTEA NOT NULL,
+	CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
+	CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION(PRIMARY_ID) ON DELETE CASCADE
+);
+
+-- Users and Roles
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id VARCHAR(36) NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id, role),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Products
+CREATE TABLE IF NOT EXISTS products (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    description TEXT,
+    image VARCHAR(255),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS product_customizations (
+    product_id VARCHAR(36) NOT NULL,
+    customization_id VARCHAR(36) NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    product_id VARCHAR(36) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    description TEXT,
+    UNIQUE (product_id, language),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Groups
+CREATE TABLE IF NOT EXISTS groups (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    icon VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS group_products (
+    group_id VARCHAR(36) NOT NULL,
+    product_id VARCHAR(36) NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS group_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    group_id VARCHAR(36) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    UNIQUE (group_id, language),
+    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+-- Customizations
+CREATE TABLE IF NOT EXISTS customizations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    usage_count INT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS customization_options (
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    customization_id VARCHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    is_selected_by_default BOOLEAN DEFAULT FALSE,
+    default_value INT DEFAULT 0,
+    option_index INT NOT NULL,
+    FOREIGN KEY (customization_id) REFERENCES customizations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS customization_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    customization_id VARCHAR(36) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    UNIQUE (customization_id, language),
+    FOREIGN KEY (customization_id) REFERENCES customizations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS customization_option_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    option_id VARCHAR(255) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    UNIQUE (option_id, language),
+    FOREIGN KEY (option_id) REFERENCES customization_options(id) ON DELETE CASCADE
+);
+
+-- Orders
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    order_number INT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    status SMALLINT,
+    total DECIMAL(10, 2) NOT NULL,
+    cancel_reason VARCHAR(255),
+    payment_status SMALLINT,
+    order_channel SMALLINT,
+    order_language VARCHAR(10)
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    order_id VARCHAR(36) NOT NULL,
+    item_id VARCHAR(36),
+    name VARCHAR(255),
+    description TEXT,
+    image VARCHAR(255),
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS cart_item_customizations (
+    cart_item_id VARCHAR(36) NOT NULL,
+    id VARCHAR(255),
+    name VARCHAR(255),
+    price DECIMAL(10, 2),
+    quantity INT,
+    FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE
+);

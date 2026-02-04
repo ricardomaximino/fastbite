@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- Groups List -->
+<div th:fragment="groups-list" th:remove="tag">
+    <div th:if="${#lists.isEmpty(groups)}" class="text-center text-muted py-5">
+        <i class="fas fa-inbox fa-3x mb-3"></i>
+        <p th:text="#{backoffice.groups.empty}">No groups found</p>
+    </div>
+    <div th:each="group : ${groups}" class="cart-item mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h5 class="mb-1">
+                    <i th:class="${group['icon'] ?: 'fas fa-layer-group'}"></i>
+                    <span th:text="${group['name']}">Group Name</span>
+                </h5>
+                <p class="text-muted mb-2"
+                    th:text="${group['description'] ?: #messages.msg('backoffice.groups.no.description')}">Description
+                </p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary">
+                        <span th:text="${#lists.size(group['products'])}">0</span>
+                        <span th:text="#{backoffice.groups.products.count}">products</span>
+                    </span>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" th:data-id="${group['id']}"
+                    onclick="editGroup(this.dataset.id)">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" th:data-id="${group['id']}"
+                    onclick="manageGroupTranslations(this.dataset.id)">
+                    <i class="fas fa-language"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" th:data-id="${group['id']}"
+                    onclick="deleteGroup(this.dataset.id)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customizations List -->
+<div th:fragment="customizations-list" th:remove="tag">
+    <div th:if="${#lists.isEmpty(customizations)}" class="text-center text-muted py-5">
+        <i class="fas fa-inbox fa-3x mb-3"></i>
+        <p th:text="#{backoffice.customizations.empty}">No customizations found</p>
+    </div>
+    <div th:each="custom : ${customizations}" class="cart-item mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h5 class="mb-1" th:text="${custom['name']}">Customization Name</h5>
+                <div class="mb-2">
+                    <span class="badge bg-info" th:text="${custom['type']}">Type</span>
+                    <span class="badge bg-secondary">
+                        <span th:text="${#lists.size(custom['options'])}">0</span>
+                        <span th:text="#{backoffice.customizations.options.count}">options</span>
+                    </span>
+                    <span class="badge bg-success"
+                        th:text="${#messages.msg('backoffice.customizations.usage.count', custom['usageCount'])}">Used 0
+                        times</span>
+                </div>
+                <div class="small text-muted">
+                    <th:block th:each="opt, iter : ${custom['options']}">
+                        <span th:text="${opt['name']}">Option</span>
+                        (<span th:text="'$' + ${#numbers.formatDecimal(opt['price'], 1, 2)}">price</span>)
+                        <span th:if="${opt['isSelectedByDefault']}" class="badge bg-warning text-dark ms-1"
+                            th:text="#{backoffice.customizations.option.default}">Default</span>
+                        <span th:if="${!iter.last}">, </span>
+                    </th:block>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" th:data-id="${custom['id']}"
+                    onclick="editCustomization(this.dataset.id)">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" th:data-id="${custom['id']}"
+                    onclick="manageCustomizationTranslations(this.dataset.id)">
+                    <i class="fas fa-language"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" th:data-id="${custom['id']}"
+                    onclick="deleteCustomization(this.dataset.id)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products List -->
+<div th:fragment="products-list" th:remove="tag">
+    <div th:if="${#lists.isEmpty(products)}" class="text-center text-muted py-5">
+        <i class="fas fa-inbox fa-3x mb-3"></i>
+        <p th:text="#{backoffice.products.empty}">No products found</p>
+    </div>
+    <div th:each="product : ${products}" class="cart-item mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                    <img th:if="${product['image']}" th:src="${product['image']}" th:alt="${product['name']}"
+                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
+                    <div>
+                        <h5 class="mb-1" th:text="${product['name']}">Product Name</h5>
+                        <p class="text-muted mb-0" th:text="${product['description']}">Description</p>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-success"
+                        th:text="'$' + ${#numbers.formatDecimal(product['price'], 1, 2)}">$0.00</span>
+                    <span th:class="|badge ${product['active'] ? 'bg-primary' : 'bg-secondary'}|"
+                        th:text="${product['active'] ? #messages.msg('label.active') : #messages.msg('label.inactive')}">Active</span>
+                    <span class="badge bg-info">
+                        <span
+                            th:text="${product['customizations'] != null ? #lists.size(product['customizations']) : 0}">0</span>
+                        <span th:text="#{backoffice.products.customizations.count}">customizations</span>
+                    </span>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" th:data-id="${product['id']}"
+                    onclick="editProduct(this.dataset.id)">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" th:data-id="${product['id']}"
+                    onclick="manageProductTranslations(this.dataset.id)">
+                    <i class="fas fa-language"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" th:data-id="${product['id']}"
+                    onclick="deleteProduct(this.dataset.id)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customization Option Card -->
+<div th:fragment="customization-option" class="card mb-3 p-3" style="background-color: #f8f9fa;">
+    <div class="row g-2 mb-2">
+        <div class="col-md-4">
+            <label class="form-label small" th:text="#{backoffice.customizations.option.label.name}">Option name</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Option name"
+                th:value="${opt != null ? opt['name'] : ''}" th:id="|opt-name-${index}|" required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small" th:text="#{backoffice.customizations.option.label.price}">Price</label>
+            <input type="number" step="0.01" class="form-control form-control-sm" placeholder="0.00"
+                th:value="${opt != null ? opt['price'] : '0.00'}" th:id="|opt-price-${index}|" required>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small" th:text="#{backoffice.customizations.option.label.default.value}">Default
+                Value</label>
+            <input type="number" class="form-control form-control-sm" placeholder="1"
+                th:value="${opt != null ? opt['defaultValue'] ?: 1 : 1}" th:id="|opt-defaultValue-${index}|" min="1">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small"
+                th:text="#{backoffice.customizations.option.label.selected.default}">Selected Default</label>
+            <div class="form-check form-switch mt-1">
+                <input class="form-check-input" type="checkbox" th:id="|opt-isSelectedByDefault-${index}|"
+                    th:checked="${opt != null ? opt['isSelectedByDefault'] : false}">
+            </div>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-sm btn-outline-danger w-100" type="button" th:data-index="${index}"
+                onclick="removeCustomizationOption(this.dataset.index)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Gallery -->
+<div th:fragment="image-gallery" th:remove="tag">
+    <div th:if="${#maps.isEmpty(imagesByFolder)}" class="col-12 text-center text-muted py-5">
+        <p
+            th:text="${type == 'system' ? #messages.msg('backoffice.modal.image.loading.system') : #messages.msg('backoffice.modal.image.loading.user')}">
+            No images available</p>
+    </div>
+    <th:block th:each="entry : ${imagesByFolder}">
+        <div class="col-12">
+            <h6 class="text-muted mb-3">
+                <i class="fas fa-folder me-2"></i><span th:text="${entry.key}">folder</span>
+            </h6>
+        </div>
+        <div th:each="image : ${entry.value}" class="col-6 col-md-4 col-lg-3">
+            <div class="card h-100 image-card" style="cursor: pointer;" th:data-url="${image['url']}"
+                onclick="selectImage(this.dataset.url)">
+                <img th:src="${image['url']}" class="card-img-top" th:alt="${image['name']}"
+                    style="height: 150px; object-fit: cover;"
+                    onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                <div class="card-body p-2">
+                    <p class="card-text small text-truncate mb-0" th:title="${image['name']}"
+                        th:text="${image['name']}">
+                        image.name</p>
+                    <small class="text-muted" th:text="${image['formattedSize']}">0 KB</small>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</div>
+
+<!-- Quick View -->
+<div th:fragment="quick-view" th:remove="tag">
+    <h6 class="mb-3"
+        th:text="${type == 'groups' ? 'Groups Summary' : (type == 'customizations' ? 'Customizations Summary' : 'Products Summary')}">
+        Summary</h6>
+    <p th:if="${#lists.isEmpty(data)}" class="text-muted">No items yet</p>
+    <div th:each="item : ${data}" class="mb-2 p-2 border rounded">
+        <strong th:text="${item['name']}">Item Name</strong><br>
+        <small th:if="${type == 'groups'}" class="text-muted">
+            <span th:text="${#lists.size(item['products'])}">0</span> products
+        </small>
+        <small th:if="${type == 'customizations'}" class="text-muted">
+            <span th:text="${item['type']}">type</span> - <span th:text="${#lists.size(item['options'])}">0</span>
+            options
+        </small>
+        <small th:if="${type == 'products'}" class="text-muted">
+            <span th:text="'$' + ${#numbers.formatDecimal(item['price'], 1, 2)}">$0.00</span>
+        </small>
+    </div>
+</div>
+
+<!-- Badges List (for Groups) -->
+<div th:fragment="group-products-badges" th:remove="tag">
+    <div th:if="${#lists.isEmpty(selectedProducts)}" class="text-muted small"
+        th:text="#{backoffice.groups.placeholder.no.products}">No products assigned yet</div>
+    <span th:each="product : ${selectedProducts}" class="badge bg-primary me-1 mb-1">
+        <span th:text="${product['name']}">Product Name</span>
+        <i class="fas fa-times ms-1" style="cursor: pointer;" th:data-id="${product['id']}"
+            onclick="removeProductFromGroup(this.dataset.id)"></i>
+    </span>
+</div>
+
+<!-- Badges List (for Products) -->
+<div th:fragment="product-customizations-badges" th:remove="tag">
+    <div th:if="${#lists.isEmpty(selectedCustomizations)}" class="text-muted small"
+        th:text="#{backoffice.products.placeholder.no.customizations}">No customizations assigned yet</div>
+    <span th:each="custom : ${selectedCustomizations}" class="badge bg-primary me-1 mb-1">
+        <span th:text="${custom['name']}">Customization Name</span>
+        <i class="fas fa-times ms-1" style="cursor: pointer;" th:data-id="${custom['id']}"
+            onclick="removeCustomizationFromProduct(this.dataset.id)"></i>
+    </span>
+</div>
+
+<!-- Selector List -->
+<div th:fragment="selector-list" th:remove="tag">
+    <div th:each="item : ${items}" class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" th:value="${item['id']}" th:id="|item-${item['id']}|"
+            th:checked="${#lists.contains(selectedIds, item['id'])}">
+        <label class="form-check-label" th:for="|item-${item['id']}|">
+            <span th:text="${item['name']}">Item Name</span>
+            <span th:if="${item.containsKey('price') && item['price'] != null}"
+                th:text="| - $${#numbers.formatDecimal(item['price'], 1, 2)}|"> - $0.00</span>
+            <span th:if="${item.containsKey('type') && item['type'] != null}" th:text="| (${item['type']})|">
+                (type)</span>
+        </label>
+    </div>
+</div>
+
+</html>

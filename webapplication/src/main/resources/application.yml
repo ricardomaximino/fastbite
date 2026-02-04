@@ -1,0 +1,50 @@
+server.port: 8080
+
+spring:
+  profiles:
+    active:
+      - jpa
+  application:
+    name: fastbite
+  messages:
+    basename: i18n/messages
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:user}
+    password: ${RABBITMQ_PASSWORD:password}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+logging:
+  level:
+    root: INFO
+    es.brasatech: DEBUG
+    org.springframework: INFO
+
+# Internationalization configuration
+i18n:
+  # Default language for storing entity values
+  # All entity text fields (name, description, etc.) are stored in this language
+  # Translations for other languages are stored in separate translation tables
+  default-language: en
+
+  # Supported locales for translation UI
+  # Add or remove languages as needed
+  supported-locales:
+    - en
+    - es
+    - pt
+
+# Image upload configuration
+image:
+  upload:
+    # Directory where user-uploaded images will be stored
+    # Can be absolute path or relative to application directory
+    directory: ${IMAGE_UPLOAD_DIR:uploads/images}
+    # Maximum file size (in MB)
+    max-file-size: 5
+    # Allowed extensions
+    allowed-extensions: jpg,jpeg,png,gif,webp

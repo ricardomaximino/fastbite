@@ -1,0 +1,18 @@
+# Profile: MongoDB
+# Uses MongoDB for data storage
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://${DB_USER:root}:${DB_PASSWORD:password}@localhost:27017/?authSource=admin}
+      database: ${MONGO_DATABASE:fast_bite}
+  session:
+    store-type: mongodb
+    mongodb:
+      collection-name: sessions
+  jpa:
+    hibernate:
+      ddl-auto: none
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration

@@ -1,0 +1,184 @@
+[
+{
+  "name":"es.brasatech.flex.FlexApplication",
+  "allDeclaredFields":true,
+  "allDeclaredClasses":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
+},
+{
+  "name":"es.brasatech.flex.data.Data",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"es.brasatech.flex.data.DataController",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["es.brasatech.flex.data.DataService"] }, {"name":"advancedSearch","parameterTypes":["java.util.Map"] }, {"name":"advancedSearchWithPaging","parameterTypes":["java.util.Map","int","int","java.lang.String"] }, {"name":"basicSearchWithPaging","parameterTypes":["java.util.Map","int","int","java.lang.String"] }, {"name":"create","parameterTypes":["java.util.Map"] }, {"name":"delete","parameterTypes":["java.lang.String"] }, {"name":"getById","parameterTypes":["java.lang.String"] }, {"name":"search","parameterTypes":["java.util.Map"] }, {"name":"update","parameterTypes":["java.lang.String","java.util.Map"] }]
+},
+{
+  "name":"es.brasatech.flex.data.DataService",
+  "queryAllDeclaredMethods":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"es.brasatech.flex.data.SearchCriteria",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setOperation","parameterTypes":["es.brasatech.flex.data.SearchOperation"] }, {"name":"setValue","parameterTypes":["java.lang.Object"] }]
+},
+{
+  "name":"es.brasatech.flex.data.SearchDataRepository",
+  "queryAllDeclaredMethods":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"es.brasatech.flex.data.SearchOperation",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"es.brasatech.flex.listener.InternalListener",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["es.brasatech.flex.rabbitmq.MessageSender"] }, {"name":"handleMessage","parameterTypes":["es.brasatech.flex.shared.InternalDataEvent"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"mapDBDataDataService","parameterTypes":["es.brasatech.flex.mapdb.MapDBDataStore","es.brasatech.flex.data.SearchDataRepository","es.brasatech.flex.shared.ValidatorManager","org.springframework.context.ApplicationEventPublisher"] }, {"name":"mapDBDataSearchDataRepository","parameterTypes":["es.brasatech.flex.mapdb.MapDBDataStore"] }, {"name":"mapDBDataStore","parameterTypes":["java.lang.String"] }, {"name":"setBeanFactory","parameterTypes":["org.springframework.beans.factory.BeanFactory"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBConfig$$SpringCGLIB$$0",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"CGLIB$SET_STATIC_CALLBACKS","parameterTypes":["org.springframework.cglib.proxy.Callback[]"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBConfig$$SpringCGLIB$$FastClass$$0",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBConfig$$SpringCGLIB$$FastClass$$1",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBData"
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBDataServiceImpl",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"advancedSearch","parameterTypes":["java.util.Map"] }, {"name":"advancedSearchWithPaging","parameterTypes":["java.util.Map","int","int","java.lang.String"] }, {"name":"close","parameterTypes":[] }, {"name":"deleteById","parameterTypes":["java.lang.String"] }, {"name":"findAll","parameterTypes":[] }, {"name":"findById","parameterTypes":["java.lang.String"] }, {"name":"save","parameterTypes":["java.util.Map"] }, {"name":"shutdown","parameterTypes":[] }, {"name":"simpleSearch","parameterTypes":["java.util.Map"] }, {"name":"simpleSearchWithPaging","parameterTypes":["java.util.Map","int","int","java.lang.String"] }, {"name":"update","parameterTypes":["java.lang.String","java.util.Map"] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBDataStore",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"close","parameterTypes":[] }]
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBHints"
+},
+{
+  "name":"es.brasatech.flex.mapdb.MapDBSearchDataRepositoryImpl",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"close","parameterTypes":[] }, {"name":"findByDynamicAdvancedCriteria","parameterTypes":["java.util.Map"] }, {"name":"findByDynamicAdvancedCriteriaWithPaging","parameterTypes":["java.util.Map","org.springframework.data.domain.Pageable"] }, {"name":"findByDynamicSimpleCriteria","parameterTypes":["java.util.Map"] }, {"name":"findByDynamicSimpleCriteriaWithPaging","parameterTypes":["java.util.Map","org.springframework.data.domain.Pageable"] }, {"name":"shutdown","parameterTypes":[] }]
+},
+{
+  "name":"es.brasatech.flex.mongodb.MongoDBData",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllPublicMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"es.brasatech.flex.shared.Flex",
+  "queryAllDeclaredMethods":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"es.brasatech.flex.shared.GlobalExceptionHandler",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"validationError","parameterTypes":["jakarta.servlet.http.HttpServletRequest","es.brasatech.flex.shared.NotFoundException"] }]
+},
+{
+  "name":"es.brasatech.flex.shared.Validator",
+  "queryAllDeclaredMethods":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"es.brasatech.flex.shared.ValidatorManager",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.util.List"] }]
+},
+{
+  "name":"es.brasatech.flex.user.CustomerValidator",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"validate","parameterTypes":["es.brasatech.flex.shared.Flex"] }]
+},
+{
+  "name":"es.brasatech.flex.user.EmployeeValidator",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"validate","parameterTypes":["es.brasatech.flex.shared.Flex"] }]
+},
+{
+  "name":"es.brasatech.flex.user.PropertyValidator",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"validate","parameterTypes":["es.brasatech.flex.shared.Flex"] }]
+},
+{
+  "name":"net.jpountz.xxhash.StreamingXXHash32JNI$Factory",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"net.jpountz.xxhash.StreamingXXHash64JNI$Factory",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"net.jpountz.xxhash.XXHash32JNI",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"net.jpountz.xxhash.XXHash64JNI",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"org.mapdb.DB"
+},
+{
+  "name":"org.mapdb.DB$HashMapMaker"
+},
+{
+  "name":"org.mapdb.DBMaker"
+},
+{
+  "name":"org.mapdb.DBMaker$Maker"
+},
+{
+  "name":"org.mapdb.HTreeMap"
+},
+{
+  "name":"org.mapdb.Serializer",
+  "allDeclaredFields":true
+}
+]
