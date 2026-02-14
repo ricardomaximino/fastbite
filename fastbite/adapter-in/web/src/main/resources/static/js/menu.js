@@ -132,21 +132,50 @@ function changeQuantitySetNoLessThanZero(itemId, change) {
 // Customize item
 function customizeItem(itemId, category) {
     const quantity = parseInt(document.getElementById(`qty-${itemId}`).textContent);
-    const customizations = document.getElementById(itemId).dataset.customizations?.split(',');
+    const defaults = getDefaultCustomizations(itemId);
 
-    currentCustomization = {
-        itemId: itemId,
-        quantity: quantity,
-        customizations: {}
-    };
+    addToCart(itemId, quantity, defaults);
 
-    if (customizations && customizations.length > 0) {
-        showCustomizationModal(itemId, customizations);
-    } else {
-        addToCart(itemId, quantity, []);
-        // Reset quantity to 1
-        document.getElementById(`qty-${itemId}`).textContent = '1';
-    }
+    // Reset quantity to 1
+    document.getElementById(`qty-${itemId}`).textContent = '1';
+}
+
+function getDefaultCustomizations(itemId) {
+    const customizations = [];
+    const allowedCustomizationIds = document.getElementById(itemId).dataset.customizations?.split(',') || [];
+
+    allowedCustomizationIds.forEach(customizationId => {
+        const parent = document.getElementById(customizationId);
+        if (!parent) return;
+
+        // Radios and Checkboxes
+        const inputs = parent.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+        inputs.forEach(input => {
+            if (input.dataset.selectedByDefault === 'true') {
+                customizations.push({
+                    id: input.id,
+                    name: input.value,
+                    price: parseFloat(input.dataset.price),
+                    quantity: Math.max(0, parseInt(input.dataset.defaultValue || "0"))
+                });
+            }
+        });
+
+        // Ingredients (Hidden inputs with quantity control)
+        const ingredients = parent.querySelectorAll('input[type="hidden"]');
+        ingredients.forEach(input => {
+            const defaultValue = parseInt(input.dataset.defaultValue || "1");
+            if (defaultValue === 0) {
+                customizations.push({
+                    id: input.id,
+                    name: input.dataset.no + ' ' + input.dataset.name,
+                    price: parseFloat(input.dataset.price),
+                    quantity: 0
+                });
+            }
+        });
+    });
+    return customizations;
 }
 
 // Show customization modal
@@ -207,8 +236,56 @@ function showCustomizationModal(itemId, customizations) {
 
     const modalTitle = document.querySelector('#customizationsModal .modal-title');
     modalTitle.textContent = modalTitle.dataset.title + ' ' + productName;
+
+    // Update submit button text
+    const submitBtn = document.getElementById('customizationSubmitBtn');
+    if (currentCustomization.editId) {
+        submitBtn.textContent = document.getElementById('dictionary').dataset.dictionaryConfirmAndSubmitBtn || 'Update Item';
+    } else {
+        submitBtn.textContent = document.getElementById('customizationSubmitBtn').getAttribute('th:text') || 'Add to Cart';
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('customizationsModal'));
     modal.show();
+}
+
+// Edit item in cart
+function editCartItem(cartItemId) {
+    const cartItem = cart.find(item => item.id === cartItemId);
+    if (!cartItem) return;
+
+    const customizations = document.getElementById(cartItem.itemId).dataset.customizations?.split(',');
+
+    currentCustomization = {
+        itemId: cartItem.itemId,
+        quantity: cartItem.quantity,
+        editId: cartItem.id,
+        customizations: cartItem.customizations
+    };
+
+    showCustomizationModal(cartItem.itemId, customizations);
+
+    // Pre-select current choices in modal
+    setTimeout(() => {
+        cartItem.customizations.forEach(c => {
+            const input = document.getElementById(c.id);
+            if (input) {
+                if (input.type === 'radio' || input.type === 'checkbox') {
+                    input.checked = true;
+                } else if (input.type === 'hidden') {
+                    // This is an ingredient toggle (value 0 means without)
+                    if (c.quantity === 0) {
+                        changeQuantitySetNoLessThanZero('qty-' + c.id, 0);
+                        const minusButton = document.getElementById('qty-' + c.id + '-minus');
+                        const plusButton = document.getElementById('qty-' + c.id + '-plus');
+                        minusButton.disabled = true;
+                        plusButton.disabled = false;
+                        input.value = "0";
+                    }
+                }
+            }
+        });
+    }, 100);
 }
 
 // Add customized item to cart
@@ -264,6 +341,18 @@ function addToCart(itemId, quantity, customizations) {
     const image = document.getElementById(itemId).dataset.image;
     const productPrice = Number.parseFloat(document.getElementById(itemId).dataset.price);
 
+    if (currentCustomization.editId) {
+        const cartItem = cart.find(item => item.id === currentCustomization.editId);
+        if (cartItem) {
+            cartItem.quantity = quantity;
+            cartItem.customizations = customizations;
+            updateCartDisplay();
+            showToast(`${name} updated!`);
+            currentCustomization = {};
+            return;
+        }
+    }
+
     const cartItem = {
         id: `${itemId}-${Date.now()}`,
         itemId: itemId,
@@ -278,6 +367,7 @@ function addToCart(itemId, quantity, customizations) {
     cart.push(cartItem);
     updateCartDisplay();
     showToast(`${name} added to cart!`);
+    currentCustomization = {};
 }
 
 // Update cart display

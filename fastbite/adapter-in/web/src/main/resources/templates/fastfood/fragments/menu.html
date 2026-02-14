@@ -38,6 +38,10 @@
                         <strong th:text="${cartItem.price}">12.99</strong>
                     </div>
                     <div class="col-md-2 text-end">
+                        <button class="btn btn-outline-primary btn-sm me-1" th:data-item-id="${cartItem.id}"
+                            onclick="editCartItem(this.dataset.itemId)">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
                         <button class="btn btn-outline-danger btn-sm" th:data-item-id="${cartItem.id}"
                             onclick="removeFromCart(this.dataset.itemId)">
                             <i class="fas fa-trash"></i>
