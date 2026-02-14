@@ -200,15 +200,16 @@ function handleProductClick(productId) {
     addToCart(productId);
 }
 
-function addToCart(productId, quantity = 1, customizations = []) {
+function addToCart(productId, quantity = 1, customizations = null) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
     if (currentEditingItemIndex !== null) {
         cart[currentEditingItemIndex].quantity = quantity;
-        cart[currentEditingItemIndex].customizations = customizations;
+        cart[currentEditingItemIndex].customizations = customizations || [];
         currentEditingItemIndex = null;
     } else {
+        const finalCustomizations = customizations || getDefaultCustomizations(product);
         cart.push({
             id: btoa(Math.random()).substring(0, 8),
             productId: product.id,
@@ -216,11 +217,32 @@ function addToCart(productId, quantity = 1, customizations = []) {
             name: product.name,
             price: product.price,
             quantity: quantity,
-            customizations: customizations
+            customizations: finalCustomizations
         });
     }
 
     updateCartUI();
+}
+
+function getDefaultCustomizations(product) {
+    const defaults = [];
+    if (!product.customizations) return defaults;
+
+    product.customizations.forEach(custId => {
+        const customization = allCustomizations.find(c => c.id === custId);
+        if (!customization) return;
+
+        customization.options.forEach((opt, idx) => {
+            if (opt.isSelectedByDefault) {
+                defaults.push({
+                    id: `${custId}-opt-${idx}`,
+                    name: opt.name,
+                    price: opt.price
+                });
+            }
+        });
+    });
+    return defaults;
 }
 
 function updateCartUI() {
@@ -370,18 +392,19 @@ function showCustomizationModal(product, currentCustomizations = []) {
 
         const section = document.createElement('div');
         section.className = 'mb-4';
-        section.innerHTML = `<h6 class="fw-bold border-bottom pb-2">${customization.name}</h6>`;
+        section.innerHTML = `<h6 class="fw-bold border-bottom pb-2"><i class="fas fa-utensils me-2"></i>${customization.name}</h6>`;
 
         customization.options.forEach((opt, idx) => {
             const isSelected = currentCustomizations.some(c => c.id === `${custId}-opt-${idx}`);
             const inputId = `${custId}-opt-${idx}`;
+            const isRadio = customization.type === 'radio';
 
             const div = document.createElement('div');
             div.className = 'form-check mb-2';
             div.innerHTML = `
                 <input class="form-check-input customization-input" 
-                       type="${customization.type === 'SINGLE' ? 'radio' : 'checkbox'}" 
-                       name="${custId}" 
+                       type="${isRadio ? 'radio' : 'checkbox'}" 
+                       name="${isRadio ? custId : inputId}" 
                        id="${inputId}" 
                        value="${opt.name}"
                        data-price="${opt.price}"
