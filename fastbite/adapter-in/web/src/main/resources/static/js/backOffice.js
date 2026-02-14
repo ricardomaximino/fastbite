@@ -2,6 +2,8 @@
 let groups = [];
 let customizations = [];
 let products = [];
+let tables = [];
+let paymentConfig = { activeModes: [], moneyImages: [] };
 let currentSection = 'groups';
 let editingId = null;
 let selectedProductsForGroup = [];
@@ -46,7 +48,37 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('groupFormElement').addEventListener('submit', handleGroupSubmit);
     document.getElementById('customizationFormElement').addEventListener('submit', handleCustomizationSubmit);
     document.getElementById('productFormElement').addEventListener('submit', handleProductSubmit);
+    document.getElementById('tableFormElement').addEventListener('submit', handleTableSubmit);
+
+    // Payment config doesn't use standard submit if it's dynamic, 
+    // but in my fragment I used a form with id paymentConfigForm
 });
+
+async function handlePaymentConfigSubmit(e) {
+    if (e) e.preventDefault();
+    const modes = [];
+    if (document.getElementById('mode-cash').checked) modes.push('CASH');
+    if (document.getElementById('mode-card').checked) modes.push('CARD');
+
+    const images = Array.from(document.querySelectorAll('input[name="moneyImages"]')).map(i => i.value);
+
+    try {
+        const res = await fetch('/api/backoffice/payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ activeModes: modes, moneyImages: images })
+        });
+        if (res.ok) {
+            alert('Payment configuration saved successfully!');
+            loadData();
+        }
+    } catch (error) {
+        console.error('Error saving payment config:', error);
+    }
+}
 
 // Load data from backend
 async function loadData() {
@@ -92,6 +124,24 @@ async function loadData() {
             }));
         }
 
+        // Load tables
+        const tablesResponse = await fetch('/api/backoffice/tables');
+        if (tablesResponse.ok) {
+            const tablesData = await tablesResponse.json();
+            tables = tablesData.map(data => ({
+                id: data.id,
+                name: data.customFields.name,
+                capacity: data.customFields.capacity,
+                active: data.customFields.active
+            }));
+        }
+
+        // Load payment config
+        const paymentResponse = await fetch('/api/backoffice/payment');
+        if (paymentResponse.ok) {
+            paymentConfig = await paymentResponse.json();
+        }
+
         renderAll();
     } catch (error) {
         console.error('Error loading data:', error);
@@ -103,6 +153,8 @@ function renderAll() {
     renderGroupsList();
     renderCustomizationsList();
     renderProductsList();
+    renderTablesList();
+    renderPaymentConfig();
     renderQuickViews();
     updateCounts();
 }
@@ -123,7 +175,8 @@ function showSection(section) {
 
     // Update quick view
     document.querySelectorAll('.quick-view-section').forEach(el => el.style.display = 'none');
-    document.getElementById(`${section}-quick-view`).style.display = 'block';
+    const quickView = document.getElementById(`${section}-quick-view`);
+    if (quickView) quickView.style.display = 'block';
 }
 
 // Toggle side view
@@ -147,6 +200,7 @@ function createNew() {
     if (currentSection === 'groups') showGroupForm();
     else if (currentSection === 'customizations') showCustomizationForm();
     else if (currentSection === 'products') showProductForm();
+    else if (currentSection === 'tables') showTableForm();
 }
 
 // Update counts
@@ -909,3 +963,127 @@ function manageProductTranslations(productId) {
 function manageCustomizationTranslations(customizationId) {
     window.location.assign(`/backoffice/translations/customizations/${customizationId}`);
 }
+
+// TABLES MANAGEMENT
+async function renderTablesList() {
+    const list = document.getElementById('tables-list');
+    if (!list) return;
+    list.innerHTML = await fetchFragment('/backoffice/fragments/tables', { tables });
+}
+
+function showTableForm() {
+    editingId = null;
+    document.getElementById('table-form-title').textContent = 'Create New Table';
+    document.getElementById('tableFormElement').reset();
+    document.getElementById('table-id').value = '';
+    document.getElementById('table-active').checked = true;
+
+    document.getElementById('tables-list').style.display = 'none';
+    document.getElementById('table-form').style.display = 'block';
+}
+
+function editTable(id) {
+    const table = tables.find(t => t.id === id);
+    if (!table) return;
+
+    editingId = id;
+    document.getElementById('table-form-title').textContent = 'Edit Table';
+    document.getElementById('table-id').value = table.id;
+    document.getElementById('table-name').value = table.name;
+    document.getElementById('table-capacity').value = table.capacity;
+    document.getElementById('table-active').checked = table.active;
+
+    document.getElementById('tables-list').style.display = 'none';
+    document.getElementById('table-form').style.display = 'block';
+}
+
+async function deleteTable(id) {
+    if (!confirm('Are you sure you want to delete this table?')) return;
+
+    try {
+        const res = await fetch(`/api/backoffice/tables/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+        });
+        if (res.ok) {
+            loadData();
+        }
+    } catch (error) {
+        console.error('Error deleting table:', error);
+    }
+}
+
+async function handleTableSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('table-id').value;
+    const tableData = {
+        name: document.getElementById('table-name').value,
+        capacity: parseInt(document.getElementById('table-capacity').value),
+        active: document.getElementById('table-active').checked
+    };
+
+    const url = id ? `/api/backoffice/tables/${id}` : '/api/backoffice/tables';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify(tableData)
+        });
+        if (res.ok) {
+            // Hide form and show list
+            document.getElementById('tables-list').style.display = 'block';
+            document.getElementById('table-form').style.display = 'none';
+            loadData();
+        }
+    } catch (error) {
+        console.error('Error saving table:', error);
+    }
+}
+
+// PAYMENT MANAGEMENT
+async function renderPaymentConfig() {
+    const content = document.getElementById('payment-config-content');
+    if (!content) return;
+    content.innerHTML = await fetchFragment('/backoffice/fragments/payment', { paymentConfig });
+
+    // Add event listener to the newly rendered form
+    const form = document.getElementById('paymentConfigForm');
+    if (form) form.addEventListener('submit', handlePaymentConfigSubmit);
+}
+
+function removeMoneyImage(index) {
+    paymentConfig.moneyImages.splice(index, 1);
+    renderPaymentConfig();
+}
+
+function openPaymentImageSelector() {
+    const url = prompt('Enter image URL for money (e.g. /images/cash/5euro.png):');
+    if (url) {
+        if (!paymentConfig.moneyImages) paymentConfig.moneyImages = [];
+        paymentConfig.moneyImages.push(url);
+        renderPaymentConfig();
+    }
+}
+
+// Wrap cancelForm if it exists
+if (typeof window.cancelForm === 'function') {
+    const originalCancel = window.cancelForm;
+    window.cancelForm = function () {
+        if (document.getElementById('tables-list')) document.getElementById('tables-list').style.display = 'block';
+        if (document.getElementById('table-form')) document.getElementById('table-form').style.display = 'none';
+        originalCancel();
+    };
+} else {
+    window.cancelForm = function () {
+        document.querySelectorAll('.section-content > div[id$="-form"]').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.section-content > div[id$="-list"]').forEach(el => el.style.display = 'block');
+        if (document.getElementById('tables-list')) document.getElementById('tables-list').style.display = 'block';
+        if (document.getElementById('table-form')) document.getElementById('table-form').style.display = 'none';
+    };
+}
+

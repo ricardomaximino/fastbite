@@ -27,20 +27,26 @@ public interface OrderService {
 
     void publishEvent(Object event);
 
-    default void createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus, OrderChannel orderChannel, String orderLanguage) {
-        var order  = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage);
+    default void createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
+            OrderChannel orderChannel, String orderLanguage, String tableId, String userId) {
+        var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, tableId, userId);
         create(order);
         publishEvent(new OrderStatusChangedEvent(order));
     }
 
-    default void moveToNextStatus(String id){
+    default void createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
+            OrderChannel orderChannel, String orderLanguage) {
+        createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, null, null);
+    }
+
+    default void moveToNextStatus(String id) {
         var order = findById(id).orElseThrow(() -> new RuntimeException("Not Found"));
         var newOrder = order.next();
         update(id, newOrder);
         publishEvent(new OrderStatusChangedEvent(newOrder));
     }
 
-    default void cancelOrder(String id, String cancelReason){
+    default void cancelOrder(String id, String cancelReason) {
         var order = findById(id).orElseThrow(() -> new RuntimeException("Not Found"));
         var cancelledOrder = order.cancel(cancelReason);
         update(id, cancelledOrder);

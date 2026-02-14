@@ -62,6 +62,15 @@
                                 th:text="#{backoffice.products.list.title}">Products</span>
                             <span class="badge bg-primary float-end" id="products-count">0</span>
                         </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="nav-tables"
+                            onclick="showSection('tables')">
+                            <i class="fas fa-table me-2"></i> <span>Tables</span>
+                            <span class="badge bg-primary float-end" id="tables-count">0</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="nav-payment"
+                            onclick="showSection('payment')">
+                            <i class="fas fa-credit-card me-2"></i> <span>Payment</span>
+                        </a>
                     </div>
 
                     <h6 class="text-muted mb-3 mt-4" th:text="#{backoffice.quick.actions}">QUICK ACTIONS</h6>
@@ -198,8 +207,8 @@
                                                 th:text="#{backoffice.customizations.type.checkbox}">Checkbox (Multiple
                                                 choice)</option>
                                             <option value="quantity"
-                                                th:text="#{backoffice.customizations.type.quantity}">Quantity
-                                                (Add/Remove)</option>
+                                                th:text="#{backoffice.customizations.type.quantity}">Quantity (Counter)
+                                            </option>
                                         </select>
                                     </div>
 

@@ -120,6 +120,8 @@ public class OrderServiceJpaImpl implements OrderService {
         entity.setPaymentStatus(order.paymentStatus());
         entity.setOrderChannel(order.orderChannel());
         entity.setOrderLanguage(orderLang);
+        entity.setTableId(order.tableId());
+        entity.setUserId(order.userId());
 
         // Convert items
         if (order.items() != null) {
@@ -232,7 +234,9 @@ public class OrderServiceJpaImpl implements OrderService {
                 entity.getCancelReason(),
                 entity.getPaymentStatus(),
                 entity.getOrderChannel(),
-                entity.getOrderLanguage());
+                entity.getOrderLanguage(),
+                entity.getTableId(),
+                entity.getUserId());
     }
 
     /**

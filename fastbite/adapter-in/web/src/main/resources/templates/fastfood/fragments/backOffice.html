@@ -261,4 +261,87 @@
     </div>
 </div>
 
+<!-- Tables List -->
+<div th:fragment="tables-list" th:remove="tag">
+    <div th:if="${#lists.isEmpty(tables)}" class="text-center text-muted py-5">
+        <i class="fas fa-table fa-3x mb-3"></i>
+        <p>No tables found</p>
+    </div>
+    <div th:each="table : ${tables}" class="cart-item mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">
+                    <i class="fas fa-table me-2"></i>
+                    <span th:text="${table.name}">Table Name</span>
+                </h5>
+                <div class="small">
+                    <span class="badge bg-secondary">Capacity: <span th:text="${table.capacity}">0</span></span>
+                    <span th:class="|badge ${table.active ? 'bg-success' : 'bg-secondary'}|"
+                        th:text="${table.active ? 'Active' : 'Inactive'}">Active</span>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" th:onclick="|editTable('${table.id}')|">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" th:onclick="|deleteTable('${table.id}')|">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Section Fragment -->
+<div th:fragment="payment-section" th:remove="tag">
+    <div class="card product-card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Payment Configuration</h5>
+        </div>
+        <div class="card-body">
+            <form id="paymentConfigForm">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Active Payment Modes</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="CASH" id="mode-cash"
+                                th:checked="${#lists.contains(paymentConfig.activeModes, 'CASH')}">
+                            <label class="form-check-label" for="mode-cash">Cash</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="CARD" id="mode-card"
+                                th:checked="${#lists.contains(paymentConfig.activeModes, 'CARD')}">
+                            <label class="form-check-label" for="mode-card">Credit/Debit Card</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Money Images (for quick payment)</label>
+                    <div id="payment-money-images-list" class="row g-2 mb-2">
+                        <div th:each="img, iter : ${paymentConfig.moneyImages}" class="col-md-3">
+                            <div class="card h-100 position-relative">
+                                <img th:src="${img}" class="card-img-top p-2"
+                                    style="height: 60px; object-fit: contain;">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                    th:onclick="|removeMoneyImage(${iter.index})|">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <input type="hidden" name="moneyImages" th:value="${img}">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openPaymentImageSelector()">
+                        <i class="fas fa-plus me-1"></i> Add Image
+                    </button>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i> Save Configuration
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 </html>

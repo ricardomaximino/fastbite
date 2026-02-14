@@ -1,0 +1,37 @@
+package es.brasatech.fastbite.mongodb.payment;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.List;
+
+@Document(collection = "payment_configs")
+public class PaymentConfigDocument {
+    @Id
+    private String id;
+    private List<String> activeModes;
+    private List<String> moneyImages;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public List<String> getActiveModes() {
+        return activeModes;
+    }
+
+    public void setActiveModes(List<String> activeModes) {
+        this.activeModes = activeModes;
+    }
+
+    public List<String> getMoneyImages() {
+        return moneyImages;
+    }
+
+    public void setMoneyImages(List<String> moneyImages) {
+        this.moneyImages = moneyImages;
+    }
+}

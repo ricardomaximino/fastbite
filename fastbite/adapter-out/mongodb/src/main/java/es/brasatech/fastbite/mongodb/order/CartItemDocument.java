@@ -1,6 +1,6 @@
 package es.brasatech.fastbite.mongodb.order;
 
-import es.brasatech.fastbite.order.mongodb.ProductCustomizerDocument;
+import es.brasatech.fastbite.mongodb.order.ProductCustomizerDocument;
 
 import java.math.BigDecimal;
 import java.util.List;

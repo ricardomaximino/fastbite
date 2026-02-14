@@ -25,6 +25,8 @@ public class OrderDocument {
     private OrderPaymentStatus paymentStatus;
     private OrderChannel orderChannel;
     private String orderLanguage;
+    private String tableId;
+    private String userId;
 
     public String getId() {
         return id;
@@ -112,5 +114,21 @@ public class OrderDocument {
 
     public void setOrderLanguage(String orderLanguage) {
         this.orderLanguage = orderLanguage;
+    }
+
+    public String getTableId() {
+        return tableId;
+    }
+
+    public void setTableId(String tableId) {
+        this.tableId = tableId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

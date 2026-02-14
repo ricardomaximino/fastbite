@@ -1,4 +1,4 @@
-package es.brasatech.fastbite.order.mongodb;
+package es.brasatech.fastbite.mongodb.order;
 
 import java.math.BigDecimal;
 

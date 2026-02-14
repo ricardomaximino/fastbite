@@ -11,7 +11,7 @@ import es.brasatech.fastbite.mongodb.customization.CustomizationDocument;
 import es.brasatech.fastbite.mongodb.customization.CustomizationMongoRepository;
 import es.brasatech.fastbite.mongodb.customization.CustomizationOptionTranslationDocument;
 import es.brasatech.fastbite.mongodb.customization.CustomizationOptionTranslationMongoRepository;
-import es.brasatech.fastbite.order.mongodb.ProductCustomizerDocument;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
@@ -93,8 +93,10 @@ public class OrderServiceMongoImpl implements OrderService {
     }
 
     /**
-     * Convert Order to OrderDocument, ensuring all ProductCustomizer names are in default language.
-     * If order language is not default, translate names to default language before saving.
+     * Convert Order to OrderDocument, ensuring all ProductCustomizer names are in
+     * default language.
+     * If order language is not default, translate names to default language before
+     * saving.
      */
     private OrderDocument toDocumentWithDefaultLanguage(Order order) {
         String defaultLang = i18nConfig.getDefaultLanguage();
@@ -111,6 +113,8 @@ public class OrderServiceMongoImpl implements OrderService {
         document.setPaymentStatus(order.paymentStatus());
         document.setOrderChannel(order.orderChannel());
         document.setOrderLanguage(orderLang);
+        document.setTableId(order.tableId());
+        document.setUserId(order.userId());
 
         // Convert items
         if (order.items() != null) {
@@ -184,7 +188,8 @@ public class OrderServiceMongoImpl implements OrderService {
     }
 
     /**
-     * Convert OrderDocument to Order, translating ProductCustomizer names if needed.
+     * Convert OrderDocument to Order, translating ProductCustomizer names if
+     * needed.
      */
     private Order toOrderWithTranslation(OrderDocument document) {
         String defaultLang = i18nConfig.getDefaultLanguage();
@@ -211,8 +216,7 @@ public class OrderServiceMongoImpl implements OrderService {
                                 customizerDoc.getId(),
                                 name,
                                 customizerDoc.getPrice(),
-                                customizerDoc.getQuantity()
-                        );
+                                customizerDoc.getQuantity());
                         customizers.add(customizer);
                     }
                 }
@@ -225,8 +229,7 @@ public class OrderServiceMongoImpl implements OrderService {
                         itemDoc.getImage(),
                         itemDoc.getQuantity(),
                         customizers,
-                        itemDoc.getPrice()
-                );
+                        itemDoc.getPrice());
                 items.add(item);
             }
         }
@@ -242,12 +245,14 @@ public class OrderServiceMongoImpl implements OrderService {
                 document.getCancelReason(),
                 document.getPaymentStatus(),
                 document.getOrderChannel(),
-                document.getOrderLanguage()
-        );
+                document.getOrderLanguage(),
+                document.getTableId(),
+                document.getUserId());
     }
 
     /**
-     * Get translated name for a customization option, with fallback to default language.
+     * Get translated name for a customization option, with fallback to default
+     * language.
      */
     private String getTranslatedName(String optionId, String language, String defaultName) {
         return optionTranslationRepository.findByOptionIdAndLanguage(optionId, language)

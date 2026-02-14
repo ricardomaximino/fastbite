@@ -17,17 +17,19 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
-                        .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation", "/api/create-order", "/order-confirmation/**").permitAll()
+                        .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation",
+                                "/api/create-order", "/order-confirmation/**")
+                        .permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**")
                         .permitAll()
                         .requestMatchers("/login", "/error").permitAll()
 
                         // Dashboard access (all staff roles)
-                        .requestMatchers("/dashboard/**", "/api/order/**")
+                        .requestMatchers("/dashboard/**", "/counter/**", "/api/order/**", "/api/counter/**")
                         .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER")
 
                         // BackOffice access (admin and manager only)
-                        .requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/backoffice/**", "/api/backoffice/**").hasAnyRole("ADMIN", "MANAGER")
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
