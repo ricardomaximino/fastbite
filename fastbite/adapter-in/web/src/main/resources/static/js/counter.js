@@ -1,9 +1,11 @@
 // POS Logic
 let products = [];
 let categories = [];
+let allCustomizations = [];
 let cart = [];
 let selectedTable = null;
 let selectedGroup = 'all';
+let currentEditingItemIndex = null;
 
 // CSRF tokens
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -32,6 +34,16 @@ async function loadInitialData() {
         if (groupRes.ok) {
             const data = await groupRes.json();
             categories = data.map(d => ({
+                id: d.id,
+                ...d.customFields
+            }));
+        }
+
+        // Load customizations
+        const custRes = await fetch('/api/backoffice/customizations');
+        if (custRes.ok) {
+            const data = await custRes.json();
+            allCustomizations = data.map(d => ({
                 id: d.id,
                 ...d.customFields
             }));
@@ -117,6 +129,9 @@ function setupEventListeners() {
 
     // Complete order
     document.getElementById('btn-complete-order').addEventListener('click', submitOrder);
+
+    // Customization modal submit
+    document.getElementById('btn-add-with-customs').addEventListener('click', saveCustomizations);
 }
 
 function calculateChange() {
@@ -169,7 +184,7 @@ function renderProducts(filter = '') {
         const card = document.createElement('div');
         card.className = 'col-md-3 col-6';
         card.innerHTML = `
-            <div class="card product-card h-100" onclick="addToCart('${p.id}')">
+            <div class="card product-card h-100" onclick="handleProductClick('${p.id}')">
                 <img src="${p.image || '/images/placeholder.png'}" class="card-img-top" alt="${p.name}">
                 <div class="card-body p-2">
                     <h6 class="card-title text-truncate mb-1">${p.name}</h6>
@@ -181,26 +196,35 @@ function renderProducts(filter = '') {
     });
 }
 
-function addToCart(productId) {
+function handleProductClick(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    // For simplicity, add directly. If it has customizations, we should show modal.
-    // In this premium flow, we'll just add as a new item.
+    if (product.customizations && product.customizations.length > 0) {
+        currentEditingItemIndex = null;
+        showCustomizationModal(product);
+    } else {
+        addToCart(productId);
+    }
+}
 
-    const existing = cart.find(item => item.productId === productId && (!item.customizations || item.customizations.length === 0));
+function addToCart(productId, quantity = 1, customizations = []) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-    if (existing) {
-        existing.quantity++;
+    if (currentEditingItemIndex !== null) {
+        cart[currentEditingItemIndex].quantity = quantity;
+        cart[currentEditingItemIndex].customizations = customizations;
+        currentEditingItemIndex = null;
     } else {
         cart.push({
             id: btoa(Math.random()).substring(0, 8),
             productId: product.id,
-            itemId: product.id, // DTO expectation
+            itemId: product.id,
             name: product.name,
             price: product.price,
-            quantity: 1,
-            customizations: []
+            quantity: quantity,
+            customizations: customizations
         });
     }
 
@@ -224,17 +248,23 @@ function updateCartUI() {
                 <div class="cart-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold">${item.name}</span>
-                        <span>${formatPrice(item.price * item.quantity)}</span>
+                        <span>${formatPrice(calculateItemPrice(item) * item.quantity)}</span>
                     </div>
+                    ${item.customizations.length > 0 ? `<div class="small text-muted mb-2">${item.customizations.map(c => c.name).join(', ')}</div>` : ''}
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-secondary" onclick="updateQty(${index}, -1)">-</button>
                             <span class="px-3 border-top border-bottom d-flex align-items-center">${item.quantity}</span>
                             <button class="btn btn-outline-secondary" onclick="updateQty(${index}, 1)">+</button>
                         </div>
-                        <button class="btn btn-link text-danger p-0" onclick="removeItem(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="d-flex gap-2">
+                             <button class="btn btn-link text-primary p-0" onclick="editItem(${index})">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="btn btn-link text-danger p-0" onclick="removeItem(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -246,6 +276,23 @@ function updateCartUI() {
     const total = calculateTotal();
     document.getElementById('cart-subtotal').textContent = formatPrice(total);
     document.getElementById('cart-total').textContent = formatPrice(total);
+}
+
+function calculateItemPrice(item) {
+    let price = item.price;
+    if (item.customizations) {
+        item.customizations.forEach(c => {
+            price += (c.price || 0);
+        });
+    }
+    return price;
+}
+
+function editItem(index) {
+    const item = cart[index];
+    const product = products.find(p => p.id === item.productId);
+    currentEditingItemIndex = index;
+    showCustomizationModal(product, item.customizations);
 }
 
 function updateQty(index, delta) {
@@ -262,7 +309,7 @@ function removeItem(index) {
 }
 
 function calculateTotal() {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return cart.reduce((sum, item) => sum + (calculateItemPrice(item) * item.quantity), 0);
 }
 
 function formatPrice(val) {
@@ -311,3 +358,68 @@ async function submitOrder() {
         btn.innerHTML = 'COMPLETE ORDER';
     }
 }
+
+function showCustomizationModal(product, currentCustomizations = []) {
+    currentProduct = product;
+    document.getElementById('product-modal-name').textContent = `Customize ${product.name}`;
+    const optionsContainer = document.getElementById('customization-options');
+    optionsContainer.innerHTML = '';
+
+    if (!product.customizations) return;
+
+    product.customizations.forEach(custId => {
+        const customization = allCustomizations.find(c => c.id === custId);
+        if (!customization) return;
+
+        const section = document.createElement('div');
+        section.className = 'mb-4';
+        section.innerHTML = `<h6 class="fw-bold border-bottom pb-2">${customization.name}</h6>`;
+
+        customization.options.forEach((opt, idx) => {
+            const isSelected = currentCustomizations.some(c => c.id === `${custId}-opt-${idx}`);
+            const inputId = `${custId}-opt-${idx}`;
+
+            const div = document.createElement('div');
+            div.className = 'form-check mb-2';
+            div.innerHTML = `
+                <input class="form-check-input customization-input" 
+                       type="${customization.type === 'SINGLE' ? 'radio' : 'checkbox'}" 
+                       name="${custId}" 
+                       id="${inputId}" 
+                       value="${opt.name}"
+                       data-price="${opt.price}"
+                       ${isSelected ? 'checked' : ''}>
+                <label class="form-check-label d-flex justify-content-between w-100" for="${inputId}">
+                    <span>${opt.name}</span>
+                    <span class="text-muted">${opt.price > 0 ? '+' + formatPrice(opt.price) : ''}</span>
+                </label>
+            `;
+            section.appendChild(div);
+        });
+
+        optionsContainer.appendChild(section);
+    });
+
+    const modal = new bootstrap.Modal(document.getElementById('customizationModal'));
+    modal.show();
+}
+
+function saveCustomizations() {
+    const customizations = [];
+    const inputs = document.querySelectorAll('.customization-input:checked');
+
+    inputs.forEach(input => {
+        customizations.push({
+            id: input.id,
+            name: input.value,
+            price: parseFloat(input.dataset.price || 0)
+        });
+    });
+
+    const productId = currentProduct.id;
+    addToCart(productId, 1, customizations);
+
+    bootstrap.Modal.getInstance(document.getElementById('customizationModal')).hide();
+}
+
+let currentProduct = null;
