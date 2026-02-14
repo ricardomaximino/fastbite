@@ -197,15 +197,7 @@ function renderProducts(filter = '') {
 }
 
 function handleProductClick(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    if (product.customizations && product.customizations.length > 0) {
-        currentEditingItemIndex = null;
-        showCustomizationModal(product);
-    } else {
-        addToCart(productId);
-    }
+    addToCart(productId);
 }
 
 function addToCart(productId, quantity = 1, customizations = []) {
@@ -244,6 +236,9 @@ function updateCartUI() {
     } else {
         let html = '';
         cart.forEach((item, index) => {
+            const product = products.find(p => p.id === item.productId);
+            const hasCustomizations = product && product.customizations && product.customizations.length > 0;
+
             html += `
                 <div class="cart-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -258,7 +253,9 @@ function updateCartUI() {
                             <button class="btn btn-outline-secondary" onclick="updateQty(${index}, 1)">+</button>
                         </div>
                         <div class="d-flex gap-2">
-                             <button class="btn btn-link text-primary p-0" onclick="editItem(${index})">
+                             <button class="btn btn-link text-primary p-0 ${!hasCustomizations ? 'disabled opacity-25' : ''}" 
+                                     onclick="${hasCustomizations ? `editItem(${index})` : ''}"
+                                     ${!hasCustomizations ? 'disabled' : ''}>
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                             <button class="btn btn-link text-danger p-0" onclick="removeItem(${index})">
