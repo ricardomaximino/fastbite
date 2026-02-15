@@ -95,6 +95,19 @@ body {
     color: white;
 }
 
+#btn-clear-cart {
+    border-color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 8px;
+}
+
+#btn-clear-cart:hover {
+    background-color: var(--pos-primary);
+    border-color: var(--pos-primary);
+    color: white;
+}
+
 .cart-items {
     flex: 1;
     overflow-y: auto;

@@ -109,6 +109,13 @@ function setupEventListeners() {
     // Assign to table button
     document.getElementById('btn-assign-table').addEventListener('click', () => submitOrder(false));
 
+    // Clear cart button
+    document.getElementById('btn-clear-cart').addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear the current order?')) {
+            resetPOS();
+        }
+    });
+
     // Billing button
     document.getElementById('btn-billing').addEventListener('click', () => generateBilling());
 
