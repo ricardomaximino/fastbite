@@ -2,11 +2,15 @@ package es.brasatech.fastbite.mongodb.order;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.domain.product.ProductCustomizerI18n;
+import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.mongodb.customization.CustomizationDocument;
 import es.brasatech.fastbite.mongodb.customization.CustomizationMongoRepository;
 import es.brasatech.fastbite.mongodb.customization.CustomizationOptionTranslationDocument;
@@ -35,6 +39,7 @@ public class OrderServiceMongoImpl implements OrderService {
     private final CustomizationMongoRepository customizationRepository;
     private final CustomizationOptionTranslationMongoRepository optionTranslationRepository;
     private final I18nConfig i18nConfig;
+    private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -80,6 +85,22 @@ public class OrderServiceMongoImpl implements OrderService {
     @Override
     public void clear() {
         repository.deleteAll();
+    }
+
+    @Override
+    public List<Order> findActiveByTableId(String tableId) {
+        return repository.findByTableIdAndStatusNotIn(tableId, List.of(OrderStatus.COMPLETE, OrderStatus.CANCELLED))
+                .stream()
+                .map(this::toOrderWithTranslation)
+                .toList();
+    }
+
+    @Override
+    public void setTableStatus(String tableId, TableStatus status) {
+        tableService.findById(tableId).ifPresent(table -> {
+            Table updatedTable = new Table(table.id(), table.name(), table.seats(), status, table.active());
+            tableService.update(tableId, updatedTable);
+        });
     }
 
     @Override

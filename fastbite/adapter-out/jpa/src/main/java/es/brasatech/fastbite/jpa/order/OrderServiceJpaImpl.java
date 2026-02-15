@@ -2,6 +2,7 @@ package es.brasatech.fastbite.jpa.order;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
@@ -10,6 +11,9 @@ import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
+import es.brasatech.fastbite.domain.order.OrderStatus;
+import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
@@ -35,6 +39,7 @@ public class OrderServiceJpaImpl implements OrderService {
     private final CustomizationOptionJpaRepository optionRepository;
     private final CustomizationOptionTranslationJpaRepository optionTranslationRepository;
     private final I18nConfig i18nConfig;
+    private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -80,6 +85,22 @@ public class OrderServiceJpaImpl implements OrderService {
     @Override
     public void clear() {
         repository.deleteAll();
+    }
+
+    @Override
+    public List<Order> findActiveByTableId(String tableId) {
+        return repository.findByTableIdAndStatusNotIn(tableId, List.of(OrderStatus.COMPLETE, OrderStatus.CANCELLED))
+                .stream()
+                .map(this::toOrderWithTranslation)
+                .toList();
+    }
+
+    @Override
+    public void setTableStatus(String tableId, TableStatus status) {
+        tableService.findById(tableId).ifPresent(table -> {
+            Table updatedTable = new Table(table.id(), table.name(), table.seats(), status, table.active());
+            tableService.update(tableId, updatedTable);
+        });
     }
 
     @Override

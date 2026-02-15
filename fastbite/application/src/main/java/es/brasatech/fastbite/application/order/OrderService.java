@@ -3,6 +3,7 @@ package es.brasatech.fastbite.application.order;
 import es.brasatech.fastbite.domain.event.OrderStatusChangedEvent;
 import es.brasatech.fastbite.domain.order.*;
 import es.brasatech.fastbite.domain.product.ProductCustomizerI18n;
+import es.brasatech.fastbite.domain.table.TableStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,10 @@ public interface OrderService {
     boolean delete(String id);
 
     void clear();
+
+    List<Order> findActiveByTableId(String tableId);
+
+    void setTableStatus(String tableId, TableStatus status);
 
     // ===== I18n Methods =====
 

@@ -6,6 +6,7 @@ let cart = [];
 let selectedTable = null;
 let selectedGroup = 'all';
 let currentEditingItemIndex = null;
+let editingOrderId = null;
 
 // CSRF tokens
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -76,21 +77,37 @@ function setupEventListeners() {
         modal.show();
     });
 
-    document.getElementById('tables-list').addEventListener('click', (e) => {
+    document.getElementById('tables-list').addEventListener('click', async (e) => {
         const btn = e.target.closest('.table-btn');
         if (!btn || btn.classList.contains('opacity-50')) return;
 
-        selectedTable = {
-            id: btn.dataset.id,
-            name: btn.dataset.name
-        };
+        const tableId = btn.dataset.id;
+        const tableName = btn.dataset.name;
+        const status = btn.dataset.status;
 
-        document.querySelectorAll('.table-btn').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('selected-table-name').textContent = `Table: ${selectedTable.name}`;
-
-        bootstrap.Modal.getInstance(document.getElementById('tableModal')).hide();
+        if (status === 'OCCUPIED' || status === 'BILLING') {
+            document.getElementById('active-orders-table-name').textContent = tableName;
+            selectedTable = { id: tableId, name: tableName };
+            await loadTableOrders(tableId);
+            bootstrap.Modal.getInstance(document.getElementById('tableModal')).hide();
+            new bootstrap.Modal(document.getElementById('activeOrdersModal')).show();
+        } else {
+            selectAvailableTable(tableId, tableName);
+            bootstrap.Modal.getInstance(document.getElementById('tableModal')).hide();
+        }
     });
+
+    // New order for table button
+    document.getElementById('btn-new-order-table').addEventListener('click', () => {
+        selectAvailableTable(selectedTable.id, selectedTable.name);
+        bootstrap.Modal.getInstance(document.getElementById('activeOrdersModal')).hide();
+    });
+
+    // Save order button
+    document.getElementById('btn-save-order').addEventListener('click', () => saveOrder());
+
+    // Billing button
+    document.getElementById('btn-billing').addEventListener('click', () => generateBilling());
 
     // Payment method switch
     document.querySelectorAll('.payment-method-btn').forEach(btn => {
@@ -139,6 +156,119 @@ function calculateChange() {
     const received = parseFloat(document.getElementById('received-amount').value || 0);
     const change = Math.max(0, received - total);
     document.getElementById('payment-change').textContent = formatPrice(change);
+}
+
+function selectAvailableTable(id, name) {
+    selectedTable = { id, name };
+    document.getElementById('selected-table-name').textContent = `Table: ${name}`;
+    document.querySelectorAll('.table-btn').forEach(el => {
+        el.classList.toggle('active', el.dataset.id === id);
+    });
+}
+
+async function loadTableOrders(tableId) {
+    try {
+        const res = await fetch(`/counter/api/tables/${tableId}/active-orders`);
+        if (res.ok) {
+            const orders = await res.json();
+            const list = document.getElementById('active-orders-list');
+            list.innerHTML = '';
+
+            orders.forEach(order => {
+                const item = document.createElement('button');
+                item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    <div>
+                        <div class="fw-bold">Order #${order.orderNumber}</div>
+                        <small class="text-muted">${new Date(order.createdAt).toLocaleTimeString()} - ${order.items.length} items</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">${formatPrice(order.total)}</span>
+                `;
+                item.onclick = () => loadOrderIntoCart(order);
+                list.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading table orders:', error);
+    }
+}
+
+function loadOrderIntoCart(order) {
+    editingOrderId = order.id;
+    cart = order.items.map(item => ({
+        id: item.id || btoa(Math.random()).substring(0, 8),
+        productId: item.itemId,
+        itemId: item.itemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        customizations: item.customizations || []
+    }));
+
+    document.getElementById('cart-actions-new').classList.add('d-none');
+    document.getElementById('cart-actions-edit').classList.remove('d-none');
+    updateCartUI();
+    bootstrap.Modal.getInstance(document.getElementById('activeOrdersModal')).hide();
+}
+
+async function saveOrder() {
+    if (!editingOrderId) return;
+
+    const request = {
+        items: cart,
+        tableId: selectedTable ? selectedTable.id : null,
+        paid: false // Saving updates doesn't mean payment yet
+    };
+
+    try {
+        const res = await fetch(`/counter/api/orders/${editingOrderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(request)
+        });
+
+        if (res.ok) {
+            alert('Order updated successfully!');
+            resetPOS();
+        } else {
+            alert('Error updating order');
+        }
+    } catch (error) {
+        console.error('Error saving order:', error);
+    }
+}
+
+async function generateBilling() {
+    if (!selectedTable) return;
+    try {
+        const res = await fetch(`/counter/api/tables/${selectedTable.id}/status?status=BILLING`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+        if (res.ok) {
+            alert('Table set to BILLING status');
+            resetPOS();
+        }
+    } catch (error) {
+        console.error('Error updating table status:', error);
+    }
+}
+
+function resetPOS() {
+    cart = [];
+    selectedTable = null;
+    editingOrderId = null;
+    document.getElementById('selected-table-name').textContent = 'Assign Table';
+    document.getElementById('cart-actions-new').classList.remove('d-none');
+    document.getElementById('cart-actions-edit').classList.add('d-none');
+    updateCartUI();
+    // Reload tables to reflect new statuses
+    location.reload(); // Simplest way to refresh table statuses from model
 }
 
 function renderAll() {
@@ -360,12 +490,17 @@ async function submitOrder() {
 
         if (res.ok) {
             const data = await res.json();
+
+            // If it's a new order with a table, set table to OCCUPIED via API or refresh
+            if (request.tableId) {
+                await fetch(`/counter/api/tables/${request.tableId}/status?status=OCCUPIED`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
+                });
+            }
+
             alert(`Order #${data.orderNumber} created successfully!`);
-            cart = [];
-            selectedTable = null;
-            document.getElementById('selected-table-name').textContent = 'Assign Table';
-            updateCartUI();
-            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            resetPOS();
         } else {
             alert('Error creating order');
         }

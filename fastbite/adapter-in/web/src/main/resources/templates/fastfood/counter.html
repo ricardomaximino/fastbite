@@ -85,9 +85,19 @@
                     <span>TOTAL</span>
                     <span id="cart-total">€0,00</span>
                 </div>
-                <button class="btn btn-pos-primary btn-pay" id="btn-proceed-payment" disabled>
-                    <i class="fas fa-credit-card me-2"></i> PAY NOW
-                </button>
+                <div class="d-flex gap-2" id="cart-actions-new">
+                    <button class="btn btn-pos-primary btn-pay flex-grow-1" id="btn-proceed-payment" disabled>
+                        <i class="fas fa-credit-card me-2"></i> PAY NOW
+                    </button>
+                </div>
+                <div class="d-flex gap-2 d-none" id="cart-actions-edit">
+                    <button class="btn btn-warning flex-grow-1 py-3 fw-bold" id="btn-save-order">
+                        <i class="fas fa-save me-2"></i> SAVE
+                    </button>
+                    <button class="btn btn-info flex-grow-1 py-3 fw-bold text-white" id="btn-billing">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> BILLING
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -105,9 +115,12 @@
                         <!-- Tables from model -->
                         <div th:each="table : ${tables}" class="table-btn"
                             th:classappend="${table.active ? '' : 'opacity-50 pointer-events-none'}"
-                            th:data-id="${table.id}" th:data-name="${table.name}">
+                            th:data-id="${table.id}" th:data-name="${table.name}" th:data-status="${table.status}">
+                            <div class="status-indicator"
+                                th:classappend="${'status-' + table.status.name().toLowerCase()}"></div>
                             <i class="fas fa-chair mb-1"></i><br>
                             <span th:text="${table.name}">T1</span>
+                            <div class="table-status-label small" th:text="${table.status}">AVAILABLE</div>
                         </div>
                     </div>
                 </div>
@@ -194,6 +207,28 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary w-100" id="btn-add-with-customs">Add to Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Orders Modal -->
+    <div class="modal fade" id="activeOrdersModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Active Orders - <span id="active-orders-table-name">Table</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="active-orders-list" class="list-group">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary w-100" id="btn-new-order-table">
+                        <i class="fas fa-plus me-2"></i>New Order for this Table
+                    </button>
                 </div>
             </div>
         </div>
