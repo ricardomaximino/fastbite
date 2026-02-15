@@ -106,6 +106,9 @@ function setupEventListeners() {
     // Save order button
     document.getElementById('btn-save-order').addEventListener('click', () => saveOrder());
 
+    // Assign to table button
+    document.getElementById('btn-assign-table').addEventListener('click', () => submitOrder(false));
+
     // Billing button
     document.getElementById('btn-billing').addEventListener('click', () => generateBilling());
 
@@ -145,7 +148,7 @@ function setupEventListeners() {
     });
 
     // Complete order
-    document.getElementById('btn-complete-order').addEventListener('click', submitOrder);
+    document.getElementById('btn-complete-order').addEventListener('click', () => submitOrder());
 
     // Customization modal submit
     document.getElementById('btn-add-with-customs').addEventListener('click', saveCustomizations);
@@ -164,6 +167,7 @@ function selectAvailableTable(id, name) {
     document.querySelectorAll('.table-btn').forEach(el => {
         el.classList.toggle('active', el.dataset.id === id);
     });
+    updateCartUI(); // Refresh buttons state
 }
 
 async function loadTableOrders(tableId) {
@@ -385,6 +389,7 @@ function updateCartUI() {
             </div>
         `;
         document.getElementById('btn-proceed-payment').disabled = true;
+        document.getElementById('btn-assign-table').disabled = true;
     } else {
         let html = '';
         cart.forEach((item, index) => {
@@ -420,6 +425,7 @@ function updateCartUI() {
         });
         container.innerHTML = html;
         document.getElementById('btn-proceed-payment').disabled = false;
+        document.getElementById('btn-assign-table').disabled = !selectedTable || cart.length === 0;
     }
 
     const total = calculateTotal();
@@ -465,16 +471,18 @@ function formatPrice(val) {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 }
 
-async function submitOrder() {
-    const method = document.querySelector('.payment-method-btn.active').dataset.method;
+async function submitOrder(paid = true) {
+    const method = paid ? document.querySelector('.payment-method-btn.active').dataset.method : 'CASH';
     const request = {
         items: cart,
         tableId: selectedTable ? selectedTable.id : null,
         paymentMethod: method,
-        paid: true // In counter, usually paid immediately
+        paid: paid
     };
 
-    const btn = document.getElementById('btn-complete-order');
+    const btn = paid ? document.getElementById('btn-complete-order') : document.getElementById('btn-assign-table');
+    const originalHtml = btn.innerHTML;
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
 
@@ -491,7 +499,7 @@ async function submitOrder() {
         if (res.ok) {
             const data = await res.json();
 
-            // If it's a new order with a table, set table to OCCUPIED via API or refresh
+            // If it's a new order with a table, set table to OCCUPIED via API
             if (request.tableId) {
                 await fetch(`/counter/api/tables/${request.tableId}/status?status=OCCUPIED`, {
                     method: 'POST',
@@ -500,6 +508,9 @@ async function submitOrder() {
             }
 
             alert(`Order #${data.orderNumber} created successfully!`);
+            if (paid) {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            }
             resetPOS();
         } else {
             alert('Error creating order');
@@ -509,7 +520,7 @@ async function submitOrder() {
         alert('Exception while submitting order');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = 'COMPLETE ORDER';
+        btn.innerHTML = originalHtml;
     }
 }
 
