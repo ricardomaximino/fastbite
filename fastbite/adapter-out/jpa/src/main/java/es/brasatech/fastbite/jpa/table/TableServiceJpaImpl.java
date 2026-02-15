@@ -34,7 +34,9 @@ public class TableServiceJpaImpl implements TableService {
     @Override
     public Table create(Table table) {
         TableEntity entity = new TableEntity();
-        entity.setId(table.id());
+        if (table.id() != null && !table.id().isEmpty()) {
+            entity.setId(table.id());
+        }
         entity.setName(table.name());
         entity.setSeats(table.seats());
         entity.setStatus(table.status());

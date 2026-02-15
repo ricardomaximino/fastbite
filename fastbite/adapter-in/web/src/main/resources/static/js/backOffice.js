@@ -210,6 +210,8 @@ function updateCounts() {
     document.getElementById('groups-count').textContent = groups.length;
     document.getElementById('customizations-count').textContent = customizations.length;
     document.getElementById('products-count').textContent = products.length;
+    const tablesCount = document.getElementById('tables-count');
+    if (tablesCount) tablesCount.textContent = tables.length;
 }
 
 // Cancel form
@@ -217,6 +219,10 @@ function cancelForm() {
     document.getElementById('group-form').style.display = 'none';
     document.getElementById('customization-form').style.display = 'none';
     document.getElementById('product-form').style.display = 'none';
+    const tableList = document.getElementById('tables-list');
+    const tableFormContainer = document.getElementById('table-form-container');
+    if (tableList) tableList.style.display = 'block';
+    if (tableFormContainer) tableFormContainer.innerHTML = '';
     editingId = null;
 }
 

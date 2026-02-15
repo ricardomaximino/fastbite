@@ -1,16 +1,13 @@
 package es.brasatech.fastbite.jpa.table;
 
+import jakarta.persistence.*;
 import es.brasatech.fastbite.domain.table.TableStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity(name = "Table")
 @Table(name = "dining_tables")
 public class TableEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
     private int seats;
