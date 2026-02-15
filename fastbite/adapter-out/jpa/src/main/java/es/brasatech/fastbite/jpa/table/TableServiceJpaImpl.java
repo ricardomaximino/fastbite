@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,6 +21,7 @@ import java.util.Optional;
 @Transactional
 public class TableServiceJpaImpl implements TableService {
     private final TableJpaRepository repository;
+    private final TableTranslationJpaRepository translationRepository;
     private final I18nConfig i18nConfig;
 
     @Override
@@ -66,22 +69,43 @@ public class TableServiceJpaImpl implements TableService {
 
     @Override
     public Optional<TableI18n> findI18nById(String id) {
-        // Simple implementation for now, assuming name is stored in default language
         return repository.findById(id).map(entity -> {
-            I18nField name = new I18nField();
-            name.set(i18nConfig.getDefaultLanguage(), entity.getName());
-            return new TableI18n(entity.getId(), name, entity.getSeats(), entity.getStatus(), entity.isActive());
+            List<TableTranslationEntity> translations = translationRepository.findAllByTableId(id);
+
+            Map<String, String> nameMap = new HashMap<>();
+            nameMap.put(i18nConfig.getDefaultLanguage(), entity.getName());
+            for (TableTranslationEntity translation : translations) {
+                if (translation.getName() != null) {
+                    nameMap.put(translation.getLanguage(), translation.getName());
+                }
+            }
+
+            return new TableI18n(entity.getId(), new I18nField(nameMap), entity.getSeats(), entity.getStatus(),
+                    entity.isActive());
         });
     }
 
     @Override
     public void updateI18n(String id, TableI18n i18n) {
         repository.findById(id).ifPresent(entity -> {
-            entity.setName(i18n.name().getDefault(i18nConfig.getDefaultLanguage()));
+            String defaultLang = i18nConfig.getDefaultLanguage();
+
+            // Update main entity with default language value
+            entity.setName(i18n.name().getDefault(defaultLang));
             entity.setSeats(i18n.seats());
             entity.setStatus(i18n.status());
             entity.setActive(i18n.active());
             repository.save(entity);
+
+            // Update translations
+            translationRepository.deleteByTableId(id);
+
+            Map<String, String> nameTranslations = i18n.name().getAll();
+            nameTranslations.forEach((lang, value) -> {
+                if (!lang.equals(defaultLang) && value != null && !value.isEmpty()) {
+                    translationRepository.save(new TableTranslationEntity(entity, lang, value));
+                }
+            });
         });
     }
 

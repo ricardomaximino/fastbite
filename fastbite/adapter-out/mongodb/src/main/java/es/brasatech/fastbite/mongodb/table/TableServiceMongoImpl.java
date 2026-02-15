@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -17,6 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TableServiceMongoImpl implements TableService {
     private final TableMongoRepository repository;
+    private final TableTranslationMongoRepository translationRepository;
     private final I18nConfig i18nConfig;
 
     @Override
@@ -63,9 +66,17 @@ public class TableServiceMongoImpl implements TableService {
     @Override
     public Optional<TableI18n> findI18nById(String id) {
         return repository.findById(id).map(document -> {
-            I18nField name = new I18nField();
-            name.set(i18nConfig.getDefaultLanguage(), document.getName());
-            return new TableI18n(document.getId(), name, document.getSeats(), document.getStatus(),
+            List<TableTranslationDocument> translations = translationRepository.findAllByTableId(id);
+
+            Map<String, String> nameMap = new HashMap<>();
+            nameMap.put(i18nConfig.getDefaultLanguage(), document.getName());
+            for (TableTranslationDocument translation : translations) {
+                if (translation.getName() != null) {
+                    nameMap.put(translation.getLanguage(), translation.getName());
+                }
+            }
+
+            return new TableI18n(document.getId(), new I18nField(nameMap), document.getSeats(), document.getStatus(),
                     document.isActive());
         });
     }
@@ -73,11 +84,24 @@ public class TableServiceMongoImpl implements TableService {
     @Override
     public void updateI18n(String id, TableI18n i18n) {
         repository.findById(id).ifPresent(document -> {
-            document.setName(i18n.name().getDefault(i18nConfig.getDefaultLanguage()));
+            String defaultLang = i18nConfig.getDefaultLanguage();
+
+            // Update main document with default language value
+            document.setName(i18n.name().getDefault(defaultLang));
             document.setSeats(i18n.seats());
             document.setStatus(i18n.status());
             document.setActive(i18n.active());
             repository.save(document);
+
+            // Update translations
+            translationRepository.deleteByTableId(id);
+
+            Map<String, String> nameTranslations = i18n.name().getAll();
+            nameTranslations.forEach((lang, value) -> {
+                if (!lang.equals(defaultLang) && value != null && !value.isEmpty()) {
+                    translationRepository.save(new TableTranslationDocument(id, lang, value));
+                }
+            });
         });
     }
 

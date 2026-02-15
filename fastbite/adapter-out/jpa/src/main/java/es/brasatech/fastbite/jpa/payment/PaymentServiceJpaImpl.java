@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Profile("jpa")
@@ -30,11 +31,13 @@ public class PaymentServiceJpaImpl implements PaymentService {
         PaymentConfigEntity entity = repository.findById(PaymentConfig.DEFAULT_ID)
                 .orElse(new PaymentConfigEntity());
         entity.setId(PaymentConfig.DEFAULT_ID);
-        entity.setActiveModes(config.activeModes());
+
+        // Wrap in ArrayList to ensure mutability for Hibernate
+        entity.setActiveModes(new ArrayList<>(config.activeModes()));
 
         List<MoneyDenominationEmbeddable> embeddables = config.moneyDenominations().stream()
                 .map(this::toEmbeddable)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
         entity.setMoneyDenominations(embeddables);
 
         repository.save(entity);
