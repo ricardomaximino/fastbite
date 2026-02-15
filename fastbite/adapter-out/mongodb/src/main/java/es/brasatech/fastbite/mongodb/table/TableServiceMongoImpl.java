@@ -34,7 +34,8 @@ public class TableServiceMongoImpl implements TableService {
         TableDocument document = new TableDocument();
         document.setId(table.id());
         document.setName(table.name());
-        document.setCapacity(table.capacity());
+        document.setSeats(table.seats());
+        document.setStatus(table.status());
         document.setActive(table.active());
         return toDomain(repository.save(document));
     }
@@ -43,7 +44,8 @@ public class TableServiceMongoImpl implements TableService {
     public Optional<Table> update(String id, Table table) {
         return repository.findById(id).map(document -> {
             document.setName(table.name());
-            document.setCapacity(table.capacity());
+            document.setSeats(table.seats());
+            document.setStatus(table.status());
             document.setActive(table.active());
             return toDomain(repository.save(document));
         });
@@ -63,7 +65,8 @@ public class TableServiceMongoImpl implements TableService {
         return repository.findById(id).map(document -> {
             I18nField name = new I18nField();
             name.set(i18nConfig.getDefaultLanguage(), document.getName());
-            return new TableI18n(document.getId(), name, document.getCapacity(), document.isActive());
+            return new TableI18n(document.getId(), name, document.getSeats(), document.getStatus(),
+                    document.isActive());
         });
     }
 
@@ -71,13 +74,15 @@ public class TableServiceMongoImpl implements TableService {
     public void updateI18n(String id, TableI18n i18n) {
         repository.findById(id).ifPresent(document -> {
             document.setName(i18n.name().getDefault(i18nConfig.getDefaultLanguage()));
-            document.setCapacity(i18n.capacity());
+            document.setSeats(i18n.seats());
+            document.setStatus(i18n.status());
             document.setActive(i18n.active());
             repository.save(document);
         });
     }
 
     private Table toDomain(TableDocument document) {
-        return new Table(document.getId(), document.getName(), document.getCapacity(), document.isActive());
+        return new Table(document.getId(), document.getName(), document.getSeats(), document.getStatus(),
+                document.isActive());
     }
 }

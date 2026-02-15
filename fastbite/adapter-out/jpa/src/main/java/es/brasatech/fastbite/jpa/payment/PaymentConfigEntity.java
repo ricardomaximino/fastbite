@@ -15,9 +15,8 @@ public class PaymentConfigEntity {
     private List<String> activeModes;
 
     @ElementCollection
-    @CollectionTable(name = "payment_money_images", joinColumns = @JoinColumn(name = "config_id"))
-    @Column(name = "image_path")
-    private List<String> moneyImages;
+    @CollectionTable(name = "money_denominations", joinColumns = @JoinColumn(name = "config_id"))
+    private List<MoneyDenominationEmbeddable> moneyDenominations;
 
     public String getId() {
         return id;
@@ -35,11 +34,11 @@ public class PaymentConfigEntity {
         this.activeModes = activeModes;
     }
 
-    public List<String> getMoneyImages() {
-        return moneyImages;
+    public List<MoneyDenominationEmbeddable> getMoneyDenominations() {
+        return moneyDenominations;
     }
 
-    public void setMoneyImages(List<String> moneyImages) {
-        this.moneyImages = moneyImages;
+    public void setMoneyDenominations(List<MoneyDenominationEmbeddable> moneyDenominations) {
+        this.moneyDenominations = moneyDenominations;
     }
 }

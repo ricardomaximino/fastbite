@@ -155,18 +155,18 @@
                         <div class="col-md-6">
                             <h6 class="text-muted mb-3">Quick Cash</h6>
                             <div class="money-grid">
-                                <div th:each="image : ${paymentConfig.moneyImages}" class="money-btn"
-                                    th:data-value="${image.replaceAll('[^0-9]', '')}">
-                                    <img th:src="${image}" alt="cash">
+                                <div th:each="denom : ${paymentConfig.moneyDenominations}" class="money-btn"
+                                    th:data-value="${denom.value}">
+                                    <img th:src="${denom.image}" alt="cash">
                                 </div>
                                 <!-- Fallback if no images -->
-                                <button th:if="${paymentConfig.moneyImages.isEmpty()}"
+                                <button th:if="${paymentConfig.moneyDenominations.isEmpty()}"
                                     class="btn btn-outline-secondary money-btn-val" data-value="5">5€</button>
-                                <button th:if="${paymentConfig.moneyImages.isEmpty()}"
+                                <button th:if="${paymentConfig.moneyDenominations.isEmpty()}"
                                     class="btn btn-outline-secondary money-btn-val" data-value="10">10€</button>
-                                <button th:if="${paymentConfig.moneyImages.isEmpty()}"
+                                <button th:if="${paymentConfig.moneyDenominations.isEmpty()}"
                                     class="btn btn-outline-secondary money-btn-val" data-value="20">20€</button>
-                                <button th:if="${paymentConfig.moneyImages.isEmpty()}"
+                                <button th:if="${paymentConfig.moneyDenominations.isEmpty()}"
                                     class="btn btn-outline-secondary money-btn-val" data-value="50">50€</button>
                             </div>
                         </div>

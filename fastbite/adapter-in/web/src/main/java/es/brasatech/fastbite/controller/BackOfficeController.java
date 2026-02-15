@@ -81,4 +81,23 @@ public class BackOfficeController {
         return "fastfood/fragments/backOffice :: selector-list";
     }
 
+    @PostMapping("/api/backoffice/fragments/tables-list")
+    public String getTablesList(@RequestBody List<Map<String, Object>> tables, Model model) {
+        model.addAttribute("tables", tables);
+        return "fastfood/fragments/backOffice :: tables-list";
+    }
+
+    @PostMapping("/api/backoffice/fragments/table-form")
+    public String getTableForm(@RequestBody Map<String, Object> payload, Model model) {
+        model.addAttribute("table", payload.get("table"));
+        model.addAttribute("statuses", payload.get("statuses"));
+        return "fastfood/fragments/backOffice :: table-form";
+    }
+
+    @PostMapping("/api/backoffice/fragments/payment-section")
+    public String getPaymentSection(@RequestBody Map<String, Object> payload, Model model) {
+        model.addAttribute("paymentConfig", payload.get("paymentConfig"));
+        return "fastfood/fragments/backOffice :: payment-section";
+    }
+
 }

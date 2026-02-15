@@ -36,7 +36,8 @@ public class TableServiceJpaImpl implements TableService {
         TableEntity entity = new TableEntity();
         entity.setId(table.id());
         entity.setName(table.name());
-        entity.setCapacity(table.capacity());
+        entity.setSeats(table.seats());
+        entity.setStatus(table.status());
         entity.setActive(table.active());
         return toDomain(repository.save(entity));
     }
@@ -45,7 +46,8 @@ public class TableServiceJpaImpl implements TableService {
     public Optional<Table> update(String id, Table table) {
         return repository.findById(id).map(entity -> {
             entity.setName(table.name());
-            entity.setCapacity(table.capacity());
+            entity.setSeats(table.seats());
+            entity.setStatus(table.status());
             entity.setActive(table.active());
             return toDomain(repository.save(entity));
         });
@@ -66,7 +68,7 @@ public class TableServiceJpaImpl implements TableService {
         return repository.findById(id).map(entity -> {
             I18nField name = new I18nField();
             name.set(i18nConfig.getDefaultLanguage(), entity.getName());
-            return new TableI18n(entity.getId(), name, entity.getCapacity(), entity.isActive());
+            return new TableI18n(entity.getId(), name, entity.getSeats(), entity.getStatus(), entity.isActive());
         });
     }
 
@@ -74,13 +76,14 @@ public class TableServiceJpaImpl implements TableService {
     public void updateI18n(String id, TableI18n i18n) {
         repository.findById(id).ifPresent(entity -> {
             entity.setName(i18n.name().getDefault(i18nConfig.getDefaultLanguage()));
-            entity.setCapacity(i18n.capacity());
+            entity.setSeats(i18n.seats());
+            entity.setStatus(i18n.status());
             entity.setActive(i18n.active());
             repository.save(entity);
         });
     }
 
     private Table toDomain(TableEntity entity) {
-        return new Table(entity.getId(), entity.getName(), entity.getCapacity(), entity.isActive());
+        return new Table(entity.getId(), entity.getName(), entity.getSeats(), entity.getStatus(), entity.isActive());
     }
 }

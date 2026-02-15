@@ -1,5 +1,6 @@
 package es.brasatech.fastbite.mongodb.table;
 
+import es.brasatech.fastbite.domain.table.TableStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,7 +9,8 @@ public class TableDocument {
     @Id
     private String id;
     private String name;
-    private int capacity;
+    private int seats;
+    private TableStatus status;
     private boolean active;
 
     public String getId() {
@@ -27,12 +29,20 @@ public class TableDocument {
         this.name = name;
     }
 
-    public int getCapacity() {
-        return capacity;
+    public int getSeats() {
+        return seats;
     }
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
+    public void setSeats(int seats) {
+        this.seats = seats;
+    }
+
+    public TableStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TableStatus status) {
+        this.status = status;
     }
 
     public boolean isActive() {

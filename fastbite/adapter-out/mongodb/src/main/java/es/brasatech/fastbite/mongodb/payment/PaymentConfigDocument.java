@@ -1,5 +1,6 @@
 package es.brasatech.fastbite.mongodb.payment;
 
+import es.brasatech.fastbite.domain.payment.MoneyDenomination;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
@@ -9,7 +10,7 @@ public class PaymentConfigDocument {
     @Id
     private String id;
     private List<String> activeModes;
-    private List<String> moneyImages;
+    private List<MoneyDenomination> moneyDenominations;
 
     public String getId() {
         return id;
@@ -27,11 +28,11 @@ public class PaymentConfigDocument {
         this.activeModes = activeModes;
     }
 
-    public List<String> getMoneyImages() {
-        return moneyImages;
+    public List<MoneyDenomination> getMoneyDenominations() {
+        return moneyDenominations;
     }
 
-    public void setMoneyImages(List<String> moneyImages) {
-        this.moneyImages = moneyImages;
+    public void setMoneyDenominations(List<MoneyDenomination> moneyDenominations) {
+        this.moneyDenominations = moneyDenominations;
     }
 }

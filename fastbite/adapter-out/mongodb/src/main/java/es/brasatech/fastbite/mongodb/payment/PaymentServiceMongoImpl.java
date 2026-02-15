@@ -27,11 +27,11 @@ public class PaymentServiceMongoImpl implements PaymentService {
                 .orElse(new PaymentConfigDocument());
         document.setId(PaymentConfig.DEFAULT_ID);
         document.setActiveModes(config.activeModes());
-        document.setMoneyImages(config.moneyImages());
+        document.setMoneyDenominations(config.moneyDenominations());
         repository.save(document);
     }
 
     private PaymentConfig toDomain(PaymentConfigDocument document) {
-        return new PaymentConfig(document.getId(), document.getActiveModes(), document.getMoneyImages());
+        return new PaymentConfig(document.getId(), document.getActiveModes(), document.getMoneyDenominations());
     }
 }

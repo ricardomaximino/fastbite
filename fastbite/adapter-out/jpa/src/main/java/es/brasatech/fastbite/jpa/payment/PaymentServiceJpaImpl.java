@@ -1,6 +1,7 @@
 package es.brasatech.fastbite.jpa.payment;
 
 import es.brasatech.fastbite.application.payment.PaymentService;
+import es.brasatech.fastbite.domain.payment.MoneyDenomination;
 import es.brasatech.fastbite.domain.payment.PaymentConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Profile("jpa")
@@ -29,11 +31,27 @@ public class PaymentServiceJpaImpl implements PaymentService {
                 .orElse(new PaymentConfigEntity());
         entity.setId(PaymentConfig.DEFAULT_ID);
         entity.setActiveModes(config.activeModes());
-        entity.setMoneyImages(config.moneyImages());
+
+        List<MoneyDenominationEmbeddable> embeddables = config.moneyDenominations().stream()
+                .map(this::toEmbeddable)
+                .toList();
+        entity.setMoneyDenominations(embeddables);
+
         repository.save(entity);
     }
 
     private PaymentConfig toDomain(PaymentConfigEntity entity) {
-        return new PaymentConfig(entity.getId(), entity.getActiveModes(), entity.getMoneyImages());
+        List<MoneyDenomination> denominations = entity.getMoneyDenominations().stream()
+                .map(emb -> new MoneyDenomination(emb.getValue(), emb.getImage(), emb.getType()))
+                .toList();
+        return new PaymentConfig(entity.getId(), entity.getActiveModes(), denominations);
+    }
+
+    private MoneyDenominationEmbeddable toEmbeddable(MoneyDenomination domain) {
+        MoneyDenominationEmbeddable emb = new MoneyDenominationEmbeddable();
+        emb.setValue(domain.value());
+        emb.setImage(domain.image());
+        emb.setType(domain.type());
+        return emb;
     }
 }

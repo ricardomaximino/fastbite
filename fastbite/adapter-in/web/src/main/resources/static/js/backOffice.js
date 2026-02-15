@@ -131,7 +131,8 @@ async function loadData() {
             tables = tablesData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
-                capacity: data.customFields.capacity,
+                seats: data.customFields.seats,
+                status: data.customFields.status,
                 active: data.customFields.active
             }));
         }
@@ -140,6 +141,7 @@ async function loadData() {
         const paymentResponse = await fetch('/api/backoffice/payment');
         if (paymentResponse.ok) {
             paymentConfig = await paymentResponse.json();
+            if (!paymentConfig.moneyDenominations) paymentConfig.moneyDenominations = [];
         }
 
         renderAll();
@@ -964,69 +966,74 @@ function manageCustomizationTranslations(customizationId) {
     window.location.assign(`/backoffice/translations/customizations/${customizationId}`);
 }
 
-// TABLES MANAGEMENT
+/**
+ * Navigate to table translations page
+ */
+function manageTableTranslations(tableId) {
+    window.location.assign(`/backoffice/translations/tables/${tableId}`);
+}
+
+// === TABLES MANAGEMENT ===
+
 async function renderTablesList() {
     const list = document.getElementById('tables-list');
     if (!list) return;
-    list.innerHTML = await fetchFragment('/backoffice/fragments/tables', { tables });
+    list.innerHTML = await fetchFragment('/api/backoffice/fragments/tables-list', tables);
 }
 
-function showTableForm() {
-    editingId = null;
-    document.getElementById('table-form-title').textContent = 'Create New Table';
-    document.getElementById('tableFormElement').reset();
-    document.getElementById('table-id').value = '';
-    document.getElementById('table-active').checked = true;
+async function showTableForm(tableId = null) {
+    editingId = tableId;
+    const container = document.getElementById('table-form-container');
+    const list = document.getElementById('tables-list');
 
-    document.getElementById('tables-list').style.display = 'none';
-    document.getElementById('table-form').style.display = 'block';
-}
+    // Hide list while editing
+    list.style.display = 'none';
 
-function editTable(id) {
-    const table = tables.find(t => t.id === id);
-    if (!table) return;
-
-    editingId = id;
-    document.getElementById('table-form-title').textContent = 'Edit Table';
-    document.getElementById('table-id').value = table.id;
-    document.getElementById('table-name').value = table.name;
-    document.getElementById('table-capacity').value = table.capacity;
-    document.getElementById('table-active').checked = table.active;
-
-    document.getElementById('tables-list').style.display = 'none';
-    document.getElementById('table-form').style.display = 'block';
-}
-
-async function deleteTable(id) {
-    if (!confirm('Are you sure you want to delete this table?')) return;
-
-    try {
-        const res = await fetch(`/api/backoffice/tables/${id}`, {
-            method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': getCsrfToken() }
-        });
-        if (res.ok) {
-            loadData();
-        }
-    } catch (error) {
-        console.error('Error deleting table:', error);
+    let table = null;
+    if (tableId) {
+        table = tables.find(t => t.id === tableId);
     }
+
+    container.innerHTML = await fetchFragment('/api/backoffice/fragments/table-form', {
+        table: table,
+        statuses: ['AVAILABLE', 'OCCUPIED', 'BILLING']
+    });
+
+    // Populate fields if editing
+    if (table) {
+        document.getElementById('table-form-title').textContent = 'Edit Table';
+        document.getElementById('table-id').value = table.id;
+        document.getElementById('table-name').value = table.name;
+        document.getElementById('table-seats').value = table.seats;
+        document.getElementById('table-status').value = table.status;
+        document.getElementById('table-active').checked = table.active;
+    }
+
+    // Add submit listener
+    const form = document.getElementById('tableFormElement');
+    if (form) {
+        form.addEventListener('submit', handleTableSubmit);
+    }
+
+    container.scrollIntoView({ behavior: 'smooth' });
 }
 
 async function handleTableSubmit(e) {
     e.preventDefault();
+
     const id = document.getElementById('table-id').value;
     const tableData = {
         name: document.getElementById('table-name').value,
-        capacity: parseInt(document.getElementById('table-capacity').value),
+        seats: parseInt(document.getElementById('table-seats').value),
+        status: document.getElementById('table-status').value,
         active: document.getElementById('table-active').checked
     };
 
-    const url = id ? `/api/backoffice/tables/${id}` : '/api/backoffice/tables';
-    const method = id ? 'PUT' : 'POST';
-
     try {
-        const res = await fetch(url, {
+        const url = id ? `/api/backoffice/tables/${id}` : '/api/backoffice/tables';
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
@@ -1034,56 +1041,151 @@ async function handleTableSubmit(e) {
             },
             body: JSON.stringify(tableData)
         });
-        if (res.ok) {
-            // Hide form and show list
-            document.getElementById('tables-list').style.display = 'block';
-            document.getElementById('table-form').style.display = 'none';
-            loadData();
+
+        if (response.ok) {
+            await loadData();
+            cancelForm();
+            showToast('Table saved successfully!');
+        } else {
+            showToast('Error saving table', 'error');
         }
     } catch (error) {
         console.error('Error saving table:', error);
+        showToast('Error saving table', 'error');
     }
 }
 
-// PAYMENT MANAGEMENT
-async function renderPaymentConfig() {
-    const content = document.getElementById('payment-config-content');
-    if (!content) return;
-    content.innerHTML = await fetchFragment('/backoffice/fragments/payment', { paymentConfig });
-
-    // Add event listener to the newly rendered form
-    const form = document.getElementById('paymentConfigForm');
-    if (form) form.addEventListener('submit', handlePaymentConfigSubmit);
+function editTable(id) {
+    showTableForm(id);
 }
 
-function removeMoneyImage(index) {
-    paymentConfig.moneyImages.splice(index, 1);
+async function deleteTable(id) {
+    if (confirm('Are you sure you want to delete this table?')) {
+        try {
+            const response = await fetch(`/api/backoffice/tables/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            if (response.ok) {
+                await loadData();
+                showToast('Table deleted successfully!');
+            } else {
+                showToast('Error deleting table', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting table:', error);
+            showToast('Error deleting table', 'error');
+        }
+    }
+}
+
+// === PAYMENT MANAGEMENT ===
+
+async function renderPaymentConfig() {
+    const container = document.getElementById('payment-config-container');
+    if (!container) return;
+
+    container.innerHTML = await fetchFragment('/api/backoffice/fragments/payment-section', {
+        paymentConfig: paymentConfig
+    });
+
+    // Handle form submission
+    const form = document.getElementById('paymentConfigForm');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const modes = [];
+            if (document.getElementById('mode-cash').checked) modes.push('CASH');
+            if (document.getElementById('mode-card').checked) modes.push('CARD');
+
+            try {
+                const response = await fetch('/api/backoffice/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        activeModes: modes,
+                        moneyDenominations: paymentConfig.moneyDenominations
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Payment configuration saved successfully!');
+                    loadData();
+                } else {
+                    showToast('Error saving payment configuration', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving payment config:', error);
+                showToast('Error saving payment config', 'error');
+            }
+        });
+    }
+}
+
+function addDenomination() {
+    const value = document.getElementById('new-denom-value').value;
+    const type = document.getElementById('new-denom-type').value;
+    const image = document.getElementById('new-denom-image').value;
+
+    if (!value || !image) {
+        showToast('Please provide value and image for the denomination', 'warning');
+        return;
+    }
+
+    if (!paymentConfig.moneyDenominations) paymentConfig.moneyDenominations = [];
+
+    paymentConfig.moneyDenominations.push({
+        value: parseFloat(value),
+        type: type,
+        image: image
+    });
+
+    // Re-render to show updated list
+    renderPaymentConfig();
+
+    // Clear inputs
+    document.getElementById('new-denom-value').value = '';
+    document.getElementById('new-denom-image').value = '';
+}
+
+function removeDenomination(index) {
+    paymentConfig.moneyDenominations.splice(index, 1);
     renderPaymentConfig();
 }
 
-function openPaymentImageSelector() {
-    const url = prompt('Enter image URL for money (e.g. /images/cash/5euro.png):');
-    if (url) {
-        if (!paymentConfig.moneyImages) paymentConfig.moneyImages = [];
-        paymentConfig.moneyImages.push(url);
-        renderPaymentConfig();
-    }
+let denomImageCallback = null;
+
+function openDenomImageSelector() {
+    // Reuse the image selector modal
+    const modal = new bootstrap.Modal(document.getElementById('imageSelectorModal'));
+
+    // Override the selectImage function temporarily or use a specific callback
+    const originalSelectImage = window.selectImage;
+    window.selectImage = function (url) {
+        document.getElementById('new-denom-image').value = url;
+        // Restore original
+        window.selectImage = originalSelectImage;
+        modal.hide();
+    };
+
+    loadSystemImages();
+    loadUserImages();
+    modal.show();
 }
 
-// Wrap cancelForm if it exists
-if (typeof window.cancelForm === 'function') {
-    const originalCancel = window.cancelForm;
-    window.cancelForm = function () {
-        if (document.getElementById('tables-list')) document.getElementById('tables-list').style.display = 'block';
-        if (document.getElementById('table-form')) document.getElementById('table-form').style.display = 'none';
-        originalCancel();
-    };
-} else {
-    window.cancelForm = function () {
-        document.querySelectorAll('.section-content > div[id$="-form"]').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.section-content > div[id$="-list"]').forEach(el => el.style.display = 'block');
-        if (document.getElementById('tables-list')) document.getElementById('tables-list').style.display = 'block';
-        if (document.getElementById('table-form')) document.getElementById('table-form').style.display = 'none';
-    };
-}
+// Override cancelForm to handle table list visibility
+const originalCancelForm = cancelForm;
+window.cancelForm = function () {
+    const tableList = document.getElementById('tables-list');
+    const tableFormContainer = document.getElementById('table-form-container');
+    if (tableList) tableList.style.display = 'block';
+    if (tableFormContainer) tableFormContainer.innerHTML = '';
+    originalCancelForm();
+};
 

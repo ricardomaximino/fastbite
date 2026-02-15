@@ -2,34 +2,43 @@ package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.dto.office.BackOfficeDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
-@RequestMapping("/backoffice/tables")
+@RequestMapping("/api/backoffice/tables")
 @RequiredArgsConstructor
 public class BackOfficeTableController {
 
     private final TableService tableService;
 
     @GetMapping
-    public String listTables(Model model) {
-        model.addAttribute("tables", tableService.findAll());
-        return "fastfood/backOffice :: tables-section"; // This might need a new fragment
+    @ResponseBody
+    public ResponseEntity<List<BackOfficeDto<Table>>> listTables() {
+        List<Table> tables = tableService.findAll();
+        List<BackOfficeDto<Table>> response = tables.stream()
+                .map(table -> BackOfficeDto.of(table.id(), table))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
     @ResponseBody
-    public Table createTable(@RequestBody Table table) {
-        return tableService.create(table);
+    public BackOfficeDto<Table> createTable(@RequestBody Table table) {
+        Table created = tableService.create(table);
+        return BackOfficeDto.of(created.id(), created);
     }
 
     @PutMapping("/{id}")
     @ResponseBody
-    public Table updateTable(@PathVariable String id, @RequestBody Table table) {
-        return tableService.update(id, table).orElseThrow(() -> new RuntimeException("Table not found"));
+    public BackOfficeDto<Table> updateTable(@PathVariable String id, @RequestBody Table table) {
+        Table updated = tableService.update(id, table).orElseThrow(() -> new RuntimeException("Table not found"));
+        return BackOfficeDto.of(updated.id(), updated);
     }
 
     @DeleteMapping("/{id}")
