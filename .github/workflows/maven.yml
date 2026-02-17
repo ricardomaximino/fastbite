@@ -3,9 +3,9 @@ name: Java CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "kebab" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "kebab" ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
