@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCartDisplay();
 });
 
+function formatPrice(price) {
+    return parseFloat(price).toFixed(2);
+}
+
 // Render menu items
 function handleAddEventListener() {
     // Navbar
@@ -239,10 +243,11 @@ function showCustomizationModal(itemId, customizations) {
 
     // Update submit button text
     const submitBtn = document.getElementById('customizationSubmitBtn');
+    const dictionary = document.getElementById('dictionary');
     if (currentCustomization.editId) {
-        submitBtn.textContent = document.getElementById('dictionary').dataset.dictionaryConfirmAndSubmitBtn || 'Update Item';
+        submitBtn.textContent = dictionary.dataset.buttonUpdateItem || 'Update Item';
     } else {
-        submitBtn.textContent = document.getElementById('customizationSubmitBtn').getAttribute('th:text') || 'Add to Cart';
+        submitBtn.textContent = dictionary.dataset.buttonAddToCart || 'Add to Cart';
     }
 
     const modal = new bootstrap.Modal(document.getElementById('customizationsModal'));
@@ -347,7 +352,8 @@ function addToCart(itemId, quantity, customizations) {
             cartItem.quantity = quantity;
             cartItem.customizations = customizations;
             updateCartDisplay();
-            showToast(`${name} updated!`);
+            const msg = (document.getElementById('dictionary').dataset.itemUpdated || '{0} updated!').replace('{0}', name);
+            showToast(msg);
             currentCustomization = {};
             return;
         }
@@ -366,7 +372,8 @@ function addToCart(itemId, quantity, customizations) {
 
     cart.push(cartItem);
     updateCartDisplay();
-    showToast(`${name} added to cart!`);
+    const msg = (document.getElementById('dictionary').dataset.itemAdded || '{0} added to cart!').replace('{0}', name);
+    showToast(msg);
     currentCustomization = {};
 }
 
@@ -394,7 +401,7 @@ function updateCartItemQuantity(cartItemId, change) {
 function removeFromCart(cartItemId) {
     cart = cart.filter(item => item.id !== cartItemId);
     updateCartDisplay();
-    showToast('Item removed from cart');
+    showToast(document.getElementById('dictionary').dataset.itemRemoved || 'Item removed from cart');
 }
 
 // Toggle cart view
@@ -417,8 +424,26 @@ function toggleCart() {
 
 function loadCartData() {
     loadFragments(cartUrl)
-        .then(html => cartSection.innerHTML = html)
+        .then(html => {
+            cartSection.innerHTML = html;
+            disableNonCustomizableEditButtons();
+        })
         .catch(error => console.error('Error:', error));
+}
+
+function disableNonCustomizableEditButtons() {
+    const editButtons = document.querySelectorAll('.edit-cart-button');
+    editButtons.forEach(button => {
+        const productId = button.dataset.productId;
+        const productMetadata = document.getElementById(productId);
+        if (productMetadata) {
+            const customizations = productMetadata.dataset.customizations;
+            if (!customizations || customizations.trim() === '') {
+                button.disabled = true;
+                button.classList.add('opacity-50'); // Visual hint it's disabled
+            }
+        }
+    });
 }
 
 // Back to menu
@@ -476,8 +501,9 @@ function startNewOrder() {
 // Update step indicator
 function updateStep(step) {
     // Reset all steps
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
         const stepElement = document.getElementById(`step${i}`);
+        if (!stepElement) continue;
         stepElement.classList.remove('active', 'completed');
         if (i < step) {
             stepElement.classList.add('completed');

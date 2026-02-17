@@ -219,6 +219,8 @@ function cancelForm() {
     document.getElementById('group-form').style.display = 'none';
     document.getElementById('customization-form').style.display = 'none';
     document.getElementById('product-form').style.display = 'none';
+    const preview = document.getElementById('product-image-preview');
+    if (preview) preview.style.display = 'none';
     const tableList = document.getElementById('tables-list');
     const tableFormContainer = document.getElementById('table-form-container');
     if (tableList) tableList.style.display = 'block';
@@ -543,12 +545,21 @@ function showProductForm(productId = null) {
         document.getElementById('product-price').value = product.price;
         document.getElementById('product-description').value = product.description;
         document.getElementById('product-image').value = product.image || '';
-        document.getElementById('product-active').checked = product.active;
+        const preview = document.getElementById('product-image-preview');
+        const previewImg = document.getElementById('product-image-preview-img');
+        if (product.image) {
+            if (previewImg) previewImg.src = product.image;
+            if (preview) preview.style.display = 'block';
+        } else {
+            if (preview) preview.style.display = 'none';
+        }
         selectedCustomizationsForProduct = product.customizations ? [...product.customizations] : [];
         updateProductCustomizationsList();
     } else {
         title.textContent = 'Create New Product';
         document.getElementById('productFormElement').reset();
+        const preview = document.getElementById('product-image-preview');
+        if (preview) preview.style.display = 'none';
         selectedCustomizationsForProduct = [];
         updateProductCustomizationsList();
     }
@@ -761,12 +772,14 @@ function showToast(message, type = 'success') {
 
 // === IMAGE MANAGEMENT ===
 
-let selectedImageUrl = null;
+let imageSelectionCallback = null;
 
 /**
  * Open the image selector modal
+ * @param {Function} callback Optional callback to handle selection
  */
-function openImageSelector() {
+function openImageSelector(callback = null) {
+    imageSelectionCallback = callback;
     const modal = new bootstrap.Modal(document.getElementById('imageSelectorModal'));
 
     // Load images when modal opens
@@ -775,11 +788,15 @@ function openImageSelector() {
 
     // Setup upload form handler
     const uploadForm = document.getElementById('imageUploadForm');
-    uploadForm.onsubmit = handleImageUpload;
+    if (uploadForm) {
+        uploadForm.onsubmit = handleImageUpload;
+    }
 
     // Setup file input preview
     const fileInput = document.getElementById('imageFile');
-    fileInput.onchange = previewUploadImage;
+    if (fileInput) {
+        fileInput.onchange = previewUploadImage;
+    }
 
     modal.show();
 }
@@ -851,20 +868,21 @@ async function renderImageGallery(imagesByFolder, container, type) {
  * Select an image
  */
 function selectImage(imageUrl) {
-    selectedImageUrl = imageUrl;
+    if (imageSelectionCallback) {
+        imageSelectionCallback(imageUrl);
+    } else {
+        // Default product form behavior
+        document.getElementById('product-image').value = imageUrl;
 
-    // Update product form
-    document.getElementById('product-image').value = imageUrl;
-
-    // Update preview
-    const preview = document.getElementById('product-image-preview');
-    const previewImg = document.getElementById('product-image-preview-img');
-    previewImg.src = imageUrl;
-    preview.style.display = 'block';
+        const preview = document.getElementById('product-image-preview');
+        const previewImg = document.getElementById('product-image-preview-img');
+        if (previewImg) previewImg.src = imageUrl;
+        if (preview) preview.style.display = 'block';
+    }
 
     // Close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('imageSelectorModal'));
-    modal.hide();
+    if (modal) modal.hide();
 
     showToast('Image selected successfully!', 'success');
 }
@@ -1168,21 +1186,9 @@ function removeDenomination(index) {
 let denomImageCallback = null;
 
 function openDenomImageSelector() {
-    // Reuse the image selector modal
-    const modal = new bootstrap.Modal(document.getElementById('imageSelectorModal'));
-
-    // Override the selectImage function temporarily or use a specific callback
-    const originalSelectImage = window.selectImage;
-    window.selectImage = function (url) {
+    openImageSelector((url) => {
         document.getElementById('new-denom-image').value = url;
-        // Restore original
-        window.selectImage = originalSelectImage;
-        modal.hide();
-    };
-
-    loadSystemImages();
-    loadUserImages();
-    modal.show();
+    });
 }
 
 // Override cancelForm to handle table list visibility

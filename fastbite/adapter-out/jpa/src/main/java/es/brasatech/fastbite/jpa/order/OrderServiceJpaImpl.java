@@ -2,6 +2,7 @@ package es.brasatech.fastbite.jpa.order;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
@@ -10,6 +11,9 @@ import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
+import es.brasatech.fastbite.domain.order.OrderStatus;
+import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
@@ -35,6 +39,7 @@ public class OrderServiceJpaImpl implements OrderService {
     private final CustomizationOptionJpaRepository optionRepository;
     private final CustomizationOptionTranslationJpaRepository optionTranslationRepository;
     private final I18nConfig i18nConfig;
+    private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -64,8 +69,15 @@ public class OrderServiceJpaImpl implements OrderService {
         }
         OrderEntity entity = toEntityWithDefaultLanguage(order, true);
         entity.setId(id);
-        OrderEntity saved = repository.save(entity);
-        return Optional.of(toOrderWithTranslation(saved));
+        OrderEntity savedEntity = repository.save(entity);
+        var savedOrder = toOrderWithTranslation(savedEntity);
+
+        // Trigger table session reset check
+        tableService.findTableByOrderId(id).ifPresent(table -> {
+            tableService.resetTableSessionIfAllPaid(table.id());
+        });
+
+        return Optional.of(savedOrder);
     }
 
     @Override
@@ -80,6 +92,27 @@ public class OrderServiceJpaImpl implements OrderService {
     @Override
     public void clear() {
         repository.deleteAll();
+    }
+
+    @Override
+    public List<Order> findActiveByTableId(String tableId) {
+        return tableService.findById(tableId)
+                .map(table -> repository.findAllById(table.orderIds())
+                        .stream()
+                        .filter(order -> order.getStatus() != OrderStatus.COMPLETE
+                                && order.getStatus() != OrderStatus.CANCELLED)
+                        .map(this::toOrderWithTranslation)
+                        .toList())
+                .orElse(List.of());
+    }
+
+    @Override
+    public void setTableStatus(String tableId, TableStatus status) {
+        tableService.findById(tableId).ifPresent(table -> {
+            Table updatedTable = new Table(table.id(), table.name(), table.seats(), status, table.active(),
+                    table.orderIds());
+            tableService.update(tableId, updatedTable);
+        });
     }
 
     @Override
@@ -120,7 +153,6 @@ public class OrderServiceJpaImpl implements OrderService {
         entity.setPaymentStatus(order.paymentStatus());
         entity.setOrderChannel(order.orderChannel());
         entity.setOrderLanguage(orderLang);
-        entity.setTableId(order.tableId());
         entity.setUserId(order.userId());
 
         // Convert items
@@ -235,7 +267,6 @@ public class OrderServiceJpaImpl implements OrderService {
                 entity.getPaymentStatus(),
                 entity.getOrderChannel(),
                 entity.getOrderLanguage(),
-                entity.getTableId(),
                 entity.getUserId());
     }
 

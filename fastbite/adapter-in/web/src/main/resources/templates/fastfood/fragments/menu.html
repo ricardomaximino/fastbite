@@ -4,7 +4,7 @@
 <!-- Cart Section -->
 <div class="row" th:fragment="cart" id="cart">
     <div class="col-lg-8">
-        <h3>Tu pedido</h3>
+        <h3 th:text="#{label.your.order}">Tu pedido</h3>
         <div class="text-center text-muted py-5" th:if="${cart.size == 0}">
             <i class="fas fa-shopping-cart fa-3x mb-3"></i>
             <p th:text="#{message.your.cart.is.empty}">Your cart is empty</p>
@@ -26,19 +26,24 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <div class="quantity-control">
-                            <button class="quantity-btn btn-sm" th:data-item-id="${cartItem.id}"
-                                onclick="updateCartItemQuantity(this.dataset.itemId, -1)">-</button>
-                            <span class="mx-2" th:text="${cartItem.quantity}">1</span>
-                            <button class="quantity-btn btn-sm" th:data-item-id="${cartItem.id}"
-                                onclick="updateCartItemQuantity(this.dataset.itemId, 1)">+</button>
+                        <div class="quantity-control px-2 py-1">
+                            <button class="quantity-btn" th:data-item-id="${cartItem.id}"
+                                onclick="updateCartItemQuantity(this.dataset.itemId, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="small fw-bold" th:text="${cartItem.quantity}">1</span>
+                            <button class="quantity-btn" th:data-item-id="${cartItem.id}"
+                                onclick="updateCartItemQuantity(this.dataset.itemId, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <strong th:text="${cartItem.price}">12.99</strong>
+                        <strong th:text="${#numbers.formatDecimal(cartItem.price, 1, 2)}">12.99</strong>
                     </div>
                     <div class="col-md-2 text-end">
-                        <button class="btn btn-outline-primary btn-sm me-1" th:data-item-id="${cartItem.id}"
+                        <button class="btn btn-outline-primary btn-sm me-1 edit-cart-button"
+                            th:data-item-id="${cartItem.id}" th:data-product-id="${cartItem.itemId}"
                             onclick="editCartItem(this.dataset.itemId)">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
@@ -52,85 +57,122 @@
         </div>
     </div>
     <div class="col-lg-4">
-        <div class="order-summary">
-            <h4 class="mb-3">Resumen del pedido</h4>
+        <div class="summary-box shadow-sm border-0 bg-white">
+            <h4 class="mb-4 fw-bold"> <i class="fas fa-receipt text-primary me-2"></i> <span
+                    th:text="#{label.order.summary}">Resumen del pedido</span></h4>
+
             <div class="d-flex justify-content-between mb-2">
-                <span>Subtotal</span>
-                <span id="subtotal" th:text="${subtotal}">71.93</span>
+                <span class="text-muted" th:text="#{label.subtotal}">Subtotal</span>
+                <span id="subtotal" class="fw-bold" th:text="${#numbers.formatDecimal(subtotal, 1, 2)}">71.93</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
-                <span>Impuestos</span>
-                <span id="tax" th:text="${tax}">7.19</span>
+                <span class="text-muted" th:text="#{label.tax}">Impuestos</span>
+                <span id="tax" class="fw-bold text-info" th:text="${#numbers.formatDecimal(tax, 1, 2)}">7.19</span>
             </div>
-            <hr>
-            <div class="d-flex justify-content-between mb-3 fw-bold">
-                <span>Total</span>
-                <span id="total" th:text="${total}">71.93</span>
+
+            <div class="border-top my-3 border-2"></div>
+
+            <div class="d-flex justify-content-between mb-4 align-items-center">
+                <h4 class="m-0 fw-bold" th:text="#{label.total}">Total</h4>
+                <h4 id="total" class="m-0 fw-bold text-success" th:text="${#numbers.formatDecimal(total, 1, 2)}">71.93
+                </h4>
             </div>
-            <button class="btn btn-primary w-100 mb-2" id="cartCheckoutBtn" onclick="proceedToCheckout()"
-                th:disabled="${cart.size == 0}" th:text="#{button.proceed.to.checkout}">Ir a pagar</button>
-            <button class="btn btn-outline-secondary w-100" id="cartBackToMenuBtn" onclick="backToMenu()"
-                th:text="#{button.continue.shopping}">Seguir comprando</button>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-pos-primary btn-lg rounded-pill" id="cartCheckoutBtn"
+                    onclick="proceedToCheckout()" th:disabled="${cart.size == 0}"
+                    th:text="#{button.proceed.to.checkout}">Ir a pagar</button>
+                <button class="btn btn-outline-secondary rounded-pill" id="cartBackToMenuBtn" onclick="backToMenu()"
+                    th:text="#{button.continue.shopping}">Seguir comprando</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Confirmation Section -->
 <div class="row justify-content-center" th:fragment="confirmation" id="confirmation">
-    <div class="col-lg-8">
+    <div class="col-lg-10 col-xl-8">
         <div class="confirmation-card">
-            <h3 class="mb-4" th:text="#{label.order.confirmation}">Confirmación de pedido</h3>
+            <div class="confirmation-header">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h2 th:text="#{label.order.confirmation}">Confirmación de pedido</h2>
+                <p class="text-muted" th:text="#{message.review.order.details}">Por favor, revisa los detalles antes de
+                    finalizar.</p>
+            </div>
+
             <div id="confirmationDetails">
-                <div class="row">
-                    <div class="col-lg-8">
-                        <h5 class="mb-3" th:text="#{label.order.items}">Artículos del pedido</h5>
-
-                        <div th:each="cartItem : ${cart}">
-
-                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                <div>
-                                    <strong th:text="${cartItem.name}">Combo Kebab wrap (pequeño)</strong> x <strong
-                                        th:text="${cartItem.quantity}">1</strong>
-                                    <div class="mt-1" th:each="customization : ${cartItem.customizations}">
-                                        <span class="badge bg-light text-dark me-1"
-                                            th:text="${customization.name + (customization.price > 0 ? ' ('+ #numbers.formatDecimal(customization.price, 1, 2) + ')' : '')}">Salsa
-                                            blanca </span>
-                                    </div>
-                                </div>
-                                <div class="fw-bold" th:text="${cartItem.price}">12.99</div>
-                            </div>
-
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center mb-3">
+                            <h5 class="m-0 fw-bold"><i class="fas fa-list-ul me-2 text-primary"></i> <span
+                                    th:text="#{label.order.items}">Artículos del pedido</span></h5>
+                            <span class="badge bg-primary ms-2" th:text="${cart.size}">2</span>
                         </div>
 
+                        <div class="order-items-list">
+                            <div th:each="cartItem : ${cart}"
+                                class="d-flex align-items-center mb-3 p-3 rounded-3 bg-light border border-white shadow-sm">
+                                <img th:src="${cartItem.image}" class="rounded me-3"
+                                    style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 fw-bold" th:text="${cartItem.name}">Combo Kebab wrap</h6>
+                                        <span class="fw-bold text-primary"
+                                            th:text="${#numbers.formatDecimal(cartItem.price, 1, 2)}">12.99</span>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        <span th:text="#{label.quantity} + ':'">Cantidad:</span> <span
+                                            th:text="${cartItem.quantity}">1</span>
+                                    </div>
+                                    <div class="mt-2" th:each="customization : ${cartItem.customizations}">
+                                        <span class="badge bg-white text-dark border me-1"
+                                            th:text="${customization.name + (customization.price > 0 ? ' ('+ #numbers.formatDecimal(customization.price, 1, 2) + ')' : '')}">
+                                            Salsa blanca
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="bg-light p-3 rounded">
-                            <h5 class="mb-3" th:text="#{label.order.total}">Total del pedido</h5>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span th:text="#{label.subtotal}">Subtotal:</span>
-                                <span th:text="${subtotal}">62.96</span>
+
+                    <div class="col-lg-5">
+                        <div class="summary-box">
+                            <h5 class="mb-4 fw-bold"><i class="fas fa-calculator me-2 text-primary"></i> <span
+                                    th:text="#{label.order.total}">Total del pedido</span></h5>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted" th:text="#{label.subtotal} + ':'">Subtotal:</span>
+                                <span class="fw-bold" th:text="${#numbers.formatDecimal(subtotal, 1, 2)}">62.96</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span th:text="#{label.tax}">Impuestos (10%):</span>
-                                <span th:text="${tax}">6.30</span>
+
+                            <div class="d-flex justify-content-between mb-3 text-info">
+                                <span th:text="#{label.tax} + ' (10%):'">Impuestos:</span>
+                                <span class="fw-bold" th:text="${#numbers.formatDecimal(tax, 1, 2)}">6.30</span>
                             </div>
-                            <hr>
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span th:text="#{label.total}">Total:</span>
-                                <span th:text="${total}">62.96</span>
+
+                            <div class="border-top border-2 my-3"></div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-0">
+                                <h4 class="m-0 fw-bold" th:text="#{label.total}">TOTAL</h4>
+                                <h4 class="m-0 fw-bold text-success" th:text="${#numbers.formatDecimal(total, 1, 2)}">
+                                    62.96</h4>
                             </div>
+                        </div>
+
+                        <div class="d-grid gap-3 mt-4">
+                            <button class="btn btn-pos-primary btn-lg rounded-pill" id="submitOrderBtn"
+                                onclick="submitOrder()">
+                                <i class="fas fa-paper-plane me-2"></i> <span
+                                    th:text="#{button.confirm.submit.order}">Confirmar y enviar</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg rounded-pill" id="backToCartBtn"
+                                onclick="backToCart()">
+                                <i class="fas fa-edit me-2"></i> <span th:text="#{button.back.to.cart}">Modificar
+                                    carrito</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="mt-4">
-                <button class="btn btn-success btn-lg me-3" id="submitOrderBtn" onclick="submitOrder()">
-                    <i class="fas fa-check"></i> <span th:text="#{button.confirm.submit.order}">Confirmar y enviar
-                        pedido</span>
-                </button>
-                <button class="btn btn-outline-secondary btn-lg" id="backToCartBtn" onclick="backToCart()">
-                    <i class="fas fa-arrow-left"></i> <span th:text="#{button.back.to.cart}">Volver al carrito</span>
-                </button>
             </div>
         </div>
     </div>

@@ -5,6 +5,7 @@ import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableI18n;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class TableServiceJpaImpl implements TableService {
     private final TableJpaRepository repository;
     private final TableTranslationJpaRepository translationRepository;
     private final I18nConfig i18nConfig;
+    private final es.brasatech.fastbite.jpa.order.OrderJpaRepository orderRepository;
 
     @Override
     public List<Table> findAll() {
@@ -109,7 +111,67 @@ public class TableServiceJpaImpl implements TableService {
         });
     }
 
+    @Override
+    public void assignOrder(String tableId, String orderId) {
+        repository.findById(tableId).ifPresent(entity -> {
+            if (!entity.getOrderIds().contains(orderId)) {
+                entity.getOrderIds().add(orderId);
+                entity.setStatus(TableStatus.OCCUPIED);
+                repository.save(entity);
+            }
+        });
+    }
+
+    @Override
+    public void unassignOrder(String tableId, String orderId) {
+        repository.findById(tableId).ifPresent(entity -> {
+            entity.getOrderIds().remove(orderId);
+            if (entity.getOrderIds().isEmpty()) {
+                entity.setStatus(TableStatus.AVAILABLE);
+            }
+            repository.save(entity);
+            resetTableSessionIfAllPaid(tableId);
+        });
+    }
+
+    @Override
+    public void resetTableSessionIfAllPaid(String tableId) {
+        repository.findById(tableId).ifPresent(entity -> {
+            boolean allCleared = entity.getOrderIds().stream()
+                    .map(orderId -> orderRepository.findById(orderId))
+                    .filter(java.util.Optional::isPresent)
+                    .map(java.util.Optional::get)
+                    .allMatch(order -> {
+                        boolean isPaid = order
+                                .getPaymentStatus() == es.brasatech.fastbite.domain.order.OrderPaymentStatus.PAID;
+                        boolean isCancelled = order
+                                .getStatus() == es.brasatech.fastbite.domain.order.OrderStatus.CANCELLED;
+                        return isPaid || isCancelled;
+                    });
+
+            if (allCleared && !entity.getOrderIds().isEmpty()) {
+                entity.setOrderIds(new java.util.ArrayList<>());
+                entity.setStatus(TableStatus.AVAILABLE);
+                repository.save(entity);
+            }
+        });
+    }
+
+    @Override
+    public Optional<Table> findTableByOrderId(String orderId) {
+        return repository.findAll().stream()
+                .filter(table -> table.getOrderIds().contains(orderId))
+                .findFirst()
+                .map(this::toDomain);
+    }
+
     private Table toDomain(TableEntity entity) {
-        return new Table(entity.getId(), entity.getName(), entity.getSeats(), entity.getStatus(), entity.isActive());
+        return new Table(
+                entity.getId(),
+                entity.getName(),
+                entity.getSeats(),
+                entity.getStatus(),
+                entity.isActive(),
+                new java.util.ArrayList<>(entity.getOrderIds()));
     }
 }

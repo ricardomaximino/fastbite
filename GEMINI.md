@@ -173,6 +173,11 @@ es.brasatech.fastbite/
    - Traditional form POST (no REST APIs for core features)
    - Server session for state (not localStorage/sessionStorage)
 
+4. **Dynamic UI with Fragments**
+   - Use Thymeleaf fragments for dynamic sections (modals, lists, carts)
+   - JavaScript should fetch fragments via AJAX instead of generating HTML strings
+   - Standardize on `th:block` as the top-level element for fragments to avoid wrapper layout issues
+
 ### CSS & Styling
 
 - ❌ NEVER add inline CSS or `<style>` tags
@@ -255,6 +260,29 @@ public record BackOfficeDto<T>(String id, @JsonProperty("customFields") T custom
 - `updateI18n()` - Updates all translations
 - `findByIdInLocale(id, locale)` - Returns DTO in specific locale
 - `findAllInLocale(locale)` - Returns all DTOs in specific locale
+
+### Fragment Data Enrichment
+
+To ensure robust fragment rendering and avoid SpEL evaluation issues with records or enums:
+
+1. **Pre-calculate values**: Calculate totals or complex logic in the Controller.
+2. **Convert Enums**: Stringify enums (`.name()`) before passing to the model for safer template comparisons.
+3. **Use Simple Maps/DTOs**: Pass enriched simple objects to the view instead of complex domain entities.
+
+```java
+@GetMapping("/fragments/item-list")
+public String getFragment(Model model) {
+    var items = service.findAll().stream().map(item -> {
+        Map<String, Object> m = new HashMap<>();
+        m.put("name", item.name());
+        m.put("total", item.calculateTotal()); // Pre-calculated
+        m.put("status", item.status().name()); // Stringified
+        return m;
+    }).toList();
+    model.addAttribute("items", items);
+    return "fragments/file :: fragment";
+}
+```
 
 ---
 
@@ -434,14 +462,13 @@ mvn test -Dtest=!ApplicationJPATests
 
 ## Current Implementation Status
 
-✅ **Phase 1**: Customer ordering interface (menu)
-✅ **Phase 2**: Order management dashboards
-✅ **Phase 3**: BackOffice administration with i18n
+✅ **Phase 4**: Counter POS (Table management, bulk payments, order reassignment)
 ✅ **Persistence**: JPA and MongoDB implementations
 ✅ **Order Persistence**: Implemented with i18n support
 ✅ **Order I18n**: Customizer names translated based on orderLanguage
 ✅ **Profile Isolation**: Proper separation of JPA and MongoDB
 ✅ **WebSocket**: Real-time order status updates
+✅ **Server-Side Fragments**: All dynamic Counter components migrated to fragments
 
 ---
 
@@ -454,8 +481,9 @@ mvn test -Dtest=!ApplicationJPATests
 5. **Keep diffs small and focused**
 6. **No CSS unless requested**
 7. **Server-side rendering only (Thymeleaf)**
-8. **Include CSRF tokens in all forms**
+9. **Use Thymeleaf fragments for dynamic UI components**
+10. **Enrich data in Controllers before sending to fragments** (simplify SpEL)
 
 ---
 
-*Last Updated: January 2026*
+*Last Updated: February 2026*

@@ -15,6 +15,11 @@ public class TableEntity {
     private TableStatus status;
     private boolean active;
 
+    @ElementCollection
+    @CollectionTable(name = "table_orders", joinColumns = @JoinColumn(name = "table_id"))
+    @Column(name = "order_id")
+    private java.util.List<String> orderIds = new java.util.ArrayList<>();
+
     public String getId() {
         return id;
     }
@@ -53,5 +58,13 @@ public class TableEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public java.util.List<String> getOrderIds() {
+        return orderIds;
+    }
+
+    public void setOrderIds(java.util.List<String> orderIds) {
+        this.orderIds = orderIds;
     }
 }

@@ -2,11 +2,15 @@ package es.brasatech.fastbite.mongodb.order;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.domain.product.ProductCustomizerI18n;
+import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.mongodb.customization.CustomizationDocument;
 import es.brasatech.fastbite.mongodb.customization.CustomizationMongoRepository;
 import es.brasatech.fastbite.mongodb.customization.CustomizationOptionTranslationDocument;
@@ -35,6 +39,7 @@ public class OrderServiceMongoImpl implements OrderService {
     private final CustomizationMongoRepository customizationRepository;
     private final CustomizationOptionTranslationMongoRepository optionTranslationRepository;
     private final I18nConfig i18nConfig;
+    private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -64,8 +69,15 @@ public class OrderServiceMongoImpl implements OrderService {
         }
         OrderDocument document = toDocumentWithDefaultLanguage(order);
         document.setId(id);
-        OrderDocument saved = repository.save(document);
-        return Optional.of(toOrderWithTranslation(saved));
+        OrderDocument savedDocument = repository.save(document);
+        var savedOrder = toOrderWithTranslation(savedDocument);
+
+        // Trigger table session reset check
+        tableService.findTableByOrderId(id).ifPresent(table -> {
+            tableService.resetTableSessionIfAllPaid(table.id());
+        });
+
+        return Optional.of(savedOrder);
     }
 
     @Override
@@ -80,6 +92,27 @@ public class OrderServiceMongoImpl implements OrderService {
     @Override
     public void clear() {
         repository.deleteAll();
+    }
+
+    @Override
+    public List<Order> findActiveByTableId(String tableId) {
+        return tableService.findById(tableId)
+                .map(table -> repository.findAllById(table.orderIds())
+                        .stream()
+                        .filter(order -> order.getStatus() != OrderStatus.COMPLETE
+                                && order.getStatus() != OrderStatus.CANCELLED)
+                        .map(this::toOrderWithTranslation)
+                        .toList())
+                .orElse(List.of());
+    }
+
+    @Override
+    public void setTableStatus(String tableId, TableStatus status) {
+        tableService.findById(tableId).ifPresent(table -> {
+            Table updatedTable = new Table(table.id(), table.name(), table.seats(), status, table.active(),
+                    table.orderIds());
+            tableService.update(tableId, updatedTable);
+        });
     }
 
     @Override
@@ -113,7 +146,6 @@ public class OrderServiceMongoImpl implements OrderService {
         document.setPaymentStatus(order.paymentStatus());
         document.setOrderChannel(order.orderChannel());
         document.setOrderLanguage(orderLang);
-        document.setTableId(order.tableId());
         document.setUserId(order.userId());
 
         // Convert items
@@ -246,7 +278,6 @@ public class OrderServiceMongoImpl implements OrderService {
                 document.getPaymentStatus(),
                 document.getOrderChannel(),
                 document.getOrderLanguage(),
-                document.getTableId(),
                 document.getUserId());
     }
 

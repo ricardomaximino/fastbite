@@ -12,6 +12,7 @@ public class TableDocument {
     private int seats;
     private TableStatus status;
     private boolean active;
+    private java.util.List<String> orderIds = new java.util.ArrayList<>();
 
     public String getId() {
         return id;
@@ -51,5 +52,13 @@ public class TableDocument {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public java.util.List<String> getOrderIds() {
+        return orderIds;
+    }
+
+    public void setOrderIds(java.util.List<String> orderIds) {
+        this.orderIds = orderIds;
     }
 }

@@ -17,16 +17,12 @@ public record CartItem(
         BigDecimal price) implements Serializable {
 
     public BigDecimal totalPrice() {
-        if (customizations == null || customizations.isEmpty()) {
-            return calculatePrice();
+        BigDecimal unitPrice = price != null ? price : BigDecimal.ZERO;
+        if (customizations != null && !customizations.isEmpty()) {
+            unitPrice = customizations.stream()
+                    .map(ProductCustomizer::price)
+                    .reduce(unitPrice, BigDecimal::add);
         }
-        return customizations.stream().map(ProductCustomizer::price).reduce(calculatePrice(), BigDecimal::add);
-    }
-
-    private BigDecimal calculatePrice() {
-        if (price == null) {
-            return BigDecimal.ZERO;
-        }
-        return price.multiply(BigDecimal.valueOf(quantity));
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 }

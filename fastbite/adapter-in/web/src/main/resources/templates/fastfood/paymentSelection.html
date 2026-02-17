@@ -1,181 +1,200 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Method - FastBite</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}">
+    <title th:text="#{page.payment.title}">Payment Method - FastBite</title>
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 
 </head>
+
 <body>
-<!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container">
-        <a class="navbar-brand" href="#"><i class="fas fa-hamburger"></i> FastBite</a>
-    </div>
-</nav>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/menu"><i class="fas fa-hamburger"></i> <span
+                    th:text="#{logo.title}">FastBite</span></a>
+        </div>
+    </nav>
 
-<!-- Main Content -->
-<div class="container mt-4 mb-5">
-    <!-- Step Indicator -->
-    <div class="step-indicator">
-        <div class="step completed">1</div>
-        <div class="step completed">2</div>
-        <div class="step completed">3</div>
-        <div class="step active">4</div>
-    </div>
+    <!-- Main Content -->
+    <div class="container mt-4 mb-5">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step completed">1</div>
+            <div class="step completed">2</div>
+            <div class="step completed">3</div>
+            <div class="step active">4</div>
+        </div>
 
-    <!-- Payment Section -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="confirmation-card">
-                <h3 class="mb-4">Select Payment Method</h3>
+        <!-- Payment Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="confirmation-card">
+                    <h3 class="mb-4" th:text="#{label.select.payment.method}">Select Payment Method</h3>
 
-                <form id="paymentForm" action="/process-payment" method="POST">
-                    <!-- Payment Options - Logo Style -->
-                    <div class="row g-3 mb-4">
-                        <!-- Stripe Card Payment -->
-                        <div class="col-md-4">
-                            <input type="radio" class="btn-check" name="paymentMethod" id="local" value="local" checked>
-                            <label class="card product-card h-100 text-center p-4" for="local" style="cursor: pointer;">
-                                <div class="mb-3">
-                                    <i class="fa fa-credit-card fa-2x text-primary"></i>
-                                </div>
-                                <h6 class="fw-bold">Card | Money</h6>
-                                <small class="text-muted">At the store counter</small>
-                            </label>
-                        </div>
+                    <form id="paymentForm" action="/process-payment" method="POST">
+                        <!-- Payment Options - Logo Style -->
+                        <div class="row g-3 mb-4">
+                            <!-- Stripe Card Payment -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="local" value="local"
+                                    checked>
+                                <label class="card product-card h-100 text-center p-4" for="local"
+                                    style="cursor: pointer;">
+                                    <div class="mb-3">
+                                        <i class="fa fa-credit-card fa-2x text-primary"></i>
+                                    </div>
+                                    <h6 class="fw-bold" th:text="#{label.payment.card} + ' | ' + #{label.payment.cash}">
+                                        Card | Money</h6>
+                                    <small class="text-muted" th:text="#{label.payment.counter.desc}">At the store
+                                        counter</small>
+                                </label>
+                            </div>
 
-                        <!-- PayPal -->
-                        <div class="col-md-4">
-                            <input type="radio" class="btn-check" name="paymentMethod" id="paypal" value="paypal">
-                            <label class="card product-card h-100 text-center p-4" for="paypal" style="cursor: pointer;">
-                                <div class="mb-3">
-                                    <i class="fab fa-paypal fa-4x" style="color: #003087;"></i>
-                                </div>
-                                <h6 class="fw-bold">PayPal</h6>
-                                <small class="text-muted">Fast & Secure</small>
-                            </label>
-                        </div>
+                            <!-- PayPal -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="paypal" value="paypal">
+                                <label class="card product-card h-100 text-center p-4" for="paypal"
+                                    style="cursor: pointer;">
+                                    <div class="mb-3">
+                                        <i class="fab fa-paypal fa-4x" style="color: #003087;"></i>
+                                    </div>
+                                    <h6 class="fw-bold">PayPal</h6>
+                                    <small class="text-muted" th:text="#{label.payment.fast.secure}">Fast &
+                                        Secure</small>
+                                </label>
+                            </div>
 
-                        <!-- Stripe Checkout -->
-                        <div class="col-md-4">
-                            <input type="radio" class="btn-check" name="paymentMethod" id="stripe" value="stripe-checkout">
-                            <label class="card product-card h-100 text-center p-4" for="stripe" style="cursor: pointer;">
-                                <div class="mb-3">
-                                    <i class="fab fa-stripe fa-4x" style="color: #635bff;"></i>
-                                </div>
-                                <h6 class="fw-bold">Stripe Checkout</h6>
-                                <small class="text-muted">Apple Pay, Google Pay</small>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Order Summary -->
-                    <div class="order-summary mb-4">
-                        <h5 class="mb-3"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
-                        <div th:each="item : ${order.itemList}">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span th:text="${item.name}">Coca Cola x 1 (Large)</span>
-                                <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}">$5.99</span>
+                            <!-- Stripe Checkout -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="stripe"
+                                    value="stripe-checkout">
+                                <label class="card product-card h-100 text-center p-4" for="stripe"
+                                    style="cursor: pointer;">
+                                    <div class="mb-3">
+                                        <i class="fab fa-stripe fa-4x" style="color: #635bff;"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Stripe Checkout</h6>
+                                    <small class="text-muted" th:text="#{label.payment.mobile.wallets}">Apple Pay,
+                                        Google Pay</small>
+                                </label>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <span th:text="${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 2, 'POINT')}">$5.99</span>
-                        </div>
-                        <div th:if="${order.tax > 0}" class="d-flex justify-content-between mb-2">
-                            <span th:text="${'Tax (' + order.tax + '%)'}">Tax (10%):</span>
-                            <span th:text="${#numbers.formatDecimal(order.taxAmount, 0, 'COMMA', 2, 'POINT')}">$0.60</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5">
-                            <span>Total:</span>
-                            <span th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}">$6.59</span>
-                        </div>
-                    </div>
 
-                    <!-- Security Badge -->
-                    <div class="alert alert-success text-center mb-4">
-                        <i class="fas fa-lock me-2"></i>
-                        <strong>Secure Payment</strong> - Your information is encrypted and secure
-                    </div>
+                        <!-- Order Summary -->
+                        <div class="order-summary mb-4">
+                            <h5 class="mb-3"><i class="fas fa-receipt me-2"></i><span
+                                    th:text="#{label.order.summary}">Order Summary</span></h5>
+                            <div th:each="item : ${order.itemList}">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span th:text="${item.name}">Coca Cola x 1 (Large)</span>
+                                    <span class="badge bg-primary rounded-pill h5 mb-0"
+                                        th:text="${#numbers.formatDecimal(item.price, 1, 2)}">$5.99</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span th:text="#{label.subtotal} + ':'">Subtotal:</span>
+                                <span th:text="${#numbers.formatDecimal(order.subtotal, 1, 2)}">$5.99</span>
+                            </div>
+                            <div th:if="${order.tax > 0}" class="d-flex justify-content-between mb-2">
+                                <span th:text="#{label.tax} + ' (' + ${order.tax} + '%):'">Tax (10%):</span>
+                                <span th:text="${#numbers.formatDecimal(order.taxAmount, 1, 2)}">$0.60</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span th:text="#{label.total} + ':'">Total:</span>
+                                <span th:text="${#numbers.formatDecimal(order.total, 1, 2)}">$6.59</span>
+                            </div>
+                        </div>
 
-                    <!-- Action Buttons -->
-                    <div class="text-center">
-                        <button type="button" class="btn btn-outline-secondary btn-lg me-3" onclick="goBack()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-lock"></i> Proceed to Payment
-                        </button>
-                    </div>
-                </form>
+                        <!-- Security Badge -->
+                        <div class="alert alert-success text-center mb-4">
+                            <i class="fas fa-lock me-2"></i>
+                            <span th:text="#{message.secure.payment.desc}"><strong>Secure Payment</strong> - Your
+                                information is encrypted and secure</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary btn-lg me-3" onclick="goBack()">
+                                <i class="fas fa-arrow-left"></i> <span th:text="#{button.back}">Back</span>
+                            </button>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-lock"></i> <span th:text="#{button.proceed.to.payment}">Proceed to
+                                    Payment</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
-<script>
-    // Add selected styling to payment cards
-    document.querySelectorAll('.btn-check').forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Remove selected styling from all cards
-            document.querySelectorAll('.btn-check + label').forEach(label => {
-                label.style.borderColor = '';
-                label.style.backgroundColor = '';
+    <script>
+        // Add selected styling to payment cards
+        document.querySelectorAll('.btn-check').forEach(radio => {
+            radio.addEventListener('change', function () {
+                // Remove selected styling from all cards
+                document.querySelectorAll('.btn-check + label').forEach(label => {
+                    label.style.borderColor = '';
+                    label.style.backgroundColor = '';
+                });
+
+                // Add selected styling to checked card
+                if (this.checked) {
+                    const label = this.nextElementSibling;
+                    label.style.borderColor = '#dc3545';
+                    label.style.backgroundColor = '#fff5f5';
+                }
             });
-
-            // Add selected styling to checked card
-            if (this.checked) {
-                const label = this.nextElementSibling;
-                label.style.borderColor = '#dc3545';
-                label.style.backgroundColor = '#fff5f5';
-            }
         });
-    });
 
-    // Initialize first option as selected
-    document.querySelector('.btn-check').dispatchEvent(new Event('change'));
+        // Initialize first option as selected
+        document.querySelector('.btn-check').dispatchEvent(new Event('change'));
 
-    // Handle form submission
-    document.getElementById('paymentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+        // Handle form submission
+        document.getElementById('paymentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        submitBtn.disabled = true;
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            const processingText = '[[#{button.processing}]]';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (processingText || 'Processing...');
+            submitBtn.disabled = true;
 
-        // Simulate payment processing
-        setTimeout(() => {
-            // Here you would integrate with your payment provider
-            console.log('Processing payment with:', selectedMethod);
+            // Simulate payment processing
+            setTimeout(() => {
+                // Here you would integrate with your payment provider
+                console.log('Processing payment with:', selectedMethod);
 
-            // For demo purposes
-            alert('Payment method selected: ' + selectedMethod + '\nRedirecting to payment processor...');
+                // For demo purposes
+                const redirectingMsg = '[[#{message.redirecting}]]';
+                alert((redirectingMsg || 'Redirecting to payment processor...') + '\n' + selectedMethod);
 
-            // Reset button
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
 
-            // In production, redirect to the payment processor
-            // window.location.href = '/payment-process?method=' + selectedMethod;
-            window.location.assign('/confirmation');
-        }, 1500);
-    });
+                // In production, redirect to the payment processor
+                // window.location.href = '/payment-process?method=' + selectedMethod;
+                window.location.assign('/confirmation');
+            }, 1500);
+        });
 
-    // Go back to confirmation
-    function goBack() {
-        window.history.back();
-    }
-</script>
+        // Go back to confirmation
+        function goBack() {
+            window.history.back();
+        }
+    </script>
 </body>
+
 </html>

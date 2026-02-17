@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{page.title}">FastBite - Order Online</title>
-    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../static/css/menu.css" th:href="@{/css/menu.css}">
+    <link rel="stylesheet" href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 
@@ -15,27 +15,37 @@
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-hamburger"></i> <span
-                    th:text="#{logo.title}">FastBite</span></a>
+            <a class="navbar-brand d-flex align-items-center" href="/menu">
+                <div class="bg-white rounded-circle p-1 me-2 shadow-sm">
+                    <i class="fas fa-hamburger text-primary"></i>
+                </div>
+                <span th:text="#{logo.title}">FastBite</span>
+            </a>
             <div class="navbar-nav ms-auto align-items-center">
-                <div class="nav-item me-3" sec:authorize="isAuthenticated()">
-                    <span class="text-white small me-2">
-                        <i class="fas fa-user-circle"></i> <span sec:authentication="name">User</span>
-                    </span>
-                    <a th:href="@{/dashboard}" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-tachometer-alt"></i> <span th:text="#{label.dashboard}">Dashboard</span>
+                <div class="nav-item me-3 d-none d-md-block" sec:authorize="isAuthenticated()">
+                    <div class="d-flex align-items-center glass-bg px-3 py-1 rounded-pill">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span class="small fw-bold" sec:authentication="name">User</span>
+                    </div>
+                </div>
+                <div class="nav-item me-2">
+                    <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}"
+                        class="btn btn-link text-white text-decoration-none px-2">
+                        <i class="fas fa-tachometer-alt me-1"></i> <span class="d-none d-sm-inline"
+                            th:text="#{label.dashboard}">Dashboard</span>
+                    </a>
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}"
+                        class="btn btn-link text-white text-decoration-none px-2">
+                        <i class="fas fa-sign-in-alt me-1"></i> <span class="d-none d-sm-inline"
+                            th:text="#{button.login}">Login</span>
                     </a>
                 </div>
-                <div class="nav-item me-3" sec:authorize="!isAuthenticated()">
-                    <a th:href="@{/login}" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-sign-in-alt"></i> <span th:text="#{button.login}">Login</span>
-                    </a>
-                </div>
-                <button class="btn btn-outline-light position-relative" id="navBarCheckoutBtn">
-                    <i class="fas fa-shopping-cart"></i> <span th:text="#{label.cart}">Cart</span>
-                    <span class="cart-badge" id="cartCount">0</span>
+                <button class="btn btn-glass position-relative ms-2 py-2 px-3 rounded-pill" id="navBarCheckoutBtn">
+                    <i class="fas fa-shopping-basket me-1"></i>
+                    <span class="d-none d-sm-inline" th:text="#{label.cart}">Cart</span>
+                    <span class="cart-badge bg-white text-primary fw-bold ms-2" id="cartCount">0</span>
                 </button>
             </div>
         </div>
@@ -44,7 +54,7 @@
     <!-- Main Content -->
     <div class="container mt-4">
         <!-- Step Indicator -->
-        <div class="step-indicator">
+        <div class="step-indicator animate-up">
             <div class="step active" id="step1">1</div>
             <div class="step" id="step2">2</div>
             <div class="step" id="step3">3</div>
@@ -52,19 +62,25 @@
         </div>
 
         <!-- Menu Section -->
-        <div id="menuSection">
-            <h2 class="text-center mb-4" th:text="#{menu.title}">Our Delicious Menu</h2>
+        <div id="menuSection" class="animate-up" style="animation-delay: 0.2s">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-800 text-dark mb-2" th:text="#{menu.title}">Our Delicious Menu</h2>
+                <p class="text-muted" th:text="#{menu.subtitle}">Discover our fresh, handcrafted flavors made just for
+                    you.</p>
+            </div>
 
-            <!-- Navigation Tabs -->
-            <ul class="nav nav-tabs justify-content-center mb-4" id="menuTabs"
-                th:data-available-tabs="${menuData.availableTabsId}">
-                <li class="nav-item" th:each="tab,index : ${menuData.availableTabs}">
-                    <button class="nav-link" th:classappend="${index.first}? ' active' : ''" data-bs-toggle="tab"
-                        th:data-bs-target="${'#' + tab.id}" type="button">
-                        <i class="fas fa-utensils"></i> <span th:text="${tab.name}">Combos</span>
-                    </button>
-                </li>
-            </ul>
+            <!-- Category Filters -->
+            <div id="category-filters" class="mb-5 animate-up" style="animation-delay: 0.3s">
+                <ul class="nav nav-pills justify-content-center border-0" id="menuTabs"
+                    th:data-available-tabs="${menuData.availableTabsId}">
+                    <li class="mx-1" th:each="tab,index : ${menuData.availableTabs}">
+                        <button class="filter-btn" th:classappend="${index.first}? ' active' : ''" data-bs-toggle="tab"
+                            th:data-bs-target="${'#' + tab.id}" type="button">
+                            <i class="fas fa-utensils me-2"></i> <span th:text="${tab.name}">Combos</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
             <!-- Tab Content -->
             <div class="tab-content" id="menuTabContent">
@@ -77,30 +93,35 @@
                             th:id="${product.id}" th:data-customizations="${product.customizationsAsString}"
                             th:data-name="${product.name}" th:data-description="${product.description}"
                             th:data-image="${product.image}" th:data-price="${product.price}">
-                            <div class="card product-card h-100">
-                                <img th:src="${product.image}"
-                                    src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400&h=300&fit=crop"
-                                    class="product-img" th:alt="${product.name}">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title" th:text="${product.name}">Family Feast Combo</h5>
-                                    <p class="card-text text-muted" th:text="${product.description}">4 burgers, 2 large
-                                        fries, 4 drinks</p>
-                                    <div class="mt-auto">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <span class="price-tag" th:text="${product.price}">24.99</span>
-                                            <div class="quantity-control">
-                                                <button class="quantity-btn" th:id="${'qty-' + product.id + '-minus'}"
-                                                    id="qty-product-one-minus">-</button>
-                                                <span class="mx-2" th:id="${'qty-' + product.id}"
-                                                    id="qty-product-one">1</span>
-                                                <button class="quantity-btn" th:id="${'qty-' + product.id + '-plus'}"
-                                                    id="qty-product-one-plus">+</button>
-                                            </div>
+                            <div class="card product-card h-100 border-0 shadow-sm overflow-hidden animate-up">
+                                <span class="me-2 fw-bold text-primary price-tag"
+                                    th:text="${#numbers.formatDecimal(product.price, 1, 2)}">24.99</span>
+                                <div class="product-img-container">
+                                    <img th:src="${product.image}"
+                                        src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400&h=300&fit=crop"
+                                        class="product-img w-100" th:alt="${product.name}">
+                                </div>
+                                <div class="card-body d-flex flex-column p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="card-title fw-800 text-dark m-0" th:text="${product.name}">Family
+                                            Feast Combo</h5>
+                                        <div class="menu-qty-control">
+                                            <button class="menu-qty-btn" th:id="${'qty-' + product.id + '-minus'}"
+                                                id="qty-product-one-minus"><i class="fas fa-minus"></i></button>
+                                            <span class="small fw-bold" th:id="${'qty-' + product.id}"
+                                                id="qty-product-one">1</span>
+                                            <button class="menu-qty-btn" th:id="${'qty-' + product.id + '-plus'}"
+                                                id="qty-product-one-plus"><i class="fas fa-plus"></i></button>
                                         </div>
-                                        <button class="btn btn-add-to-cart w-100"
+                                    </div>
+                                    <p class="card-text text-muted mb-4" th:text="${product.description}">4 burgers, 2
+                                        large fries, 4 drinks</p>
+                                    <div class="mt-auto">
+                                        <button
+                                            class="btn btn-pos-primary w-100 rounded-pill py-3 shadow-sm text-uppercase fw-bold"
                                             th:id="${'add-' + product.id + '-to-cart'}">
-                                            <i class="fas fa-plus"></i> <span th:text="#{label.add.to.cart}">Add to
-                                                Cart</span>
+                                            <i class="fas fa-shopping-basket me-2"></i> <span
+                                                th:text="#{label.add.to.cart}">Add to Cart</span>
                                         </button>
                                     </div>
                                 </div>
@@ -159,7 +180,7 @@
                                             for="optionId">
                                             <span th:text="${customizationOption.name}"></span> <span
                                                 th:if="${customizationOption.price > 0}"
-                                                th:text="${customizationOption.price}"></span>
+                                                th:text="${'(+' + #numbers.formatDecimal(customizationOption.price, 1, 2) + ')'}"></span>
                                         </label>
                                     </div>
                                     <div class="ingredient-control" th:if="${customization.inputType.value == 'hidden'}"
@@ -168,7 +189,8 @@
                                             <div class="ingredient-name" th:text="${customizationOption.name}">Onions
                                             </div>
                                             <div class="ingredient-price" th:if="${customizationOption.price > 0}"
-                                                th:text="${customizationOption.price}">1.00</div>
+                                                th:text="${'(+' + #numbers.formatDecimal(customizationOption.price, 1, 2) + ')'}">
+                                                1.00</div>
                                         </div>
                                         <div class="ingredient-quantity-control">
                                             <button type="button" class="ingredient-btn"
@@ -213,11 +235,14 @@
         th:data-dictionary-order-total="${menuData.dictionary.orderTotal}"
         th:data-dictionary-total="${menuData.dictionary.total}"
         th:data-dictionary-subtotal="${menuData.dictionary.subtotal}"
-        th:data-dictionary-tax="${menuData.dictionary.tax}">
+        th:data-dictionary-tax="${menuData.dictionary.tax}" th:data-item-updated="#{message.item.updated}"
+        th:data-item-added="#{message.item.added}" th:data-item-removed="#{message.item.removed}"
+        th:data-button-update-item="#{button.update.item}" th:data-button-add-to-cart="#{button.add.to.cart}">
     </div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/menu.js" th:src="@{/js/menu.js}" defer></script>
+
 </body>
 
 </html>

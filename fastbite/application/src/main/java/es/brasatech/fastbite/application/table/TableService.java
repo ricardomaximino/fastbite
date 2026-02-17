@@ -20,4 +20,12 @@ public interface TableService {
     Optional<TableI18n> findI18nById(String id);
 
     void updateI18n(String id, TableI18n i18n);
+
+    void assignOrder(String tableId, String orderId);
+
+    void unassignOrder(String tableId, String orderId);
+
+    void resetTableSessionIfAllPaid(String tableId);
+
+    Optional<Table> findTableByOrderId(String orderId);
 }

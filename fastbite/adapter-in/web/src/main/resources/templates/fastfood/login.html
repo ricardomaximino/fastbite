@@ -1,100 +1,28 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{login.title}">FastBite - Login</title>
     <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/menu.css}">
-    <style>
-        body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-        .login-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.15);
-        }
-        .login-logo {
-            font-size: 3rem;
-            color: #dc3545;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .login-title {
-            text-align: center;
-            font-weight: bold;
-            color: #212529;
-            margin-bottom: 30px;
-        }
-        .form-control {
-            border-radius: 25px;
-            padding: 12px 20px;
-            border: 1px solid #dee2e6;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        .form-control:focus {
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
-            border-color: #dc3545;
-        }
-        .btn-login {
-            background: linear-gradient(135deg, #dc3545, #e85d75);
-            border: none;
-            border-radius: 25px;
-            padding: 12px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 20px;
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .btn-login:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
-            filter: brightness(1.1);
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .back-link a:hover {
-            color: #dc3545;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+
+<body class="login-body">
     <div class="login-card">
         <div class="login-logo">
             <i class="fas fa-hamburger"></i>
         </div>
         <h3 class="login-title">FastBite Staff</h3>
-        
+
         <form th:action="@{/login}" method="post">
             <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
                 <span th:text="#{login.error}">Invalid username or password.</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            
+
             <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
                 <span th:text="#{login.logout}">You have been logged out.</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -103,25 +31,29 @@
             <div class="mb-3">
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-0"><i class="fas fa-user text-muted"></i></span>
-                    <input type="text" name="username" class="form-control" th:placeholder="#{label.username}" placeholder="Username" required autofocus>
+                    <input type="text" name="username" class="form-control" th:placeholder="#{label.username}"
+                        placeholder="Username" required autofocus>
                 </div>
             </div>
-            
+
             <div class="mb-3">
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-0"><i class="fas fa-lock text-muted"></i></span>
-                    <input type="password" name="password" class="form-control" th:placeholder="#{label.password}" placeholder="Password" required>
+                    <input type="password" name="password" class="form-control" th:placeholder="#{label.password}"
+                        placeholder="Password" required>
                 </div>
             </div>
 
             <button type="submit" class="btn-login" th:text="#{button.login}">Login</button>
-            
+
             <div class="back-link">
-                <a th:href="@{/}" href="/"><i class="fas fa-arrow-left me-1"></i> <span th:text="#{button.back.to.menu}">Back to Menu</span></a>
+                <a th:href="@{/}" href="/"><i class="fas fa-arrow-left me-1"></i> <span
+                        th:text="#{button.back.to.menu}">Back to Menu</span></a>
             </div>
         </form>
     </div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
