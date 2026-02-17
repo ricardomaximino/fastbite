@@ -3,7 +3,7 @@ package es.brasatech.fastbite.jpa.table;
 import jakarta.persistence.*;
 import es.brasatech.fastbite.domain.table.TableStatus;
 
-@Entity(name = "Table")
+@Entity(name = "DiningTable")
 @Table(name = "dining_tables")
 public class TableEntity {
     @Id

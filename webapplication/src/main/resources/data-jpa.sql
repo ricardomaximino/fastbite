@@ -79,11 +79,16 @@ INSERT INTO product_customizations (product_id, customization_id) VALUES ('prod-
 INSERT INTO product_customizations (product_id, customization_id) VALUES ('prod-food-pizza', 'cust-toppings');
 
 -- Tables
-INSERT INTO "dining_tables" ("id", "name", "seats", "status", "active") VALUES ('00000000-0000-0000-0000-000000000001', 'Table 1', 4, 'AVAILABLE', TRUE);
-INSERT INTO "dining_tables" ("id", "name", "seats", "status", "active") VALUES ('00000000-0000-0000-0000-000000000002', 'Table 2', 2, 'AVAILABLE', TRUE);
-INSERT INTO "dining_tables" ("id", "name", "seats", "status", "active") VALUES ('00000000-0000-0000-0000-000000000003', 'Table 3', 6, 'AVAILABLE', TRUE);
-INSERT INTO "dining_tables" ("id", "name", "seats", "status", "active") VALUES ('00000000-0000-0000-0000-000000000004', 'Table 4', 4, 'AVAILABLE', TRUE);
-INSERT INTO "dining_tables" ("id", "name", "seats", "status", "active") VALUES ('00000000-0000-0000-0000-000000000005', 'Table 5', 2, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000001', 'Table 1', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000002', 'Table 2', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000003', 'Table 3', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000004', 'Table 4', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000005', 'Table 5', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000006', 'Table 6', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000007', 'Table 7', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000008', 'Table 8', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000009', 'Table 9', 4, 'AVAILABLE', TRUE);
+INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000010', 'Table 10', 4, 'AVAILABLE', TRUE);
 
 -- Payment Configuration
 INSERT INTO payment_configs (id) VALUES ('default');
