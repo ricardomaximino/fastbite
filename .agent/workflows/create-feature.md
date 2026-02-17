@@ -23,20 +23,36 @@ All new classes must be created in their respective modules and packages:
 1.  **Define Domain**: Create core domain objects (Records) in the `domain` module.
 2.  **Define Application Ports**:
     - Create a `UseCase` interface in `application.usecase`.
-    - Create Output Ports (Interfaces) in `application.port.out` (or appropriate subpackage).
-3.  **Implement Application Service**: Create the service implementation in `application.service` that implements the `UseCase` and uses the Output Ports.
+    - Create Output Ports (Interfaces) in `application.port.out`.
+3.  **Implement Application Service**: Create the service implementation in `application.service`.
 4.  **Implement Adapters (Out)**:
-    - **JPA Implementation**: Create `@Entity` and `JpaRepository` in `adapter-out/jpa`. Implement the Output Port.
-    - **MongoDB Implementation**: Create `@Document` and `MongoRepository` in `adapter-out/mongodb`. Implement the Output Port.
+    - **JPA Implementation**: Service in `*.jpa` package, Entity and JpaRepository.
+    - **MongoDB Implementation**: Service in `*.mongodb` package, Document and MongoRepository.
 5.  **Implement Adapter (In)**:
     - Create DTOs and Mappers in `adapter-in/web`.
-    - Create the `@Controller` in `adapter-in/web` to expose the feature.
+    - Create the `@Controller` in `adapter-in/web`.
+    - **UI Fragments**: Create Thymeleaf fragments in `src/main/resources/templates/fastfood/fragments/`. Use `<th:block>` as the top-level element.
+    - **Data Enrichment**: Map domain objects to simple `Map<String, Object>` or DTOs in the Controller. Stringify Enums and pre-calculate totals.
 
 ## ⚠️ Critical Rules
-- **Profile Isolation**: Maintain strict profile isolation (`jpa` vs `mongodb`) as defined in `MEMORY[GEMINI.md]`.
-- **No Mixing**: NEVER mix JPA and MongoDB classes in the same package.
-- **Dependency Flow**: Adapters -> Application -> Domain. Never the reverse.
-- **I18n**: Follow the established `I18nField` and translation entity patterns for persistent localized fields.
+
+- **Multi-Persistence Strategy**: Every service must have a JPA and a MongoDB implementation.
+- **I18n Strategy**: Store in default language in main tables, keep translations separate. Translate on retrieval using the user's/order's language.
+- **Server-Side Rendering**: Use Thymeleaf and fragments for all dynamic UI. Avoid generating HTML in JavaScript.
+- **Data Enrichment**: Never pass complex domain entities or records directly to fragments. Always pre-process data in the Controller.
+- **CSRF Protection**: All POST requests (forms and AJAX) must include CSRF tokens.
+
+## 🚀 Shipping Checklist
+
+- [ ] JPA Implementation verified.
+- [ ] MongoDB Implementation verified.
+- [ ] DTOs used for all Web inputs/outputs.
+- [ ] Enums converted to Strings before rendering in fragments.
+- [ ] Fragment wrappers use `<th:block>`.
+- [ ] CSRF tokens included in all new forms/AJAX.
+- [ ] Translations added for `default`, `es`, and `pt`.
+- [ ] No inline CSS or `<style>` tags used.
+- [ ] Strict equality (`===`) used in JavaScript.
 
 ---
 
@@ -45,14 +61,6 @@ When you use the `/create-feature` command, use this following prompt as a base:
 
 > "I need to implement the feature: [DESCRIBE_FEATURE_HERE]. 
 > 
-> Please follow the hexagonal architecture rules defined in the project's `.agent/workflows/create-feature.md`. 
+> Please follow the hexagonal architecture rules and the Shipping Checklist defined in the project's `.agent/workflows/create-feature.md`. 
 > 
-> Ensure all necessary 'staff' are created:
-> 1. Domain Entities/Records
-> 2. Application UseCases (Input Ports) and Output Ports
-> 3. Application Services (Implementations)
-> 4. Adapter-In Controllers and DTOs
-> 5. Adapter-Out JPA Entities and Repositories
-> 6. Adapter-Out MongoDB Documents and Repositories
-> 
-> Do not skip any layer. Maintain strict module separation."
+> Ensure all layers are covered (Domain, Application, Adapters In/Out) for both JPA and MongoDB profiles. Use Thymeleaf fragments for any dynamic UI components and ensure data is enriched in the Controller before rendering."
