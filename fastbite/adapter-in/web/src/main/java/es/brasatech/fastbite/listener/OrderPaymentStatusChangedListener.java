@@ -1,6 +1,6 @@
 package es.brasatech.fastbite.listener;
 
-import es.brasatech.fastbite.domain.event.OrderPaymentStatusChagedEvent;
+import es.brasatech.fastbite.domain.event.OrderPaymentStatusChangedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public record OrderPaymentStatusChangedListener() {
 
     @EventListener
-    public void onOrderPaymentStatusChanged(OrderPaymentStatusChagedEvent event) {
+    public void onOrderPaymentStatusChanged(OrderPaymentStatusChangedEvent event) {
         System.out.println(event.order());
 //        messagingTemplate.convertAndSend("/topic/payment", event.order());
     }

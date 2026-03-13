@@ -16,6 +16,7 @@
         <module>jpa</module>
         <module>mongodb</module>
         <module>disk-filestorage</module>
+        <module>email</module>
     </modules>
 
 </project>

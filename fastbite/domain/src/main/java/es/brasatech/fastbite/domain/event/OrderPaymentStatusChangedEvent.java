@@ -2,5 +2,5 @@ package es.brasatech.fastbite.domain.event;
 
 import es.brasatech.fastbite.domain.order.Order;
 
-public record OrderPaymentStatusChagedEvent(Order order) {
+public record OrderPaymentStatusChangedEvent(Order order) {
 }

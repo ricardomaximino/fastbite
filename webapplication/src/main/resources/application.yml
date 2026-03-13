@@ -8,6 +8,17 @@ spring:
     name: fastbite
   messages:
     basename: i18n/messages
+  mail:
+    host: smtp.office365.com
+    port: 587
+    username: info@brasatech.es
+    password: BrasaTech!2022
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -17,6 +28,15 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+
+company:
+  host: https://soberana.brasatech.es
+  mail:
+    to: ricardo.maximino@brasatech.es
+    template:
+      mail-validation: email/fastbite-email-validation.html
+      product-delivery: email/fastbite-product-delivery.html
+    attachment: static/attachments/Test.pdf
 
 logging:
   level:

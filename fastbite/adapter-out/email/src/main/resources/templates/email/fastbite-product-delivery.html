@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tu Guía FASTBITE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+</head>
+
+<body style="font-family: 'Public Sans', sans-serif; background-color: #f8f6f6; margin: 0; padding: 40px 20px;">
+    <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); overflow: hidden; border: 1px solid #e2e8f0;">
+        <!-- Header -->
+        <div class="header" style="background-color: #1a2a44; padding: 32px; text-align: center; border-bottom: 4px solid #c5a059;">
+            <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin: 0;">FASTBITE</h2>
+        </div>
+        <!-- Main Content -->
+        <div class="content" style="padding: 48px; text-align: center;">
+            <div class="icon-wrapper" style="margin-bottom: 24px;">
+                <div class="icon" style="width: 64px; height: 64px; margin: 0 auto; background-color: rgba(197, 160, 89, 0.1); border-radius: 50%; display: table-cell; vertical-align: middle; text-align: center; color: #c5a059; font-size: 32px;">
+                    <span style="line-height: 64px;">📚</span>
+                </div>
+            </div>
+            <h1 style="color: #1a202c; font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 24px;">
+                ¡Felicidades, <span th:text="${message.name}">Cliente</span>!
+            </h1>
+            <div class="text-body" style="color: #4a5568; font-size: 18px; line-height: 1.6; margin-bottom: 40px; text-align: left;">
+                <p>
+                    Tienes en tus manos un contenido extraordinario. Esta guía ha sido diseñada para ser el mapa que te lleve a tu mejor versión, esa que siempre has sabido que existe pero que a veces parece lejana.
+                </p>
+                <p style="font-weight: bold; color: #1a2a44; margin-top: 24px;">
+                    Recuerda esto: lo único que te separa de esa versión superior no es la falta de información, sino la falta de ACCIÓN.
+                </p>
+                <p style="margin-top: 24px;">
+                    No dudes de la efectividad de los pasos simples. Muchos esperan que el cambio requiera proezas imposibles o transformaciones místicas, y pierden la determinación ante la sencillez de lo que realmente funciona.
+                </p>
+                <p style="background-color: #f7fafc; padding: 20px; border-left: 4px solid #c5a059; font-style: italic; margin-top: 24px;">
+                    "La soberanía personal se construye píxel a píxel, hábito a hábito. Confía en el proceso."
+                </p>
+            </div>
+            
+            <p style="color: #4a5568; font-size: 16px; margin-bottom: 32px;">
+                Encontrarás tu guía en el archivo PDF adjunto a este correo.
+            </p>
+
+            <p class="disclaimer" style="font-size: 14px; color: #a0aec0; font-style: italic; margin-top: 24px;">
+                Este es el comienzo de tu transformación. Estamos honrados de acompañarte.
+            </p>
+        </div>
+        <!-- Footer -->
+        <div class="footer" style="background-color: #f7fafc; padding: 32px; border-top: 1px solid #edf2f7; text-align: center;">
+            <p class="footer-text" th:utext="#{copyright}" style="color: #718096; font-size: 12px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px;">
+                © 2024 <a href="http://brasatech.es" style="color: #1a2a44; text-decoration: underline;">BrasaTech Digital Solutions</a>
+            </p>
+            <div class="footer-links" style="font-size: 12px; color: #a0aec0;">
+                <a href="#" style="color: #1a2a44; text-decoration: underline; margin: 0 10px;">Política de Privacidad</a>
+                <span>|</span>
+                <a href="#" style="color: #1a2a44; text-decoration: underline; margin: 0 10px;">Darse de baja</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
