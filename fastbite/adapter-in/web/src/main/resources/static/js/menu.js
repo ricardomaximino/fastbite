@@ -21,6 +21,7 @@ function formatPrice(price) {
 function handleAddEventListener() {
     // Navbar
     document.getElementById('navBarCheckoutBtn').addEventListener('click', toggleCart);
+    document.getElementById('floatingCartBtn')?.addEventListener('click', toggleCart);
 
     // Combos Tab
     const tabs = document.getElementById('menuTabs').dataset.availableTabs?.split(',');
@@ -395,6 +396,13 @@ function updateCartDisplay() {
     const cartSection = document.getElementById('cartSection');
     if (cartSection.style.display === 'block') {
         loadCartData()
+    }
+
+    // Update floating cart badge
+    const floatingCount = document.getElementById('floatingCartCount');
+    if (floatingCount) {
+        floatingCount.textContent = totalItems;
+        floatingCount.classList.toggle('d-none', totalItems === 0);
     }
 }
 
