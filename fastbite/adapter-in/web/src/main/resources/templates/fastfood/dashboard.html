@@ -22,13 +22,19 @@
             <!-- Cashier Dashboard - CREATED Orders -->
             <div class="col-lg-3 mb-4" sec:authorize="hasAnyRole('ADMIN', 'MANAGER', 'CASHIER')">
                 <div class="card product-card h-100">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-cash-register"></i> <span
-                                th:text="#{dashboard.role.cashier}">Cashier</span>
-                            <span class="badge bg-light text-dark float-end" id="cashierCount">0</span>
-                        </h5>
-                        <small th:text="#{dashboard.section.created.subtitle}">New Orders - CREATED</small>
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-cash-register"></i> <span
+                                    th:text="#{dashboard.role.cashier}">Cashier</span>
+                                <span class="badge bg-light text-dark ms-2" id="cashierCount">0</span>
+                            </h5>
+                            <small th:text="#{dashboard.section.created.subtitle}">New Orders - CREATED</small>
+                        </div>
+                        <button class="btn btn-sm btn-light" onclick="moveAllToNext('cashier')"
+                            th:title="#{dashboard.button.all.next}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
                     </div>
                     <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;" id="cashierDashboard">
                         <!-- Orders will be populated here -->
@@ -43,12 +49,24 @@
             <!-- Queue Dashboard - ACCEPTED Orders -->
             <div class="col-lg-3 mb-4">
                 <div class="card product-card h-100">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-clock"></i> <span th:text="#{dashboard.role.queue}">Queue</span>
-                            <span class="badge bg-dark float-end" id="queueCount">0</span>
-                        </h5>
-                        <small th:text="#{dashboard.section.confirmed.subtitle}">Waiting - ACCEPTED</small>
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock"></i> <span th:text="#{dashboard.role.queue}">Queue</span>
+                                <span class="badge bg-dark ms-2" id="queueCount">0</span>
+                            </h5>
+                            <small th:text="#{dashboard.section.confirmed.subtitle}">Waiting - ACCEPTED</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-dark" onclick="moveAllToPrevious('queue')"
+                                th:title="#{dashboard.button.all.previous}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                            <button class="btn btn-sm btn-dark" onclick="moveAllToNext('queue')"
+                                th:title="#{dashboard.button.all.next}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;" id="queueDashboard">
                         <!-- Orders will be populated here -->
@@ -63,12 +81,24 @@
             <!-- Cook Dashboard - PROCESSING Orders -->
             <div class="col-lg-3 mb-4" sec:authorize="hasAnyRole('ADMIN', 'MANAGER', 'COOK')">
                 <div class="card product-card h-100">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-fire"></i> <span th:text="#{dashboard.role.cook}">Cook</span>
-                            <span class="badge bg-light text-dark float-end" id="cookCount">0</span>
-                        </h5>
-                        <small th:text="#{dashboard.section.preparing.subtitle}">In Kitchen - PROCESSING</small>
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-fire"></i> <span th:text="#{dashboard.role.cook}">Cook</span>
+                                <span class="badge bg-light text-dark ms-2" id="cookCount">0</span>
+                            </h5>
+                            <small th:text="#{dashboard.section.preparing.subtitle}">In Kitchen - PROCESSING</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-light" onclick="moveAllToPrevious('cook')"
+                                th:title="#{dashboard.button.all.previous}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light" onclick="moveAllToNext('cook')"
+                                th:title="#{dashboard.button.all.next}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;" id="cookDashboard">
                         <!-- Orders will be populated here -->
@@ -83,12 +113,24 @@
             <!-- Waiter Dashboard - DONE Orders -->
             <div class="col-lg-3 mb-4" sec:authorize="hasAnyRole('ADMIN', 'MANAGER', 'WAITER', 'CASHIER')">
                 <div class="card product-card h-100">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-concierge-bell"></i> <span th:text="#{dashboard.role.waiter}">Waiter</span>
-                            <span class="badge bg-light text-dark float-end" id="waiterCount">0</span>
-                        </h5>
-                        <small th:text="#{dashboard.section.ready.subtitle}">Ready - DONE</small>
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-concierge-bell"></i> <span th:text="#{dashboard.role.waiter}">Waiter</span>
+                                <span class="badge bg-light text-dark ms-2" id="waiterCount">0</span>
+                            </h5>
+                            <small th:text="#{dashboard.section.ready.subtitle}">Ready - DONE</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-light" onclick="moveAllToPrevious('waiter')"
+                                th:title="#{dashboard.button.all.previous}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light" onclick="moveAllToNext('waiter')"
+                                th:title="#{dashboard.button.all.next}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body p-2" style="max-height: 600px; overflow-y: auto;" id="waiterDashboard">
                         <!-- Orders will be populated here -->
@@ -328,7 +370,8 @@
         th:data-action-ready="#{dashboard.js.actions.mark.ready}"
         th:data-action-delivered="#{dashboard.js.actions.delivered}"
         th:data-action-done="#{dashboard.js.actions.mark.done}" th:data-action-change="#{dashboard.js.actions.change}"
-        th:data-action-cancel="#{button.cancel}" th:data-toast-updated="#{dashboard.js.toast.status.updated}"
+        th:data-action-cancel="#{button.cancel}" th:data-action-previous="#{dashboard.js.actions.previous}"
+        th:data-toast-updated="#{dashboard.js.toast.status.updated}"
         th:data-toast-error="#{dashboard.js.toast.status.error}"></div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

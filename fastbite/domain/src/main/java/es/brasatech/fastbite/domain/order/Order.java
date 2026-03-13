@@ -43,6 +43,30 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
                 paymentStatus, orderChannel, orderLanguage, userId);
     }
 
+    public Order previous() {
+        if (status == OrderStatus.ACCEPTED) {
+            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CREATED, total, null,
+                    paymentStatus, orderChannel, orderLanguage, userId);
+        }
+        if (status == OrderStatus.PROCESSING) {
+            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.ACCEPTED, total, null,
+                    paymentStatus, orderChannel, orderLanguage, userId);
+        }
+        if (status == OrderStatus.DONE) {
+            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.PROCESSING, total,
+                    null, paymentStatus, orderChannel, orderLanguage, userId);
+        }
+        if (status == OrderStatus.DELIVERED) {
+            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DONE, total, null,
+                    paymentStatus, orderChannel, orderLanguage, userId);
+        }
+        if (status == OrderStatus.COMPLETE) {
+            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DELIVERED, total, null,
+                    paymentStatus, orderChannel, orderLanguage, userId);
+        }
+        return this;
+    }
+
     public Order cancel(String cancelReason) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CANCELLED, total,
                 cancelReason, paymentStatus, orderChannel, orderLanguage, userId);

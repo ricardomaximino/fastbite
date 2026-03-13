@@ -52,6 +52,23 @@ public interface OrderService {
         publishEvent(new OrderStatusChangedEvent(newOrder));
     }
 
+    default void moveToPreviousStatus(String id) {
+        var order = findById(id).orElseThrow(() -> new RuntimeException("Not Found"));
+        var newOrder = order.previous();
+        update(id, newOrder);
+        publishEvent(new OrderStatusChangedEvent(newOrder));
+    }
+
+    default void batchMoveStatus(List<String> ids, boolean forward) {
+        for (String id : ids) {
+            if (forward) {
+                moveToNextStatus(id);
+            } else {
+                moveToPreviousStatus(id);
+            }
+        }
+    }
+
     default void cancelOrder(String id, String cancelReason) {
         var order = findById(id).orElseThrow(() -> new RuntimeException("Not Found"));
         var cancelledOrder = order.cancel(cancelReason);

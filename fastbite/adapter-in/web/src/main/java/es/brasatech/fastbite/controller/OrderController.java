@@ -52,6 +52,24 @@ public class OrderController {
     }
 
     @ResponseBody
+    @PostMapping("/api/order/{id}/previous")
+    public void previousOrderStatus(@PathVariable String id) {
+        orderService.moveToPreviousStatus(id);
+    }
+
+    @ResponseBody
+    @PostMapping("/api/order/batch/next")
+    public void batchNextStatus(@RequestBody List<String> ids) {
+        orderService.batchMoveStatus(ids, true);
+    }
+
+    @ResponseBody
+    @PostMapping("/api/order/batch/previous")
+    public void batchPreviousStatus(@RequestBody List<String> ids) {
+        orderService.batchMoveStatus(ids, false);
+    }
+
+    @ResponseBody
     @PostMapping("/api/order/{id}/cancel")
     public void cancelOrder(@PathVariable String id, @RequestBody OrderCancelReason orderCancelReason) {
         orderService.cancelOrder(id, orderCancelReason.value());

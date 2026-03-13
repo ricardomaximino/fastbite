@@ -2,6 +2,9 @@
 let orders = [];
 const getOrderListUrl = '/api/order';
 const moveToNextStatusUrlTemplate = '/api/order/{id}/next';
+const moveToPreviousStatusUrlTemplate = '/api/order/{id}/previous';
+const batchNextStatusUrl = '/api/order/batch/next';
+const batchPreviousStatusUrl = '/api/order/batch/previous';
 const cancelOrderUrlTemplate = '/api/order/{id}/cancel';
 const changeOrderStatusUrlTemplate = '/api/order/{id}/status';
 let currentCancelOrderId = null;
@@ -165,6 +168,7 @@ function createOrderCard(order, role) {
 // Get actions for role
 function getActionsForRole(order, role) {
     const cancelBtn = `<button class="btn btn-outline-danger btn-sm flex-grow-1" onclick="showCancelModal('${order.orderNumber}')"><i class="fas fa-times"></i> ${i18n.actionCancel}</button>`;
+    const prevBtn = `<button class="btn btn-outline-secondary btn-sm flex-grow-1" onclick="moveToPreviousStatus('${order.orderNumber}')"><i class="fas fa-undo"></i> ${i18n.actionPrevious}</button>`;
 
     switch (role) {
         case 'cashier':
@@ -176,24 +180,39 @@ function getActionsForRole(order, role) {
             `;
         case 'queue':
             return `
-                <button class="btn btn-info btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
-                    <i class="fas fa-fire"></i> ${i18n.actionCook}
-                </button>
-                ${cancelBtn}
+                <div class="d-flex w-100 gap-2 mb-2">
+                    <button class="btn btn-info btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                        <i class="fas fa-fire"></i> ${i18n.actionCook}
+                    </button>
+                </div>
+                <div class="d-flex w-100 gap-2">
+                    ${prevBtn}
+                    ${cancelBtn}
+                </div>
             `;
         case 'cook':
             return `
-                <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
-                    <i class="fas fa-check"></i> ${i18n.actionDone}
-                </button>
-                ${cancelBtn}
+                <div class="d-flex w-100 gap-2 mb-2">
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                        <i class="fas fa-check"></i> ${i18n.actionDone}
+                    </button>
+                </div>
+                <div class="d-flex w-100 gap-2">
+                    ${prevBtn}
+                    ${cancelBtn}
+                </div>
             `;
         case 'waiter':
             return `
-                <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
-                    <i class="fas fa-check-double"></i> ${i18n.actionDelivered}
-                </button>
-                ${cancelBtn}
+                <div class="d-flex w-100 gap-2 mb-2">
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                        <i class="fas fa-check-double"></i> ${i18n.actionDelivered}
+                    </button>
+                </div>
+                <div class="d-flex w-100 gap-2">
+                    ${prevBtn}
+                    ${cancelBtn}
+                </div>
             `;
         default:
             return '';
@@ -337,6 +356,65 @@ function moveToNextStatus(orderId) {
     callAPI(moveToNextStatusUrl).then(response => updateOrders()).catch(error => console.error('Error:', error));
     const nextStatus = getNextStatus(order.status)
     showToast(format(i18n.toastUpdated, nextStatus));
+}
+
+// Move to previous status
+function moveToPreviousStatus(orderId) {
+    const order = orders.find(o => o.orderNumber == orderId);
+    if (!order) return;
+
+    const moveToPreviousStatusUrl = moveToPreviousStatusUrlTemplate.replace('{id}', order.id);
+    callAPI(moveToPreviousStatusUrl).then(response => updateOrders()).catch(error => console.error('Error:', error));
+    showToast(`Order #${orderId} moved to previous status`);
+}
+
+function moveAllToNext(role) {
+    const statusMap = {
+        'cashier': 'CREATED',
+        'queue': 'ACCEPTED',
+        'cook': 'PROCESSING',
+        'waiter': 'DONE'
+    };
+    const targetStatus = statusMap[role];
+    const orderIds = orders.filter(o => o.status === targetStatus).map(o => o.id);
+    
+    if (orderIds.length === 0) return;
+
+    fetch(batchNextStatusUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+        },
+        body: JSON.stringify(orderIds)
+    }).then(response => {
+        updateOrders();
+        showToast(`All ${role} orders moved to next status`);
+    }).catch(error => console.error('Error:', error));
+}
+
+function moveAllToPrevious(role) {
+    const statusMap = {
+        'queue': 'ACCEPTED',
+        'cook': 'PROCESSING',
+        'waiter': 'DONE'
+    };
+    const targetStatus = statusMap[role];
+    const orderIds = orders.filter(o => o.status === targetStatus).map(o => o.id);
+    
+    if (orderIds.length === 0) return;
+
+    fetch(batchPreviousStatusUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+        },
+        body: JSON.stringify(orderIds)
+    }).then(response => {
+        updateOrders();
+        showToast(`All ${role} orders moved to previous status`);
+    }).catch(error => console.error('Error:', error));
 }
 
 // Show cancel modal
