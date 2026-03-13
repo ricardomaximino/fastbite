@@ -4,7 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * MongoDB document for Product entity.
@@ -21,14 +22,14 @@ public class ProductDocument {
     private BigDecimal price;
     private String description;
     private String image;
-    private List<String> customizations;
+    private Set<String> customizations = new HashSet<>();
     private boolean active;
 
     public ProductDocument() {
     }
 
     public ProductDocument(String id, String name, BigDecimal price, String description,
-            String image, List<String> customizations, boolean active) {
+            String image, Set<String> customizations, boolean active) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -78,11 +79,11 @@ public class ProductDocument {
         this.image = image;
     }
 
-    public List<String> getCustomizations() {
+    public Set<String> getCustomizations() {
         return customizations;
     }
 
-    public void setCustomizations(List<String> customizations) {
+    public void setCustomizations(Set<String> customizations) {
         this.customizations = customizations;
     }
 

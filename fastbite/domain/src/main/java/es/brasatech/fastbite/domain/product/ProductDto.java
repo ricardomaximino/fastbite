@@ -1,7 +1,7 @@
 package es.brasatech.fastbite.domain.product;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 /**
  * DTO for Product management in BackOffice.
@@ -13,6 +13,6 @@ public record ProductDto(
                 BigDecimal price,
                 String description,
                 String image,
-                List<String> customizations, // List of customization IDs
+                Set<String> customizations, // Set of customization IDs
                 boolean active) {
 }

@@ -145,7 +145,7 @@ function customizeItem(itemId, category) {
 }
 
 function getDefaultCustomizations(itemId) {
-    const customizations = [];
+    const customizationsMap = new Map();
     const allowedCustomizationIds = document.getElementById(itemId).dataset.customizations?.split(',') || [];
 
     allowedCustomizationIds.forEach(customizationId => {
@@ -155,8 +155,8 @@ function getDefaultCustomizations(itemId) {
         // Radios and Checkboxes
         const inputs = parent.querySelectorAll('input[type="radio"], input[type="checkbox"]');
         inputs.forEach(input => {
-            if (input.dataset.selectedByDefault === 'true') {
-                customizations.push({
+            if (input.dataset.selectedByDefault === 'true' && !customizationsMap.has(input.id)) {
+                customizationsMap.set(input.id, {
                     id: input.id,
                     name: input.value,
                     price: parseFloat(input.dataset.price),
@@ -169,8 +169,8 @@ function getDefaultCustomizations(itemId) {
         const ingredients = parent.querySelectorAll('input[type="hidden"]');
         ingredients.forEach(input => {
             const defaultValue = parseInt(input.dataset.defaultValue || "1");
-            if (defaultValue === 0) {
-                customizations.push({
+            if (defaultValue === 0 && !customizationsMap.has(input.id)) {
+                customizationsMap.set(input.id, {
                     id: input.id,
                     name: input.dataset.no + ' ' + input.dataset.name,
                     price: parseFloat(input.dataset.price),
@@ -179,7 +179,7 @@ function getDefaultCustomizations(itemId) {
             }
         });
     });
-    return customizations;
+    return Array.from(customizationsMap.values());
 }
 
 // Show customization modal
@@ -295,31 +295,41 @@ function editCartItem(cartItemId) {
 
 // Add customized item to cart
 function addCustomizedItem() {
-    const customizations = [];
-    const checkboxes = document.querySelectorAll('#customizations input[type="checkbox"]:checked');
-    const radios = document.querySelectorAll('#customizations input[type="radio"]:checked');
+    const customizationsMap = new Map();
+    
+    // Get visible customization groups
+    const visibleGroups = Array.from(document.querySelectorAll('#customizations > div'))
+        .filter(div => div.style.display !== 'none');
 
-    [...checkboxes, ...radios].forEach(input => {
-        const type = input.name;
-        customizations.push({
-            id: input.id,
-            name: input.value,
-            price: parseFloat(input.dataset.price),
-            quantity: Math.max(0, parseInt(input.dataset.defaultValue))
+    visibleGroups.forEach(group => {
+        // Radios and Checkboxes
+        const inputs = group.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');
+        inputs.forEach(input => {
+            if (!customizationsMap.has(input.id)) {
+                customizationsMap.set(input.id, {
+                    id: input.id,
+                    name: input.value,
+                    price: parseFloat(input.dataset.price),
+                    quantity: Math.max(0, parseInt(input.dataset.defaultValue || "0"))
+                });
+            }
+        });
+
+        // Ingredients (Hidden inputs)
+        const ingredients = group.querySelectorAll('input[type="hidden"]');
+        ingredients.forEach(input => {
+            if (input.value === '0' && !customizationsMap.has(input.id)) {
+                customizationsMap.set(input.id, {
+                    id: input.id,
+                    name: input.dataset.no + ' ' + input.dataset.name,
+                    price: parseFloat(input.dataset.price),
+                    quantity: 0
+                });
+            }
         });
     });
-    const ingredients = document.querySelectorAll('#customizations input[type="hidden"]');
-    ingredients.forEach(input => {
-        if (input.value === '0') {
-            customizations.push({
-                id: input.id,
-                name: input.dataset.no + ' ' + input.dataset.name,
-                price: parseFloat(input.dataset.price),
-                quantity: 0
-            });
-        }
-    });
 
+    const customizations = Array.from(customizationsMap.values());
     addToCart(currentCustomization.itemId, currentCustomization.quantity, customizations);
 
     closeCustomizationModal();

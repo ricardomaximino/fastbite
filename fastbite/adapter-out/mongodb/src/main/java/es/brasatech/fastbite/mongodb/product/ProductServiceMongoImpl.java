@@ -70,7 +70,7 @@ public class ProductServiceMongoImpl implements ProductService {
                 productDto.price(),
                 productDto.description(),
                 productDto.image(),
-                productDto.customizations() != null ? new ArrayList<>(productDto.customizations()) : new ArrayList<>(),
+                productDto.customizations() != null ? new HashSet<>(productDto.customizations()) : new HashSet<>(),
                 productDto.active());
         ProductDocument saved = repository.save(document);
         return toDto(saved);
@@ -90,7 +90,7 @@ public class ProductServiceMongoImpl implements ProductService {
                 productDto.price(),
                 productDto.description(),
                 productDto.image(),
-                productDto.customizations() != null ? new ArrayList<>(productDto.customizations()) : new ArrayList<>(),
+                productDto.customizations() != null ? new HashSet<>(productDto.customizations()) : new HashSet<>(),
                 productDto.active());
         ProductDocument saved = repository.save(document);
         return Optional.of(toDto(saved));
@@ -138,8 +138,8 @@ public class ProductServiceMongoImpl implements ProductService {
                 productI18n.price(),
                 productI18n.description().get(defaultLang, defaultLang),
                 productI18n.image(),
-                productI18n.customizations() != null ? new ArrayList<>(productI18n.customizations())
-                        : new ArrayList<>(),
+                productI18n.customizations() != null ? new HashSet<>(productI18n.customizations())
+                        : new HashSet<>(),
                 productI18n.active());
         ProductDocument saved = repository.save(document);
 

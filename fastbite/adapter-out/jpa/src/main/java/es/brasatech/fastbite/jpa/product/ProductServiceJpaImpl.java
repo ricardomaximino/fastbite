@@ -73,7 +73,7 @@ public class ProductServiceJpaImpl implements ProductService {
                 productDto.price(),
                 productDto.description(),
                 productDto.image(),
-                productDto.customizations() != null ? new ArrayList<>(productDto.customizations()) : new ArrayList<>(),
+                productDto.customizations() != null ? new HashSet<>(productDto.customizations()) : new HashSet<>(),
                 productDto.active());
         ProductEntity saved = repository.save(entity);
         return toDto(saved);
@@ -93,7 +93,7 @@ public class ProductServiceJpaImpl implements ProductService {
                 productDto.price(),
                 productDto.description(),
                 productDto.image(),
-                productDto.customizations() != null ? new ArrayList<>(productDto.customizations()) : new ArrayList<>(),
+                productDto.customizations() != null ? new HashSet<>(productDto.customizations()) : new HashSet<>(),
                 productDto.active());
         ProductEntity saved = repository.save(entity);
         return Optional.of(toDto(saved));
@@ -141,8 +141,8 @@ public class ProductServiceJpaImpl implements ProductService {
                 productI18n.price(),
                 productI18n.description().get(defaultLang, defaultLang),
                 productI18n.image(),
-                productI18n.customizations() != null ? new ArrayList<>(productI18n.customizations())
-                        : new ArrayList<>(),
+                productI18n.customizations() != null ? new HashSet<>(productI18n.customizations())
+                        : new HashSet<>(),
                 productI18n.active());
         ProductEntity saved = repository.save(entity);
 

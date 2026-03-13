@@ -52,6 +52,7 @@ public class MenuDataService {
         // Build comma-separated IDs
         String availableCustomizations = customizations.stream()
                 .map(Customization::id)
+                .distinct()
                 .collect(Collectors.joining(","));
 
         String availableTabsId = tabs.stream()
@@ -169,6 +170,7 @@ public class MenuDataService {
             List<Product> productsInGroup = group.products().stream()
                     .map(productsById::get)
                     .filter(Objects::nonNull)  // Filter out null products
+                    .distinct()
                     .toList();
 
             menuDataMap.put(group.id(), productsInGroup);

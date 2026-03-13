@@ -4,7 +4,7 @@ package es.brasatech.fastbite.domain.product;
 import es.brasatech.fastbite.domain.I18nField;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 /**
  * I18n-aware Product DTO with translatable fields.
@@ -16,7 +16,7 @@ public record ProductI18n(
         BigDecimal price,
         I18nField description,
         String image,
-        List<String> customizations,
+        Set<String> customizations,
         boolean active) {
     /**
      * Create from regular ProductDto (converts default language values to
