@@ -348,12 +348,69 @@
 
 <!-- Payment Section Fragment -->
 <div th:fragment="payment-section" th:remove="tag">
-    <div class="card product-card shadow-sm border-0 mb-4">
+    <!-- List of designs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 th:text="#{backoffice.payment.designs.title}">Payment Designs</h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="createNewPaymentConfig()">
+                    <i class="fas fa-plus"></i> <span th:text="#{backoffice.payment.button.new}">New Design</span>
+                </button>
+            </div>
+            <div class="row g-3">
+                <div th:each="config : ${allConfigs}" class="col-md-4">
+                    <div th:class="|card h-100 ${config.active ? 'border-primary border-2' : 'border-light'}|"
+                        style="cursor: pointer;" th:data-id="${config.id}" onclick="selectPaymentConfig(this.dataset.id)">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 text-truncate" style="max-width: 150px;" th:text="${config.id}">Default
+                                </h6>
+                                <span th:if="${config.active}" class="badge bg-primary">Active</span>
+                            </div>
+                            <div class="small text-muted mb-3">
+                                <span th:each="mode, iter : ${config.activeModes}">
+                                    <span th:text="${mode}">CASH</span>
+                                    <span th:if="${!iter.last}">, </span>
+                                </span>
+                            </div>
+                            <div class="d-flex gap-1 justify-content-end">
+                                <button th:if="${!config.active}" class="btn btn-xs btn-outline-success"
+                                    th:data-id="${config.id}" onclick="event.stopPropagation(); setPaymentConfigDefault(this.dataset.id)"
+                                    title="Set as Default">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                                <button th:if="${config.id != 'default'}" class="btn btn-xs btn-outline-danger"
+                                    th:data-id="${config.id}" onclick="event.stopPropagation(); deletePaymentConfig(this.dataset.id)"
+                                    title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration form -->
+    <div class="card product-card shadow-sm border-0 mb-4" th:if="${paymentConfig != null}">
         <div class="card-header bg-dark text-white">
-            <h5 class="mb-0" th:text="#{backoffice.payment.title}">Payment Configuration</h5>
+            <h5 class="mb-0">
+                <span th:text="#{backoffice.payment.edit.title}">Edit Design:</span>
+                <span class="ms-1" th:text="${paymentConfig.id}">default</span>
+            </h5>
         </div>
         <div class="card-body">
             <form id="paymentConfigForm">
+                <div class="mb-4">
+                    <label for="payment-config-id" class="form-label fw-bold">Design ID/Name</label>
+                    <input type="text" class="form-control" id="payment-config-id" th:value="${paymentConfig.id}"
+                        th:readonly="${paymentConfig.id != null && paymentConfig.id != '' && paymentConfig.id != 'new'}"
+                        placeholder="e.g., Summer Promo, Default Design" required>
+                    <small class="text-muted" th:if="${paymentConfig.id != 'new'}">ID cannot be changed after
+                        creation.</small>
+                </div>
+
                 <div class="mb-4">
                     <label class="form-label fw-bold" th:text="#{backoffice.payment.active.modes}">Active Payment
                         Modes</label>
@@ -439,6 +496,9 @@
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-save me-1"></i> <span th:text="#{backoffice.payment.button.save}">Save
                             Configuration</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" onclick="renderPaymentConfig()">
+                        <i class="fas fa-undo me-1"></i> <span>Reset</span>
                     </button>
                 </div>
             </form>

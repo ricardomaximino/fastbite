@@ -3,7 +3,8 @@ let groups = [];
 let customizations = [];
 let products = [];
 let tables = [];
-let paymentConfig = { activeModes: [], moneyImages: [] };
+let allPaymentConfigs = [];
+let selectedPaymentConfig = null;
 let currentSection = 'groups';
 let editingId = null;
 let selectedProductsForGroup = [];
@@ -137,11 +138,17 @@ async function loadData() {
             }));
         }
 
-        // Load payment config
-        const paymentResponse = await fetch('/api/backoffice/payment');
+        // Load payment configs
+        const paymentResponse = await fetch('/api/backoffice/payment/all');
         if (paymentResponse.ok) {
-            paymentConfig = await paymentResponse.json();
-            if (!paymentConfig.moneyDenominations) paymentConfig.moneyDenominations = [];
+            allPaymentConfigs = await paymentResponse.json();
+            // Default to first or active one if not selected
+            if (!selectedPaymentConfig && allPaymentConfigs.length > 0) {
+                selectedPaymentConfig = allPaymentConfigs.find(c => c.active) || allPaymentConfigs[0];
+            } else if (selectedPaymentConfig) {
+                // Refresh the selected one from the list
+                selectedPaymentConfig = allPaymentConfigs.find(c => c.id === selectedPaymentConfig.id) || allPaymentConfigs[0];
+            }
         }
 
         renderAll();
@@ -1113,7 +1120,8 @@ async function renderPaymentConfig() {
     if (!container) return;
 
     container.innerHTML = await fetchFragment('/api/backoffice/fragments/payment-section', {
-        paymentConfig: paymentConfig
+        paymentConfig: selectedPaymentConfig,
+        allConfigs: allPaymentConfigs
     });
 
     // Handle form submission
@@ -1121,9 +1129,17 @@ async function renderPaymentConfig() {
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const id = document.getElementById('payment-config-id').value;
             const modes = [];
             if (document.getElementById('mode-cash').checked) modes.push('CASH');
             if (document.getElementById('mode-card').checked) modes.push('CARD');
+
+            const configData = {
+                id: id,
+                activeModes: modes,
+                moneyDenominations: selectedPaymentConfig.moneyDenominations || [],
+                active: selectedPaymentConfig.active || false
+            };
 
             try {
                 const response = await fetch('/api/backoffice/payment', {
@@ -1132,15 +1148,15 @@ async function renderPaymentConfig() {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': getCsrfToken()
                     },
-                    body: JSON.stringify({
-                        activeModes: modes,
-                        moneyDenominations: paymentConfig.moneyDenominations
-                    })
+                    body: JSON.stringify(configData)
                 });
 
                 if (response.ok) {
                     showToast('Payment configuration saved successfully!');
-                    loadData();
+                    await loadData();
+                    // Keep the saved one selected
+                    selectedPaymentConfig = allPaymentConfigs.find(c => c.id === id);
+                    renderPaymentConfig();
                 } else {
                     showToast('Error saving payment configuration', 'error');
                 }
@@ -1150,6 +1166,72 @@ async function renderPaymentConfig() {
             }
         });
     }
+}
+
+function selectPaymentConfig(id) {
+    selectedPaymentConfig = allPaymentConfigs.find(c => c.id === id);
+    renderPaymentConfig();
+}
+
+async function setPaymentConfigDefault(id) {
+    try {
+        const response = await fetch(`/api/backoffice/payment/${id}/active`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+
+        if (response.ok) {
+            showToast('Default payment configuration updated!');
+            await loadData();
+            renderPaymentConfig();
+        } else {
+            showToast('Error setting default configuration', 'error');
+        }
+    } catch (error) {
+        console.error('Error setting default payment config:', error);
+        showToast('Error setting default payment config', 'error');
+    }
+}
+
+async function deletePaymentConfig(id) {
+    if (id === 'default') return;
+    if (!confirm(`Are you sure you want to delete the configuration "${id}"?`)) return;
+
+    try {
+        const response = await fetch(`/api/backoffice/payment/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+
+        if (response.ok) {
+            showToast('Configuration deleted successfully!');
+            await loadData();
+            // Reset selection if deleted
+            if (selectedPaymentConfig && selectedPaymentConfig.id === id) {
+                selectedPaymentConfig = allPaymentConfigs[0];
+            }
+            renderPaymentConfig();
+        } else {
+            showToast('Error deleting configuration', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting payment config:', error);
+        showToast('Error deleting payment config', 'error');
+    }
+}
+
+function createNewPaymentConfig() {
+    selectedPaymentConfig = {
+        id: 'new',
+        activeModes: [],
+        moneyDenominations: [],
+        active: false
+    };
+    renderPaymentConfig();
 }
 
 function addDenomination() {
@@ -1162,9 +1244,9 @@ function addDenomination() {
         return;
     }
 
-    if (!paymentConfig.moneyDenominations) paymentConfig.moneyDenominations = [];
+    if (!selectedPaymentConfig.moneyDenominations) selectedPaymentConfig.moneyDenominations = [];
 
-    paymentConfig.moneyDenominations.push({
+    selectedPaymentConfig.moneyDenominations.push({
         value: parseFloat(value),
         type: type,
         image: image
@@ -1172,14 +1254,10 @@ function addDenomination() {
 
     // Re-render to show updated list
     renderPaymentConfig();
-
-    // Clear inputs
-    document.getElementById('new-denom-value').value = '';
-    document.getElementById('new-denom-image').value = '';
 }
 
 function removeDenomination(index) {
-    paymentConfig.moneyDenominations.splice(index, 1);
+    selectedPaymentConfig.moneyDenominations.splice(index, 1);
     renderPaymentConfig();
 }
 

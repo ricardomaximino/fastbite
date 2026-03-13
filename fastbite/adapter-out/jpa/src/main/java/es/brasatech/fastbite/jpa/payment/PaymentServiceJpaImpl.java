@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,34 +21,63 @@ public class PaymentServiceJpaImpl implements PaymentService {
     private final PaymentConfigJpaRepository repository;
 
     @Override
-    public PaymentConfig getConfig() {
-        return repository.findById(PaymentConfig.DEFAULT_ID)
+    public PaymentConfig getActiveConfig() {
+        return repository.findAll().stream()
+                .filter(PaymentConfigEntity::isActive)
+                .findFirst()
                 .map(this::toDomain)
-                .orElseGet(() -> new PaymentConfig(new ArrayList<>(), new ArrayList<>()));
+                .orElseGet(() -> {
+                    PaymentConfig config = new PaymentConfig(new ArrayList<>(), new ArrayList<>());
+                    saveConfig(config);
+                    setActiveConfig(config.id());
+                    return config;
+                });
     }
 
     @Override
-    public void updateConfig(PaymentConfig config) {
-        PaymentConfigEntity entity = repository.findById(PaymentConfig.DEFAULT_ID)
+    public List<PaymentConfig> findAllConfigs() {
+        return repository.findAll().stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<PaymentConfig> findConfigById(String id) {
+        return repository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public void saveConfig(PaymentConfig config) {
+        PaymentConfigEntity entity = repository.findById(config.id())
                 .orElse(new PaymentConfigEntity());
-        entity.setId(PaymentConfig.DEFAULT_ID);
-
-        // Wrap in ArrayList to ensure mutability for Hibernate
+        entity.setId(config.id());
         entity.setActiveModes(new ArrayList<>(config.activeModes()));
-
-        List<MoneyDenominationEmbeddable> embeddables = config.moneyDenominations().stream()
+        entity.setMoneyDenominations(config.moneyDenominations().stream()
                 .map(this::toEmbeddable)
-                .collect(Collectors.toCollection(ArrayList::new));
-        entity.setMoneyDenominations(embeddables);
+                .collect(Collectors.toList()));
+        entity.setActive(config.active());
 
         repository.save(entity);
+    }
+
+    @Override
+    public void deleteConfig(String id) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    public void setActiveConfig(String id) {
+        repository.findAll().forEach(config -> {
+            config.setActive(config.getId().equals(id));
+            repository.save(config);
+        });
     }
 
     private PaymentConfig toDomain(PaymentConfigEntity entity) {
         List<MoneyDenomination> denominations = entity.getMoneyDenominations().stream()
                 .map(emb -> new MoneyDenomination(emb.getValue(), emb.getImage(), emb.getType()))
                 .toList();
-        return new PaymentConfig(entity.getId(), entity.getActiveModes(), denominations);
+        return new PaymentConfig(entity.getId(), entity.getActiveModes(), denominations, entity.isActive());
     }
 
     private MoneyDenominationEmbeddable toEmbeddable(MoneyDenomination domain) {

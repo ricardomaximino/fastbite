@@ -40,7 +40,7 @@ public class CounterController {
     @GetMapping
     public String counter(Model model) {
         model.addAttribute("tables", tableService.findAll());
-        model.addAttribute("paymentConfig", paymentService.getConfig());
+        model.addAttribute("paymentConfig", paymentService.getActiveConfig());
         return "fastfood/counter";
     }
 

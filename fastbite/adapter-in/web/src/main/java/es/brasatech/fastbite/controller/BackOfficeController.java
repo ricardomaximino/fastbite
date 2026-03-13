@@ -97,6 +97,7 @@ public class BackOfficeController {
     @PostMapping("/api/backoffice/fragments/payment-section")
     public String getPaymentSection(@RequestBody Map<String, Object> payload, Model model) {
         model.addAttribute("paymentConfig", payload.get("paymentConfig"));
+        model.addAttribute("allConfigs", payload.get("allConfigs"));
         return "fastfood/fragments/backOffice :: payment-section";
     }
 

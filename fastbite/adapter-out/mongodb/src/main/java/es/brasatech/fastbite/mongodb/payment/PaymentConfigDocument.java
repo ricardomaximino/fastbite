@@ -3,6 +3,7 @@ package es.brasatech.fastbite.mongodb.payment;
 import es.brasatech.fastbite.domain.payment.MoneyDenomination;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.List;
 
 @Document(collection = "payment_configs")
@@ -11,6 +12,7 @@ public class PaymentConfigDocument {
     private String id;
     private List<String> activeModes;
     private List<MoneyDenomination> moneyDenominations;
+    private Boolean active = false;
 
     public String getId() {
         return id;
@@ -34,5 +36,13 @@ public class PaymentConfigDocument {
 
     public void setMoneyDenominations(List<MoneyDenomination> moneyDenominations) {
         this.moneyDenominations = moneyDenominations;
+    }
+
+    public Boolean isActive() {
+        return active != null && active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

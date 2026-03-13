@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/api/backoffice/payment")
 @RequiredArgsConstructor
@@ -15,13 +17,31 @@ public class BackOfficePaymentController {
 
     @GetMapping
     @ResponseBody
-    public PaymentConfig getConfig() {
-        return paymentService.getConfig();
+    public PaymentConfig getActiveConfig() {
+        return paymentService.getActiveConfig();
+    }
+
+    @GetMapping("/all")
+    @ResponseBody
+    public List<PaymentConfig> getAllConfigs() {
+        return paymentService.findAllConfigs();
     }
 
     @PostMapping
     @ResponseBody
-    public void updateConfig(@RequestBody PaymentConfig config) {
-        paymentService.updateConfig(config);
+    public void saveConfig(@RequestBody PaymentConfig config) {
+        paymentService.saveConfig(config);
+    }
+
+    @PostMapping("/{id}/active")
+    @ResponseBody
+    public void setActive(@PathVariable String id) {
+        paymentService.setActiveConfig(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public void deleteConfig(@PathVariable String id) {
+        paymentService.deleteConfig(id);
     }
 }

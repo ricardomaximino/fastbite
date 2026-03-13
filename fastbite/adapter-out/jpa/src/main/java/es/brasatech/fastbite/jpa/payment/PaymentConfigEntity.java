@@ -1,6 +1,7 @@
 package es.brasatech.fastbite.jpa.payment;
 
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Entity(name = "PaymentConfig")
@@ -17,6 +18,9 @@ public class PaymentConfigEntity {
     @ElementCollection
     @CollectionTable(name = "money_denominations", joinColumns = @JoinColumn(name = "config_id"))
     private List<MoneyDenominationEmbeddable> moneyDenominations;
+
+    @Column(name = "active")
+    private Boolean active = false;
 
     public String getId() {
         return id;
@@ -40,5 +44,13 @@ public class PaymentConfigEntity {
 
     public void setMoneyDenominations(List<MoneyDenominationEmbeddable> moneyDenominations) {
         this.moneyDenominations = moneyDenominations;
+    }
+
+    public Boolean isActive() {
+        return active != null && active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

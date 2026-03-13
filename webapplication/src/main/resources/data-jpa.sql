@@ -91,7 +91,11 @@ INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-00
 INSERT INTO dining_tables (id, name, seats, status, active) VALUES ('00000000-0000-0000-0000-000000000010', 'Table 10', 4, 'AVAILABLE', TRUE);
 
 -- Payment Configuration
-INSERT INTO payment_configs (id) VALUES ('default');
+DELETE FROM money_denominations WHERE config_id = 'default';
+DELETE FROM payment_modes WHERE config_id = 'default';
+DELETE FROM payment_configs WHERE id = 'default';
+
+INSERT INTO payment_configs (id, active) VALUES ('default', TRUE);
 
 -- Payment Modes
 INSERT INTO payment_modes (config_id, mode) VALUES ('default', 'CASH');
