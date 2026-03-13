@@ -45,7 +45,10 @@ public class SecurityConfig {
                         .permitAll())
                 .csrf(csrf -> {
                     // Enable CSRF (default)
-                });
+                })
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
+                );
 
         return http.build();
     }

@@ -11,6 +11,7 @@ import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.table.TableStatus;
+import es.brasatech.fastbite.domain.user.Customer;
 import es.brasatech.fastbite.dto.counter.CounterOrderRequest;
 import es.brasatech.fastbite.dto.menu.SequenceNumberServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +109,7 @@ public class CounterController {
                 existingOrder.userId());
 
         orderService.update(orderId, updatedOrder);
-        return Map.of("status", "success");
+        return Map.of("status", "success", "orderId", orderId);
     }
 
     @ResponseBody
@@ -180,6 +181,7 @@ public class CounterController {
     public String getActiveOrdersFragment(Model model, @PathVariable String tableId) {
         var orders = orderService.findActiveByTableId(tableId);
         var enriched = orders.stream().map(o -> Map.of(
+                "id", o.id(),
                 "orderNumber", o.orderNumber(),
                 "total", o.total(),
                 "items", o.items(),
@@ -259,5 +261,30 @@ public class CounterController {
         model.addAttribute("customizations", customizations);
         model.addAttribute("selectedOptions", selected != null ? selected : List.of());
         return "fastfood/fragments/counter :: customization-options";
+    }
+
+    @GetMapping("/receipt")
+    public String getReceipt(
+            @RequestParam("ids") List<String> orderIds,
+            @RequestParam(required = false, defaultValue = "false") boolean isInvoice,
+            @RequestParam(required = false, defaultValue = "false") boolean isProforma,
+            @RequestParam(required = false) String taxId,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) String address,
+            Model model) {
+
+        var orders = orderIds.stream()
+                .map(id -> orderService.findById(id).orElseThrow(() -> new RuntimeException("Order not found: " + id)))
+                .toList();
+
+        model.addAttribute("orders", orders);
+        model.addAttribute("isInvoice", isInvoice);
+        model.addAttribute("isProforma", isProforma);
+
+        if (isInvoice) {
+            model.addAttribute("customer", new Customer(taxId, customerName, address));
+        }
+
+        return "fastfood/receipt";
     }
 }

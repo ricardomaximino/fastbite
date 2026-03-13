@@ -1047,3 +1047,51 @@ h6 {
 .animate-up {
   animation: fadeInUp 0.6s ease-out forwards;
 }
+/* Denomination Buttons */
+.denomination-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.money-btn {
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  border-width: 2px;
+}
+
+.money-btn:hover {
+  transform: scale(1.05);
+}
+
+.money-btn.banknote {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.money-btn.banknote:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.money-btn.coin {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.money-btn.coin:hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+.money-img {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 5px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+

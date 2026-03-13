@@ -32,6 +32,45 @@ function selectPaymentMethod(method) {
     }
 }
 
+function printOrder(orderIds) {
+    const doPrint = document.getElementById('print-receipt-toggle').checked;
+    if (!doPrint) return;
+
+    if (!Array.isArray(orderIds)) orderIds = [orderIds];
+    if (orderIds.length === 0) return;
+
+    const isInvoice = document.getElementById('type-invoice').checked;
+    let url = `/counter/receipt?ids=${orderIds.join(',')}&isInvoice=${isInvoice}&t=${Date.now()}`;
+
+    if (isInvoice) {
+        const taxId = document.getElementById('customer-tax-id').value;
+        const name = document.getElementById('customer-name').value;
+        const address = document.getElementById('customer-address').value;
+        url += `&taxId=${encodeURIComponent(taxId)}&customerName=${encodeURIComponent(name)}&address=${encodeURIComponent(address)}`;
+    }
+
+    const printFrame = document.getElementById('print-frame');
+    if (printFrame) {
+        printFrame.onload = function() {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+        };
+        printFrame.src = url;
+    }
+}
+
+function printProforma(orderId) {
+    const url = `/counter/receipt?ids=${orderId}&isProforma=true&t=${Date.now()}`;
+    const printFrame = document.getElementById('print-frame');
+    if (printFrame) {
+        printFrame.onload = function() {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+        };
+        printFrame.src = url;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadInitialData();
     setupEventListeners();
@@ -187,6 +226,16 @@ function setupEventListeners() {
     document.getElementById('mobile-cart-toggle')?.addEventListener('click', toggleMobileCart);
     document.getElementById('btn-close-cart')?.addEventListener('click', toggleMobileCart);
     document.getElementById('cart-overlay')?.addEventListener('click', toggleMobileCart);
+
+    // Printing options toggle visibility
+    document.getElementsByName('receiptType').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const invoiceDetails = document.getElementById('invoice-details');
+            if (invoiceDetails) {
+                invoiceDetails.style.display = e.target.value === 'INVOICE' ? 'block' : 'none';
+            }
+        });
+    });
 }
 
 function toggleMobileCart() {
@@ -506,10 +555,12 @@ async function submitTableBulkPayment() {
             hideModal('paymentModal');
 
             if (payingSingleOrderId) {
+                printOrder([payingSingleOrderId]);
                 payingSingleOrderId = null;
                 refreshTableMode();
                 refreshTables();
             } else {
+                printOrder(ordersToPay.map(o => o.id));
                 resetPOS();
             }
         } else {
@@ -559,6 +610,12 @@ async function submitOrder(paid = true) {
 
         if (res.ok) {
             const data = await res.json();
+            const orderId = editingOrderId || data.orderId;
+            
+            if (paid) {
+                printOrder([orderId]);
+            }
+
             if (request.tableId) {
                 await fetch(`/counter/api/tables/${request.tableId}/status?status=OCCUPIED`, {
                     method: 'POST',

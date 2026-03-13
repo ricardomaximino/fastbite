@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt</title>
+    <style>
+        @media print {
+            @page {
+                margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 5mm;
+                width: 70mm; /* Account for margins */
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #000;
+            margin: 0 auto;
+            width: 70mm;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin: 5px 0;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            margin: 2px 0;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .items-table th {
+            text-align: left;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+
+        .items-table td {
+            padding: 5px 0;
+            vertical-align: top;
+        }
+
+        .item-name {
+            font-weight: bold;
+        }
+
+        .item-customization {
+            font-size: 10px;
+            padding-left: 10px;
+            font-style: italic;
+        }
+
+        .total-section {
+            margin-top: 10px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+        }
+
+        .customer-info {
+            margin: 10px 0;
+            padding: 5px;
+            border: 1px solid #000;
+            font-size: 11px;
+        }
+
+        .customer-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .invoice-label {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 2px 8px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FASTBITE</h1>
+        <p th:text="${#messages.msg('app.address')} ?: '123 Fast Street, Food City'">123 Fast Street, Food City</p>
+        <p th:text="${#messages.msg('app.phone')} ?: '+1 234 567 890'">+1 234 567 890</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div th:if="${isInvoice}" class="customer-info">
+        <div class="invoice-label" th:text="#{label.receipt.invoice}">INVOICE</div>
+        <h3 th:text="${customer?.name} ?: 'GUEST'">GUEST</h3>
+        <p th:if="${customer?.taxId}" th:text="#{label.tax.id} + ': ' + ${customer.taxId}">Tax ID: 12345678X</p>
+        <p th:if="${customer?.address}" th:text="${customer.address}">Address Line 1</p>
+    </div>
+    
+    <div th:unless="${isInvoice}" class="header">
+        <div class="invoice-label" th:text="${isProforma ? #messages.msg('button.proforma') : #messages.msg('label.order')}">TICKET</div>
+    </div>
+
+    <div class="info-row">
+        <span th:text="#{label.date}">Date:</span>
+        <span th:text="${#temporals.format(orders[0].createdAt, 'dd/MM/yyyy HH:mm')}">13/03/2026 18:30</span>
+    </div>
+    <div class="info-row">
+        <span th:text="#{label.order.number} + ':'">Order #:</span>
+        <span th:text="${#strings.listJoin(orders.![orderNumber], ', ')}">123</span>
+    </div>
+    <div class="info-row">
+        <span th:text="#{label.user} + ':'">User:</span>
+        <span th:text="${orders[0].userId} ?: 'Counter'">Counter</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th th:text="#{label.item}">Item</th>
+                <th style="text-align: right;" th:text="#{label.qty}">Qty</th>
+                <th style="text-align: right;" th:text="#{label.total}">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <th:block th:each="order : ${orders}">
+                <tr th:each="item : ${order.items}">
+                    <td>
+                        <div class="item-name" th:text="${item.name}">Burger</div>
+                        <div class="item-customization" th:each="opt : ${item.customizations}">
+                            <span th:text="'- ' + ${opt.name}">- Extra Cheese</span>
+                            <span th:if="${opt.quantity > 1}" th:text="' x' + ${opt.quantity}"> x2</span>
+                            <span th:if="${opt.price > 0}" th:text="' (+' + ${#numbers.formatDecimal(opt.price, 1, 2)} + ')'"> (+0.50)</span>
+                        </div>
+                    </td>
+                    <td style="text-align: right;" th:text="${item.quantity}">1</td>
+                    <td style="text-align: right;" th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">5.00</td>
+                </tr>
+            </th:block>
+        </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <div class="total-section" th:with="grandTotal=${#aggregates.sum(orders.![total])}">
+        <div class="info-row" style="font-size: 14px;">
+            <span th:text="#{label.subtotal} + ':'">Subtotal:</span>
+            <span th:text="${#numbers.formatDecimal(grandTotal, 1, 2)}">10.00</span>
+        </div>
+        <div class="total-row">
+            <span th:text="#{label.total} + ':'">TOTAL:</span>
+            <span th:text="${#numbers.formatDecimal(grandTotal, 1, 2)}">10.00</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="footer">
+        <p th:text="#{receipt.thankyou}">Thank you for your visit!</p>
+        <p th:each="order : ${orders}" th:text="${order.id}" style="font-size: 8px;">order-uuid-here</p>
+    </div>
+</body>
+</html>
