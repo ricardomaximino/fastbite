@@ -167,12 +167,16 @@
 
                             <h6 class="text-muted mb-2" th:text="#{label.payment.option}">Payment Option</h6>
                             <div class="d-flex gap-2 mb-4">
-                                <button class="btn btn-outline-success flex-grow-1 py-3 payment-method-btn active"
+                                <button th:if="${#lists.contains(paymentConfig.activeModes, 'CASH')}" 
+                                    class="btn btn-outline-success flex-grow-1 py-3 payment-method-btn"
+                                    th:classappend="${paymentConfig.activeModes[0] == 'CASH' ? 'active' : ''}"
                                     data-method="CASH">
                                     <i class="fas fa-money-bill-wave fa-lg"></i><br><span
                                         th:text="#{label.payment.cash}">Cash</span>
                                 </button>
-                                <button class="btn btn-outline-success flex-grow-1 py-3 payment-method-btn"
+                                <button th:if="${#lists.contains(paymentConfig.activeModes, 'CARD')}" 
+                                    class="btn btn-outline-success flex-grow-1 py-3 payment-method-btn"
+                                    th:classappend="${paymentConfig.activeModes[0] == 'CARD' ? 'active' : ''}"
                                     data-method="CARD">
                                     <i class="fas fa-credit-card fa-lg"></i><br><span
                                         th:text="#{label.payment.card}">Card</span>

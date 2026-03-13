@@ -1141,6 +1141,11 @@ async function renderPaymentConfig() {
                 active: selectedPaymentConfig.active || false
             };
 
+            if (modes.length === 0) {
+                showToast('Please select at least one active payment mode.', 'warning');
+                return;
+            }
+
             try {
                 const response = await fetch('/api/backoffice/payment', {
                     method: 'POST',
@@ -1259,6 +1264,12 @@ function addDenomination() {
 function removeDenomination(index) {
     selectedPaymentConfig.moneyDenominations.splice(index, 1);
     renderPaymentConfig();
+}
+
+async function resetPaymentConfig() {
+    await loadData();
+    renderPaymentConfig();
+    showToast('Payment configuration reset to database state.');
 }
 
 let denomImageCallback = null;

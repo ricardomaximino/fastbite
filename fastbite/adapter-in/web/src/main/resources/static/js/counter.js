@@ -22,6 +22,16 @@ const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 const i18nElement = document.getElementById('dictionary');
 const t = (key) => i18nElement?.dataset[key] || key;
 
+function selectPaymentMethod(method) {
+    document.querySelectorAll('.payment-method-btn').forEach(el => {
+        el.classList.toggle('active', el.dataset.method === method);
+    });
+    const cashDetails = document.getElementById('cash-payment-details');
+    if (cashDetails) {
+        cashDetails.style.display = method === 'CASH' ? 'block' : 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadInitialData();
     setupEventListeners();
@@ -153,10 +163,7 @@ function setupEventListeners() {
     // Payment Method Selection
     document.querySelectorAll('.payment-method-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.payment-method-btn').forEach(el => el.classList.remove('active'));
-            btn.classList.add('active');
-            const method = btn.dataset.method;
-            document.getElementById('cash-payment-details').style.display = method === 'CASH' ? 'block' : 'none';
+            selectPaymentMethod(btn.dataset.method);
         });
     });
 
@@ -429,6 +436,13 @@ function showPaymentModal() {
     const total = calculateTotal();
     document.getElementById('payment-total').textContent = formatPrice(total);
     document.getElementById('received-amount').value = total.toFixed(2);
+    
+    // Ensure correct default method UI state
+    const activeBtn = document.querySelector('.payment-method-btn.active');
+    if (activeBtn) {
+        selectPaymentMethod(activeBtn.dataset.method);
+    }
+
     calculateChange();
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
 }
@@ -444,6 +458,13 @@ async function showPaymentModalForTable() {
 
     document.getElementById('payment-total').textContent = formatPrice(totalUnpaid);
     document.getElementById('received-amount').value = totalUnpaid.toFixed(2);
+    
+    // Ensure correct default method UI state
+    const activeBtn = document.querySelector('.payment-method-btn.active');
+    if (activeBtn) {
+        selectPaymentMethod(activeBtn.dataset.method);
+    }
+
     calculateChange();
 
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
