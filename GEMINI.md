@@ -6,7 +6,7 @@ Fast-food ordering system with multi-persistence architecture and database-level
 
 ## Tech Stack
 
-**Backend**: Spring Boot 3.5.7, Java 25, Thymeleaf server-side rendering
+**Backend**: Spring Boot 3.5.7, Java 25, Thymeleaf server-side rendering, Spring Mail
 **Persistence**: Multi-strategy (MongoDB, JPA) via Spring profiles
 **Frontend**: Bootstrap 5.3.0, Font Awesome 6.4.0, Vanilla JavaScript
 **I18n**: Separate translation tables/collections with field-level fallback
@@ -112,6 +112,24 @@ Orders contain `ProductCustomizer` objects with customization option names. Thes
 - JPA: `OrderServiceJpaImpl` uses `CustomizationOptionJpaRepository` and `CustomizationOptionTranslationJpaRepository`
 - MongoDB: `OrderServiceMongoImpl` uses `CustomizationMongoRepository` and `CustomizationOptionTranslationMongoRepository`
 
+### Email Services
+
+**Core Principle**: Hexagonal architecture with a shared interface in the `application` layer and implementation in the `adapter-out` layer.
+
+**Features**:
+- Text and HTML email support (Thymeleaf templates)
+- Attachment support (via `MailMessageAttachment`)
+- Event-driven: Publishes `MailMessageSentEvent` after successful delivery
+- Locale-aware: Templates are processed using the requested language
+
+**Flow**:
+1. `EmailService.sendEmail(MailMessage)` is called
+2. If template is present: HTML body is generated via `SpringTemplateEngine`
+3. Email is sent via `JavaMailSender`
+4. Post-send: `MailMessageSentEvent` is published for tracking/logging
+
+**Persistence**: `EmailRepository` handles email validation and storage (implementation follows the multi-persistence strategy).
+
 ---
 
 ## Project Structure
@@ -148,8 +166,14 @@ es.brasatech.fastbite/
     │   │   └── CustomizationOptionTranslationJpaRepository.java
     │   └── mongodb/
     │       └── CustomizationOptionTranslationMongoRepository.java
-    └── image/         # Image upload service
+    ├── image/         # Image upload service
+    └── email/         # Email adapter (adapter-out)
+        └── service/   # EmailServiceImpl.java
 ```
+
+**Shared Email Components**:
+- `es.brasatech.fastbite.domain.mail`: `Email`, `MailMessage`, `MailMessageAttachment`
+- `es.brasatech.fastbite.application.mail`: `EmailService` (interface), `EmailRepository` (interface)
 
 ---
 
@@ -260,6 +284,24 @@ public record BackOfficeDto<T>(String id, @JsonProperty("customFields") T custom
 - `updateI18n()` - Updates all translations
 - `findByIdInLocale(id, locale)` - Returns DTO in specific locale
 - `findAllInLocale(locale)` - Returns all DTOs in specific locale
+
+### Email Communication
+
+```java
+// Create a basic mail message
+MailMessage message = new MailMessage(
+    "User Name",
+    new Email("user@example.com", true),
+    "Subject",
+    "Text content",
+    "en",
+    MailMessageType.NOTIFICATION,
+    MailMessageStatus.PENDING
+);
+
+// Send via service
+emailService.sendEmail(message);
+```
 
 ### Fragment Data Enrichment
 

@@ -20,8 +20,10 @@
         <!-- Categories Sidebar -->
         <div class="pos-sidebar">
             <div class="p-3 bg-dark text-center">
-                <h4 class="m-0 text-white"><i class="fas fa-utensils me-2"></i><span
+                <a th:href="@{/dashboard}">
+                    <h4 class="m-0 text-white"><i class="fas fa-utensils me-2"></i><span
                         th:text="#{logo.title}">FastBite</span></h4>
+                </a>
             </div>
             <div class="cart-items flex-grow-1" id="categories-sidebar">
                 <!-- Rendered JS -->
