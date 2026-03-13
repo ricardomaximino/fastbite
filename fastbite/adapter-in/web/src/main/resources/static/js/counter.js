@@ -13,6 +13,7 @@ let tableOrders = [];
 let reassigningOrderId = null;
 let currentProduct = null;
 let payingSingleOrderId = null;
+let isFirstQuickCashClick = true;
 
 // CSRF tokens
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -211,8 +212,13 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             const val = parseFloat(btn.dataset.value);
             const input = document.getElementById('received-amount');
-            const current = parseFloat(input.value || 0);
-            input.value = (current + val).toFixed(2);
+            if (isFirstQuickCashClick) {
+                input.value = val.toFixed(2);
+                isFirstQuickCashClick = false;
+            } else {
+                const current = parseFloat(input.value || 0);
+                input.value = (current + val).toFixed(2);
+            }
             calculateChange();
         });
     });
@@ -401,6 +407,7 @@ async function payIndividualOrder(orderId) {
     const order = tableOrders.find(o => o.id === orderId);
     if (!order) return;
 
+    resetPaymentModal();
     payingSingleOrderId = orderId;
     document.getElementById('payment-total').textContent = formatPrice(order.total);
     document.getElementById('received-amount').value = order.total.toFixed(2);
@@ -481,6 +488,7 @@ async function reassignOrder(newTableId) {
 }
 
 function showPaymentModal() {
+    resetPaymentModal();
     payingSingleOrderId = null;
     const total = calculateTotal();
     document.getElementById('payment-total').textContent = formatPrice(total);
@@ -497,6 +505,7 @@ function showPaymentModal() {
 }
 
 async function showPaymentModalForTable() {
+    resetPaymentModal();
     payingSingleOrderId = null;
     let totalUnpaid = 0;
     tableOrders.forEach(o => {
@@ -929,4 +938,27 @@ function showToast(message) {
             }, 3000);
         })
         .catch(error => console.error('Error:', error));
+}
+
+function resetPaymentModal() {
+    isFirstQuickCashClick = true;
+    
+    // Reset receipt type to Simple
+    const simpleRadio = document.getElementById('type-simple');
+    if (simpleRadio) {
+        simpleRadio.checked = true;
+        // Manually trigger change event to hide invoice details
+        const event = new Event('change');
+        simpleRadio.dispatchEvent(event);
+    }
+    
+    // Clear customer fields
+    ['customer-tax-id', 'customer-name', 'customer-address'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    
+    // Hide details section just in case
+    const details = document.getElementById('invoice-details');
+    if (details) details.style.display = 'none';
 }
