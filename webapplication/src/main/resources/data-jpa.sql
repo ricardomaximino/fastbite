@@ -96,7 +96,6 @@ INSERT INTO payment_configs (id) VALUES ('default');
 -- Payment Modes
 INSERT INTO payment_modes (config_id, mode) VALUES ('default', 'CASH');
 INSERT INTO payment_modes (config_id, mode) VALUES ('default', 'CARD');
-INSERT INTO payment_modes (config_id, mode) VALUES ('default', 'PIX');
 
 -- Money Denominations
 INSERT INTO money_denominations (config_id, denomination_value, image, type) VALUES ('default', 50.00, '/images/money/1771142914327_euros50.png', 'BANKNOTE');
