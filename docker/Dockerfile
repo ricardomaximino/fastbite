@@ -8,13 +8,13 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy the native binary [Linux only]
-COPY target/fastbite-app .
+COPY webapplication/target/webapplication ./fastbite
 
 # Make it executable
-RUN chmod +x fastbite-app
+RUN chmod +x fastbite
 
 # Expose the port
 EXPOSE 8080
 
 # Run the binary
-ENTRYPOINT ["./fastbite-app"]
+ENTRYPOINT ["./fastbite"]

@@ -19,10 +19,10 @@ Fast-food ordering system with multi-persistence architecture and database-level
 mvn clean install -DskipTests
 
 # Run with JPA (H2 default)
-mvn spring-boot:run -pl webapplication -Dspring-boot.run.profiles=jpa
+mvn -Pnative -Dspring-boot.run.profiles=jpa native:compile
 
 # Run with MongoDB
-mvn spring-boot:run -pl webapplication -Dspring-boot.run.profiles=mongodb
+mvn -Pnative -Dspring-boot.run.profiles=mongodb native:compile
 ```
 
 ---
@@ -54,10 +54,10 @@ The build handles complex aspects like Hibernate bytecode enhancement and SpEL r
 
 ```bash
 # Build the native binary (JPA profile)
-mvn clean package -Pnative,jpa -DskipTests
+mvn -Pnative -Dspring-boot.run.profiles=jpa native:compile
 
 # Run the native binary
-./webapplication/target/fastbite-app
+./webapplication/target/fastbite
 ```
 
 ### Key Native Optimizations
@@ -107,10 +107,12 @@ CREATE TABLE SPRING_SESSION_ATTRIBUTES (
 
 ```bash
 docker build --file docker/Dockerfile --tag ricardomaximino/fastbite-native:latest .
+docker build push ricardomaximino/fastbite-native:latest
 ```
 
 ### Non-Native
 
 ```bash
-docker build --file docker/Dockerfile-NonNative --tag ricardomaximino/fastbite-standard:latest .
+docker build --file docker/Dockerfile-NonNative --tag ricardomaximino/fastbite-non-native:latest .
+docker build push ricardomaximino/fastbite-non-native:latest
 ```
