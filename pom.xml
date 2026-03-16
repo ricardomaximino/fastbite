@@ -24,6 +24,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<archunit-junit5.version>1.3.0</archunit-junit5.version>
 		<spring-boot.version>3.5.7</spring-boot.version>
+		<byte-buddy.version>1.18.7</byte-buddy.version>
+		<net.bytebuddy.experimental>true</net.bytebuddy.experimental>
 	</properties>
 
 	<build>
@@ -44,13 +46,7 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.graalvm.buildtools</groupId>
-				<artifactId>native-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>es.brasatech.Application</mainClass>
-				</configuration>
-			</plugin>
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

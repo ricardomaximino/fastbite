@@ -24,19 +24,19 @@ public class BackOfficeController {
 
     @PostMapping("/api/backoffice/fragments/groups-list")
     public String getGroupsList(@RequestBody List<Map<String, Object>> groups, Model model) {
-        model.addAttribute("groups", groups);
+        model.addAttribute("groups", new java.util.ArrayList<>(groups));
         return "fastfood/fragments/backOffice :: groups-list";
     }
 
     @PostMapping("/api/backoffice/fragments/customizations-list")
     public String getCustomizationsList(@RequestBody List<Map<String, Object>> customizations, Model model) {
-        model.addAttribute("customizations", customizations);
+        model.addAttribute("customizations", new java.util.ArrayList<>(customizations));
         return "fastfood/fragments/backOffice :: customizations-list";
     }
 
     @PostMapping("/api/backoffice/fragments/products-list")
     public String getProductsList(@RequestBody List<Map<String, Object>> products, Model model) {
-        model.addAttribute("products", products);
+        model.addAttribute("products", new java.util.ArrayList<>(products));
         return "fastfood/fragments/backOffice :: products-list";
     }
 
@@ -83,7 +83,7 @@ public class BackOfficeController {
 
     @PostMapping("/api/backoffice/fragments/tables-list")
     public String getTablesList(@RequestBody List<Map<String, Object>> tables, Model model) {
-        model.addAttribute("tables", tables);
+        model.addAttribute("tables", new java.util.ArrayList<>(tables));
         return "fastfood/fragments/backOffice :: tables-list";
     }
 

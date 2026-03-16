@@ -41,7 +41,11 @@ public class CounterController {
     @GetMapping
     public String counter(Model model) {
         model.addAttribute("tables", tableService.findAll());
-        model.addAttribute("paymentConfig", paymentService.getActiveConfig());
+        var config = paymentService.getActiveConfig();
+        model.addAttribute("paymentConfig", Map.of(
+            "activeModes", new java.util.ArrayList<>(config.activeModes()),
+            "moneyDenominations", config.moneyDenominations()
+        ));
         return "fastfood/counter";
     }
 

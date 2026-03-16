@@ -525,6 +525,8 @@ mvn test -Dtest=!ApplicationJPATests
 7. **Server-side rendering only (Thymeleaf)**
 9. **Use Thymeleaf fragments for dynamic UI components**
 10. **Enrich data in Controllers before sending to fragments** (simplify SpEL)
+11. **Native Image Build**: Register all DTOs and domain classes used in Thymeleaf templates (SpEL) or exposed via JSON in `WebAdapterHints.java` to ensure they are accessible via reflection in the native binary.
+
 
 ---
 

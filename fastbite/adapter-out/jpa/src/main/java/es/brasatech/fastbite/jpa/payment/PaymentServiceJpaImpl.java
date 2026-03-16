@@ -77,7 +77,7 @@ public class PaymentServiceJpaImpl implements PaymentService {
         List<MoneyDenomination> denominations = entity.getMoneyDenominations().stream()
                 .map(emb -> new MoneyDenomination(emb.getValue(), emb.getImage(), emb.getType()))
                 .toList();
-        return new PaymentConfig(entity.getId(), entity.getActiveModes(), denominations, entity.isActive());
+        return new PaymentConfig(entity.getId(), new ArrayList<>(entity.getActiveModes()), denominations, entity.isActive());
     }
 
     private MoneyDenominationEmbeddable toEmbeddable(MoneyDenomination domain) {
