@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
                         .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation",
-                                "/api/create-order", "/order-confirmation/**")
+                                "/api/create-order", "/order-confirmation/**", "/select-payment")
                         .permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**")
                         .permitAll()

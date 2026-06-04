@@ -493,21 +493,58 @@ function backToCart() {
 
 // Submit order
 function submitOrder() {
-    // First, save cart to session via API
-    callAPI(apiSaveCartUrl).then(data => window.location.assign(orderConfirmationUrl))
-        .catch(error => console.error('Error:', error));
-}
+    const customerName = document.getElementById('customerName').value.trim();
+    const tableNumber = document.getElementById('tableNumber').value.trim();
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
-function callAPI(url) {
-    return fetch(url, {
+    if (!customerName) {
+        alert("Please enter your name.");
+        return;
+    }
+    if (!tableNumber) {
+        alert("Please enter your table number.");
+        return;
+    }
+
+    const payload = {
+        items: cart,
+        customerName: customerName,
+        tableNumber: tableNumber,
+        paymentMethod: paymentMethod
+    };
+
+    // Show loading state
+    const submitBtn = document.getElementById('submitOrderBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+
+    fetch(apiSaveCartUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
         },
-        body: JSON.stringify(cart)
+        body: JSON.stringify(payload)
     })
-        .then(response => response.json());
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (paymentMethod === 'online') {
+                window.location.assign('/select-payment');
+            } else {
+                window.location.assign(orderConfirmationUrl);
+            }
+        } else {
+            alert("Error creating order: " + (data.message || "Unknown error"));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+    });
 }
 
 // Start new order

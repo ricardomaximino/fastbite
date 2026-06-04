@@ -7,9 +7,9 @@ This document outlines the priority, design patterns, and implementation checkli
 ## 1. Table Ordering (QR Code Flow)
 *   **Goal**: Allow a customer seated at a table to scan a QR code, enter their name, place an order, and choose either immediate online payment or request the cashier to charge them at the table.
 *   **Key Tasks**:
-    - [ ] **Table-Aware URL Route**: Support `/{tenantId}/menu?table={tableNumber}` or a path-based routing equivalent. Save the table number in the HTTP Session.
-    - [ ] **User Identity**: Prompt the guest for their name on entering the menu or before checking out (save in Session).
-    - [ ] **Payment Decision on Checkout**:
+    - [x] **Table-Aware URL Route**: Support `/{tenantId}/menu?table={tableNumber}` or a path-based routing equivalent. Save the table number in the HTTP Session.
+    - [x] **User Identity**: Prompt the guest for their name on entering the menu or before checking out (save in Session).
+    - [x] **Payment Decision on Checkout**:
         - Provide two buttons at checkout: `Pay Online (Stripe)` or `Pay at Table`.
         - If `Pay at Table` is selected: Set the `OrderPaymentStatus` to `UNPAID` and state to `CREATED`. Trigger a WebSocket alert to the Cashier/Waiter dashboard indicating *"Table X requested payment visit"*.
 

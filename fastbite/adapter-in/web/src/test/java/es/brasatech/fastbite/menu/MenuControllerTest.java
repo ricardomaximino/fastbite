@@ -46,6 +46,9 @@ class MenuControllerTest {
         @MockitoBean
         private MenuDataService menuDataService;
 
+        @MockitoBean
+        private es.brasatech.fastbite.application.table.TableService tableService;
+
         private List<CartItem> testCartItems;
         private MockHttpSession mockSession;
 

@@ -136,6 +136,31 @@
                     </div>
 
                     <div class="col-lg-5">
+                        <!-- Dine-In Details Form -->
+                        <div class="summary-box mb-4">
+                            <h5 class="mb-3 fw-bold"><i class="fas fa-user-tag me-2 text-primary"></i> <span>Dine-In Details</span></h5>
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label small fw-bold">Your Name</label>
+                                <input type="text" class="form-control rounded-3" id="customerName" placeholder="Enter your name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tableNumber" class="form-label small fw-bold">Table Number</label>
+                                <input type="text" class="form-control rounded-3" id="tableNumber" placeholder="e.g. Table 1" 
+                                       th:value="${session.tableName != null ? session.tableName : (session.tableNumber != null ? session.tableNumber : '')}" required>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label small fw-bold d-block">Payment Method</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="payOnline" value="online" checked>
+                                    <label class="form-check-label" for="payOnline">Pay Online</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="payAtTable" value="table">
+                                    <label class="form-check-label" for="payAtTable">Pay at Table</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="summary-box">
                             <h5 class="mb-4 fw-bold"><i class="fas fa-calculator me-2 text-primary"></i> <span
                                     th:text="#{label.order.total}">Total del pedido</span></h5>

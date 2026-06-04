@@ -1,5 +1,6 @@
 package es.brasatech.fastbite.controller;
 
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.dto.menu.MenuData;
 import es.brasatech.fastbite.dto.menu.OrderDto;
@@ -8,10 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,10 +23,27 @@ import java.util.Map;
 public class MenuController {
 
     private final MenuDataService menuDataService;
+    private final TableService tableService;
     private final double taxPercentage = 10;
 
     @GetMapping(value = { "/", "/menu" })
-    public String sample2(Model model) {
+    public String sample2(@RequestParam(value = "table", required = false) String tableParam, HttpSession session, Model model) {
+        if (tableParam != null && !tableParam.trim().isEmpty()) {
+            var opt = tableService.findById(tableParam);
+            if (opt.isPresent()) {
+                session.setAttribute("tableNumber", opt.get().id());
+                session.setAttribute("tableName", opt.get().name());
+            } else {
+                var tables = tableService.findAll();
+                for (var t : tables) {
+                    if (t.name().equalsIgnoreCase(tableParam) || t.name().equalsIgnoreCase("Table " + tableParam) || t.id().equals(tableParam)) {
+                        session.setAttribute("tableNumber", t.id());
+                        session.setAttribute("tableName", t.name());
+                        break;
+                    }
+                }
+            }
+        }
         return "fastfood/menu";
     }
 
@@ -53,7 +68,8 @@ public class MenuController {
     @GetMapping("/select-payment")
     @SuppressWarnings("unchecked")
     public String selectPayment(HttpSession session, Model model) {
-        var orderNumber = (String) session.getAttribute("orderNumber");
+        var orderNumberObj = session.getAttribute("orderNumber");
+        var orderNumber = orderNumberObj != null ? orderNumberObj.toString() : null;
         var cartItems = (List<CartItem>) session.getAttribute("cart");
         var order = new OrderDto(orderNumber, cartItems != null ? cartItems : new ArrayList<>());
         model.addAttribute("order", order);
