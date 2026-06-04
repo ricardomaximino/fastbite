@@ -16,11 +16,12 @@ public record OrderDto(
         BigDecimal subtotal,
         BigDecimal total) implements Serializable {
     public OrderDto(String id, List<CartItem> itemList) {
-        var total = itemList.stream().map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        var subTotal = total;
-        var tax = 10D;
-        var taxAmount = total.multiply(BigDecimal.valueOf(tax)).divide(BigDecimal.valueOf(100));
-        this(id, LocalDateTime.now(), tax, taxAmount, itemList, subTotal, total);
+        this(id,
+             LocalDateTime.now(),
+             10D,
+             itemList.stream().map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity()))).reduce(BigDecimal.ZERO, BigDecimal::add).multiply(BigDecimal.valueOf(10D)).divide(BigDecimal.valueOf(100)),
+             itemList,
+             itemList.stream().map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity()))).reduce(BigDecimal.ZERO, BigDecimal::add),
+             itemList.stream().map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity()))).reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 }

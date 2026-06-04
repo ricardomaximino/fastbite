@@ -24,11 +24,6 @@
         </dependency>
         <dependency>
             <groupId>es.brasatech</groupId>
-            <artifactId>mongodb</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.brasatech</groupId>
             <artifactId>disk-filestorage</artifactId>
             <version>${project.version}</version>
         </dependency>

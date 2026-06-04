@@ -11,10 +11,18 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
             String orderLanguage, String userId) {
-        var now = LocalDateTime.now();
-        var total = cartItems.stream().map(CartItem::totalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-        this(cartItems, orderNumber, UUID.randomUUID().toString(), now, now, OrderStatus.CREATED, total, null,
-                paymentStatus, orderChannel, orderLanguage, userId);
+        this(cartItems,
+             orderNumber,
+             UUID.randomUUID().toString(),
+             LocalDateTime.now(),
+             LocalDateTime.now(),
+             OrderStatus.CREATED,
+             cartItems.stream().map(CartItem::totalPrice).reduce(BigDecimal.ZERO, BigDecimal::add),
+             null,
+             paymentStatus,
+             orderChannel,
+             orderLanguage,
+             userId);
     }
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
