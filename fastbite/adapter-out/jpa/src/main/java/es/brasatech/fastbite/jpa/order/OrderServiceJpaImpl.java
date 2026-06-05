@@ -5,15 +5,15 @@ import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.domain.product.ProductCustomizerI18n;
+import es.brasatech.fastbite.domain.table.Table;
+import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
-import es.brasatech.fastbite.domain.order.OrderStatus;
-import es.brasatech.fastbite.domain.table.Table;
-import es.brasatech.fastbite.domain.table.TableStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
@@ -123,6 +123,33 @@ public class OrderServiceJpaImpl implements OrderService {
     @Override
     public void publishEvent(Object event) {
         eventPublisher.publishEvent(event);
+    }
+
+    @Override
+    public Order createOrderForTable(List<CartItem> cartItems, int orderNumber, String tableNumber, String orderLanguage, String customerName) {
+        String tableId = null;
+        var opt = tableService.findById(tableNumber);
+        if (opt.isPresent()) {
+            tableId = opt.get().id();
+        } else {
+            var tables = tableService.findAll();
+            for (var t : tables) {
+                if (t.name().equalsIgnoreCase(tableNumber) || 
+                    t.name().equalsIgnoreCase("Table " + tableNumber) || 
+                    t.id().equals(tableNumber)) {
+                    tableId = t.id();
+                    break;
+                }
+            }
+        }
+        
+        if (tableId == null) {
+            throw new IllegalArgumentException("Table does not exist");
+        }
+        
+        var savedOrder = createOrder(cartItems, orderNumber, es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID, es.brasatech.fastbite.domain.order.OrderChannel.TABLE, orderLanguage, customerName);
+        tableService.assignOrder(tableId, savedOrder.id());
+        return savedOrder;
     }
 
     /**

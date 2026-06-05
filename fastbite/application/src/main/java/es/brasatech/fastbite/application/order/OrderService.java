@@ -32,6 +32,8 @@ public interface OrderService {
 
     void publishEvent(Object event);
 
+    Order createOrderForTable(List<CartItem> cartItems, int orderNumber, String tableNumber, String orderLanguage, String customerName);
+
     default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
             OrderChannel orderChannel, String orderLanguage, String userId) {
         var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId);

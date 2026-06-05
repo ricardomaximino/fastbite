@@ -4,8 +4,6 @@ import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
-import es.brasatech.fastbite.domain.order.OrderChannel;
-import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.dto.menu.SequenceNumberServiceImpl;
 import es.brasatech.fastbite.dto.order.OrderCancelReason;
 import es.brasatech.fastbite.dto.order.OrderStatusChange;
@@ -41,46 +39,22 @@ public class OrderController {
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
         var orderNumber = sequenceNumberService.getNextSequenceNumber();
         
-        // 1. Resolve table ID
-        String tableId = null;
-        var opt = tableService.findById(request.tableNumber());
-        if (opt.isPresent()) {
-            tableId = opt.get().id();
-        } else {
-            var tables = tableService.findAll();
-            for (var t : tables) {
-                if (t.name().equalsIgnoreCase(request.tableNumber()) || 
-                    t.name().equalsIgnoreCase("Table " + request.tableNumber()) || 
-                    t.id().equals(request.tableNumber())) {
-                    tableId = t.id();
-                    break;
-                }
-            }
-        }
-        
-        // If table doesn't exist, dynamically create one
-        if (tableId == null) {
-            var newTable = tableService.create(new es.brasatech.fastbite.domain.table.Table(request.tableNumber(), 4));
-            tableId = newTable.id();
-        }
-        
-        // 2. Create the order
-        var savedOrder = orderService.createOrder(
-            request.items(), 
-            orderNumber, 
-            OrderPaymentStatus.UNPAID, 
-            OrderChannel.TABLE, 
-            locale.getLanguage(), 
-            request.customerName()
-        );
-        
-        // 3. Assign the order to the resolved table
-        tableService.assignOrder(tableId, savedOrder.id());
-        
-        session.setAttribute("cart", request.items());
-        session.setAttribute("orderNumber", orderNumber);
+        try {
+            orderService.createOrderForTable(
+                request.items(), 
+                orderNumber, 
+                request.tableNumber(), 
+                locale.getLanguage(), 
+                request.customerName()
+            );
+            
+            session.setAttribute("cart", request.items());
+            session.setAttribute("orderNumber", orderNumber);
 
-        return Map.of("status", "success");
+            return Map.of("status", "success");
+        } catch (IllegalArgumentException e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
     }
 
     @ResponseBody
