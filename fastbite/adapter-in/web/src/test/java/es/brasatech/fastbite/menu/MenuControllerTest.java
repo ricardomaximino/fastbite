@@ -1,6 +1,5 @@
 package es.brasatech.fastbite.menu;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import es.brasatech.fastbite.TestConfig;
 import es.brasatech.fastbite.controller.MenuController;
 import es.brasatech.fastbite.domain.order.CartItem;
@@ -11,13 +10,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser
 @WebMvcTest(MenuController.class)
 @DisplayName("MenuController Tests")
-@ContextConfiguration(classes = {TestConfig.class, MenuController.class})
+@ContextConfiguration(classes = {TestConfig.class, MenuController.class, es.brasatech.fastbite.security.SecurityConfig.class})
 class MenuControllerTest {
 
         @Autowired
@@ -99,7 +99,7 @@ class MenuControllerTest {
         @Test
         @DisplayName("GET /menu - Should return menu page")
         void testGetMenu() throws Exception {
-                mockMvc.perform(get("/menu"))
+                mockMvc.perform(get("/menu").with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/menu"))
@@ -199,7 +199,7 @@ class MenuControllerTest {
         @Test
         @DisplayName("GET /select-payment - Should return payment selection page with order from session")
         void testSelectPayment() throws Exception {
-                mockMvc.perform(get("/select-payment").session(mockSession))
+                mockMvc.perform(get("/select-payment").session(mockSession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
@@ -219,7 +219,7 @@ class MenuControllerTest {
                 MockHttpSession emptySession = new MockHttpSession();
                 emptySession.setAttribute("orderNumber", "ORD-67890");
 
-                mockMvc.perform(get("/select-payment").session(emptySession))
+                mockMvc.perform(get("/select-payment").session(emptySession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
@@ -238,7 +238,7 @@ class MenuControllerTest {
         void testSelectPaymentWithNullSession() throws Exception {
                 MockHttpSession nullSession = new MockHttpSession();
 
-                mockMvc.perform(get("/select-payment").session(nullSession))
+                mockMvc.perform(get("/select-payment").session(nullSession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
