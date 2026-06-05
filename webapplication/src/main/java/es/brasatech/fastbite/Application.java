@@ -5,8 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 
 @SpringBootApplication(scanBasePackages = {"es.brasatech.fastbite"})
+@ImportRuntimeHints(es.brasatech.fastbite.config.WebAdapterHints.class)
 public class Application {
 
     public static void main(String[] args) {

@@ -24,10 +24,7 @@ import es.brasatech.fastbite.dto.menu.*;
 import es.brasatech.fastbite.dto.office.BackOfficeDto;
 import es.brasatech.fastbite.dto.order.OrderCancelReason;
 import es.brasatech.fastbite.dto.order.OrderStatusChange;
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.TypeReference;
+import org.springframework.aot.hint.*;
 
 public class WebAdapterHints implements RuntimeHintsRegistrar {
 
@@ -38,13 +35,13 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.resources().registerResourceBundle("i18n/messages");
 
         // Serialization hints for session-stored objects
-        hints.serialization().registerType(java.math.BigDecimal.class);
-        hints.serialization().registerType(java.math.BigInteger.class);
-        hints.serialization().registerType(java.util.ArrayList.class);
-        hints.serialization().registerType(java.util.HashMap.class);
-        hints.serialization().registerType(TypeReference.of(java.util.Collections.emptyList().getClass()));
-        hints.serialization().registerType(CartItem.class);
-        hints.serialization().registerType(ProductCustomizer.class);
+        hints.reflection().registerJavaSerialization(java.math.BigDecimal.class);
+        hints.reflection().registerJavaSerialization(java.math.BigInteger.class);
+        hints.reflection().registerJavaSerialization(java.util.ArrayList.class);
+        hints.reflection().registerJavaSerialization(java.util.HashMap.class);
+        hints.reflection().registerJavaSerialization(java.util.Collections.emptyList().getClass());
+        hints.reflection().registerJavaSerialization(CartItem.class);
+        hints.reflection().registerJavaSerialization(ProductCustomizer.class);
 
         // Reflection hints for DTOs and Domain objects used in Thymeleaf/SpEL
         hints.reflection().registerType(TypeReference.of(java.math.BigDecimal.class), MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS);
@@ -56,6 +53,13 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(org.thymeleaf.expression.Maps.class, MemberCategory.INVOKE_PUBLIC_METHODS);
         hints.reflection().registerType(org.thymeleaf.expression.Strings.class, MemberCategory.INVOKE_PUBLIC_METHODS);
         hints.reflection().registerType(org.thymeleaf.expression.Messages.class, MemberCategory.INVOKE_PUBLIC_METHODS);
+        
+        // Jackson 3 reflection support for native image
+        hints.reflection().registerType(TypeReference.of("tools.jackson.databind.json.JsonMapper"), hint -> {
+            hint.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS);
+            hint.withMethod("builder", java.util.Collections.emptyList(), ExecutableMode.INVOKE);
+        });
+        hints.reflection().registerType(TypeReference.of("tools.jackson.databind.ObjectMapper"), MemberCategory.INVOKE_PUBLIC_METHODS);
 
         hints.reflection().registerType(TypeReference.of(CounterOrderRequest.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(MenuData.class), MemberCategory.values());
