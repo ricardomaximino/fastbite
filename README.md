@@ -15,14 +15,16 @@ Fast-food ordering system with multi-persistence architecture and database-level
 ### Standard Build and Run
 
 ```bash
+# Make sure java 25 graal is set
+sdk use java 25-graal
+
 # Full project build
 mvn clean install -DskipTests
 
+cd webapplication
+
 # Run with JPA (H2 default)
 mvn -Pnative -Dspring-boot.run.profiles=jpa native:compile
-
-# Run with MongoDB
-mvn -Pnative -Dspring-boot.run.profiles=mongodb native:compile
 ```
 
 ---
