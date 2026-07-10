@@ -100,3 +100,9 @@ image:
     max-file-size: 5
     # Allowed extensions
     allowed-extensions: jpg,jpeg,png,gif,webp
+
+# FastBite custom application settings
+fastbite:
+  tax:
+    # Tax rate percentage applied to orders (e.g. 10.0 for 10%)
+    percentage: 10.0

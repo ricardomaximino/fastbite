@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WithMockUser
-@WebMvcTest(MenuController.class)
+@WebMvcTest(controllers = MenuController.class, properties = "fastbite.tax.percentage=15.0")
 @DisplayName("MenuController Tests")
 @ContextConfiguration(classes = {TestConfig.class, MenuController.class, es.brasatech.fastbite.security.SecurityConfig.class})
 class MenuControllerTest {
@@ -124,7 +124,7 @@ class MenuControllerTest {
                                 .andExpect(model().attributeExists("total"))
                                 .andExpect(model().attribute("cart", hasSize(2)))
                                 .andExpect(model().attribute("subtotal", new BigDecimal("25.00")))
-                                .andExpect(model().attribute("tax", new BigDecimal("2.50")))
+                                .andExpect(model().attribute("tax", new BigDecimal("3.75")))
                                 .andExpect(model().attribute("total", new BigDecimal("25.00")));
         }
 
@@ -165,7 +165,7 @@ class MenuControllerTest {
                                 .andExpect(model().attributeExists("total"))
                                 .andExpect(model().attribute("cart", hasSize(2)))
                                 .andExpect(model().attribute("subtotal", new BigDecimal("25.00")))
-                                .andExpect(model().attribute("tax", new BigDecimal("2.50")))
+                                .andExpect(model().attribute("tax", new BigDecimal("3.75")))
                                 .andExpect(model().attribute("total", new BigDecimal("25.00")));
         }
 
@@ -192,7 +192,7 @@ class MenuControllerTest {
                                 .andExpect(view().name("fastfood/fragments/menu :: #confirmation"))
                                 .andExpect(model().attribute("cart", hasSize(1)))
                                 .andExpect(model().attribute("subtotal", new BigDecimal("15.00")))
-                                .andExpect(model().attribute("tax", new BigDecimal("1.50")))
+                                .andExpect(model().attribute("tax", new BigDecimal("2.25")))
                                 .andExpect(model().attribute("total", new BigDecimal("15.00")));
         }
 
@@ -253,7 +253,7 @@ class MenuControllerTest {
         }
 
         @Test
-        @DisplayName("POST /api/calculate-cart - Should calculate tax correctly at 10%")
+        @DisplayName("POST /api/calculate-cart - Should calculate tax correctly at 15%")
         void testTaxCalculation() throws Exception {
                 List<CartItem> itemsForTaxTest = List.of(new CartItem(
                                 "1",
@@ -273,7 +273,7 @@ class MenuControllerTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(model().attribute("subtotal", new BigDecimal("100.00")))
-                                .andExpect(model().attribute("tax", new BigDecimal("10.00")))
+                                .andExpect(model().attribute("tax", new BigDecimal("15.00")))
                                 .andExpect(model().attribute("total", new BigDecimal("100.00")));
         }
 
@@ -298,7 +298,7 @@ class MenuControllerTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(model().attribute("subtotal", new BigDecimal("50.00")))
-                                .andExpect(model().attribute("tax", new BigDecimal("5.00")))
+                                .andExpect(model().attribute("tax", new BigDecimal("7.50")))
                                 .andExpect(model().attribute("total", new BigDecimal("50.00")));
         }
 }

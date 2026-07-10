@@ -7,6 +7,7 @@ import es.brasatech.fastbite.dto.menu.OrderDto;
 import es.brasatech.fastbite.dto.office.MenuDataService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,9 @@ public class MenuController {
 
     private final MenuDataService menuDataService;
     private final TableService tableService;
-    private final double taxPercentage = 10;
+    
+    @Value("${fastbite.tax.percentage:0.0}")
+    private double taxPercentage;
 
     @GetMapping(value = { "/", "/menu" })
     public String sample2(@RequestParam(value = "table", required = false) String tableParam, HttpSession session, Model model) {
