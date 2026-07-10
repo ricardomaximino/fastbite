@@ -773,7 +773,8 @@ function getDefaultCustomizations(product) {
                 defaults.push({
                     id: `${custId}-opt-${idx}`,
                     name: opt.name,
-                    price: opt.price
+                    price: opt.price,
+                    quantity: 1
                 });
             }
         });
@@ -889,7 +890,8 @@ function saveCustomizations() {
         customizations.push({
             id: input.id,
             name: input.value,
-            price: parseFloat(input.dataset.price || 0)
+            price: parseFloat(input.dataset.price || 0),
+            quantity: 1
         });
     });
 
