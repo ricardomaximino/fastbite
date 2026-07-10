@@ -154,14 +154,10 @@ To fully leverage the hexagonal architecture and improve dynamic capability:
 Currently, code is organized in technical modules (`adapter-in`, `adapter-out`, `application`, `domain`) containing all features (e.g., `order`, `office`, `mail`) nested inside.
 *   **Improvement**: Group features into independent modules or package namespaces where each module (e.g., `order-feature`, `menu-feature`) contains its own inner domain, application services, and adapters. This makes it trivial to drop or replace entire feature modules.
 
-### B. Decoupled Domain Models
-Currently, DTOs (`ProductDto`, `CustomizationDto`) cross system layers freely, and mapping boundaries are sometimes shared.
-*   **Improvement**: Restrict the `domain` module from exposing database representation structures. Keep mapping completely localized to `adapter-out` (JPA entities mapping explicitly to domain models inside repository adapters).
-
-### C. Config Switches & Dynamic SPI Bindings
+### B. Config Switches & Dynamic SPI Bindings
 If the system needs to toggle features (e.g., switching from Local Disk Storage to Cloud Storage, or toggling Stripe payment capabilities):
 *   **Improvement**: Define Feature Flag configurations and use `@ConditionalOnProperty` to load alternate outbound adapter implementations without restarting or rebuilding the runtime environment.
 
-### D. Shared SPI Interfaces for Multi-Persistence
+### C. Shared SPI Interfaces for Multi-Persistence
 Instead of repeating service implementations across different profiles:
 *   **Improvement**: Declare a unified Repository/SPI interface in the `application` layer. Let JPA and InMemory repository adapters implement this port directly, preventing services from needing conditional profiles (`*ServiceJpaImpl` vs `*ServiceInMemoryImpl`) and consolidating service logic into a single service implementation.

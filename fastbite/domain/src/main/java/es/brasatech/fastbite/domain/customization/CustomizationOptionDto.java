@@ -17,4 +17,21 @@ public record CustomizationOptionDto(
     public CustomizationOptionDto(String id, String name, BigDecimal price) {
         this(id, name, price, false, 1);
     }
+
+    public CustomizationOption toDomain() {
+        return new CustomizationOption(id, name, price, isSelectedByDefault, defaultValue);
+    }
+
+    public static CustomizationOptionDto fromDomain(CustomizationOption domain) {
+        if (domain == null) {
+            return null;
+        }
+        return new CustomizationOptionDto(
+                domain.getId(),
+                domain.getName(),
+                domain.getPrice(),
+                domain.isSelectedByDefault(),
+                domain.getDefaultValue()
+        );
+    }
 }
