@@ -101,4 +101,16 @@ public class BackOfficeController {
         return "fastfood/fragments/backOffice :: payment-section";
     }
 
+    @PostMapping("/api/backoffice/fragments/discounts-list")
+    public String getDiscountsList(@RequestBody List<Map<String, Object>> discounts, Model model) {
+        model.addAttribute("discounts", new java.util.ArrayList<>(discounts));
+        return "fastfood/fragments/backOffice :: discounts-list";
+    }
+
+    @PostMapping("/api/backoffice/fragments/discount-form")
+    public String getDiscountForm(@RequestBody Map<String, Object> payload, Model model) {
+        model.addAttribute("discount", payload.get("discount"));
+        return "fastfood/fragments/backOffice :: discount-form";
+    }
+
 }

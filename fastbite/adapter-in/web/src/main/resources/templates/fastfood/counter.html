@@ -90,9 +90,13 @@
             </div>
 
             <div class="cart-total-section">
-                <div class="d-flex justify-content-between mb-2">
+                <div class="d-flex justify-content-between mb-1">
                     <span th:text="#{label.subtotal}">Subtotal</span>
                     <span id="cart-subtotal">€0,00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1 text-danger">
+                    <span th:text="#{label.discount}">Discount</span>
+                    <span id="cart-discount">-€0,00</span>
                 </div>
                 <div class="cart-total-row">
                     <span th:text="#{label.total}">TOTAL</span>

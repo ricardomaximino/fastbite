@@ -57,6 +57,8 @@ public class TableServiceJpaImpl implements TableService {
             entity.setSeats(table.seats());
             entity.setStatus(table.status());
             entity.setActive(table.active());
+            entity.setOrderIds(new java.util.ArrayList<>(table.orderIds()));
+            repository.save(entity);
             return toDomain(entity);
         });
     }
@@ -117,6 +119,7 @@ public class TableServiceJpaImpl implements TableService {
             if (!entity.getOrderIds().contains(orderId)) {
                 entity.getOrderIds().add(orderId);
                 entity.setStatus(TableStatus.OCCUPIED);
+                repository.save(entity);
             }
         });
     }
@@ -128,6 +131,7 @@ public class TableServiceJpaImpl implements TableService {
             if (entity.getOrderIds().isEmpty()) {
                 entity.setStatus(TableStatus.AVAILABLE);
             }
+            repository.save(entity);
             resetTableSessionIfAllPaid(tableId);
         });
     }
@@ -150,6 +154,7 @@ public class TableServiceJpaImpl implements TableService {
             if (allCleared && !entity.getOrderIds().isEmpty()) {
                 entity.setOrderIds(new java.util.ArrayList<>());
                 entity.setStatus(TableStatus.AVAILABLE);
+                repository.save(entity);
             }
         });
     }

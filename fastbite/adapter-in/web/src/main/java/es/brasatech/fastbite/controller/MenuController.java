@@ -1,5 +1,6 @@
 package es.brasatech.fastbite.controller;
 
+import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.dto.menu.MenuData;
@@ -12,8 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +24,7 @@ public class MenuController {
 
     private final MenuDataService menuDataService;
     private final TableService tableService;
+    private final DiscountService discountService;
     
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
@@ -56,14 +56,24 @@ public class MenuController {
     }
 
     @PostMapping("/api/calculate-cart")
-    public String calculateCart(@RequestBody List<CartItem> cartItems, Model model) {
-        calculate(cartItems, model);
+    public String calculateCart(
+            @RequestBody List<CartItem> cartItems,
+            @RequestParam(required = false) String couponCode,
+            HttpSession session,
+            Model model) {
+        String tableId = (String) session.getAttribute("tableNumber");
+        calculate(cartItems, couponCode, tableId, model);
         return "fastfood/fragments/menu :: #cart";
     }
 
     @PostMapping("/api/calculate-confirmation")
-    public String calculateConfirmation(@RequestBody List<CartItem> cartItems, Model model) {
-        calculate(cartItems, model);
+    public String calculateConfirmation(
+            @RequestBody List<CartItem> cartItems,
+            @RequestParam(required = false) String couponCode,
+            HttpSession session,
+            Model model) {
+        String tableId = (String) session.getAttribute("tableNumber");
+        calculate(cartItems, couponCode, tableId, model);
         return "fastfood/fragments/menu :: #confirmation";
     }
 
@@ -94,12 +104,13 @@ public class MenuController {
         return menuDataService.buildMenuData(locale);
     }
 
-    private void calculate(List<CartItem> cartItems, Model model) {
-        var total = cartItems.stream().map(CartItem::totalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal tax = total.multiply(BigDecimal.valueOf(taxPercentage / 100)).setScale(2, RoundingMode.CEILING);
+    private void calculate(List<CartItem> cartItems, String couponCode, String tableId, Model model) {
+        var breakdown = discountService.calculateCartBreakdown(cartItems, couponCode, tableId, taxPercentage);
+
         model.addAttribute("cart", cartItems);
-        model.addAttribute("subtotal", total);
-        model.addAttribute("tax", tax);
-        model.addAttribute("total", total);
+        model.addAttribute("subtotal", breakdown.subtotal());
+        model.addAttribute("discount", breakdown.discount());
+        model.addAttribute("tax", breakdown.tax());
+        model.addAttribute("total", breakdown.total());
     }
 }

@@ -161,3 +161,90 @@ If the system needs to toggle features (e.g., switching from Local Disk Storage 
 ### C. Shared SPI Interfaces for Multi-Persistence
 Instead of repeating service implementations across different profiles:
 *   **Improvement**: Declare a unified Repository/SPI interface in the `application` layer. Let JPA and InMemory repository adapters implement this port directly, preventing services from needing conditional profiles (`*ServiceJpaImpl` vs `*ServiceInMemoryImpl`) and consolidating service logic into a single service implementation.
+
+---
+
+## 7. Database Column Mapping Caveats (SQL Reserved Keywords)
+
+When implementing database entity definitions in the JPA adapters (`adapter-out/jpa`):
+
+> [!WARNING]
+> **Reserved SQL Keywords**: Never map an entity field to a column name that matches a reserved SQL keyword (e.g., `VALUE`, `ORDER`, `USER`, `TABLE`, `STATUS`). Doing so triggers syntax parsing errors (`JdbcSQLSyntaxErrorException`) during query generation depending on the active SQL dialect.
+> 
+> Always specify explicit, non-reserved column mappings when defining these properties:
+> ```java
+> // Bad: Triggers JdbcSQLSyntaxErrorException in H2/PostgreSQL
+> @Column(nullable = false)
+> private BigDecimal value;
+> 
+> // Good: Explicit column mapping to avoid reserved keywords
+> @Column(name = "discount_value", nullable = false)
+> private BigDecimal value;
+> ```
+
+---
+
+## 8. Thymeleaf View Rendering & Response Types
+
+> [!CAUTION]
+> **Returning ResponseEntity in View Controllers**: When creating controller endpoints that render Thymeleaf HTML templates or fragments, **never return `ResponseEntity<String>`**. 
+> Returning `ResponseEntity<String>` bypasses Spring Web's view resolution pipeline entirely. Spring will treat the return value as a raw string body and write the string (e.g. `"fastfood/fragments/counter :: order-cart"`) directly into the HTTP response body rather than compiling the Thymeleaf template.
+> 
+> If you need to set custom response headers alongside a rendered view, use `HttpServletResponse` in your signature and set the headers manually, while returning a plain `String` indicating the template view path:
+> ```java
+> // Bad: Bypasses Thymeleaf, returns raw template string path
+> @PostMapping("/fragments/cart")
+> public ResponseEntity<String> getCart() {
+>     return ResponseEntity.ok().header("X-Custom", "Val").body("fragments/cart :: body");
+> }
+> 
+> // Good: Populates custom headers and renders Thymeleaf fragment correctly
+> @PostMapping("/fragments/cart")
+> public String getCart(HttpServletResponse response) {
+>     response.setHeader("X-Custom", "Val");
+>     return "fragments/cart :: body";
+> }
+> ```
+
+---
+
+## 9. Dynamic Promos & Discounts Engine
+
+The discount engine evaluates promotional discounts dynamically across order channels (`COUNTER`, `TABLE`, etc.) using active configurations managed in the Backoffice.
+
+### Core Discount Concepts
+*   **Scope (`ORDER` vs `TABLE`)**:
+    *   `ORDER`: Evaluated against individual orders.
+    *   `TABLE`: Evaluated against the collective total of active, unpaid orders currently assigned to a table session.
+*   **Channels (`applyOnCounter` property)**:
+    *   By default, discounts apply to online/self-order views (`TABLE`, `ONLINE`, `WAITER`).
+    *   Discounts only apply to the **Counter POS** if the `applyOnCounter` flag is explicitly turned on (checkbox in the Backoffice).
+*   **Accumulation (`accumulative` property)**:
+    *   When multiple automatic rules qualify, they are evaluated sequentially.
+    *   If a rule is applied that has `accumulative = false`, the discount engine stops evaluating further rules. If it is `accumulative = true`, the engine continues accumulating eligible discounts.
+*   **Coupon vs. Automatic**:
+    *   Rules with a configured `couponCode` require the customer/operator to manually enter the code to apply them.
+    *   Rules with an empty/null `couponCode` are applied automatically as soon as the qualifying `minSubtotal` threshold is met.
+
+### Calculation Flow & Table Sessions
+When a table order is created, the system must assign the order to the table *before* calculating the final total, ensuring the discount engine can check the table session context:
+
+```
+[Create Order at Counter]
+          │
+          ▼
+1. Persist new Order with base item prices.
+2. Assign newly-created Order ID to the Table session.
+3. Call update/recalculate on Order.
+          │
+          ▼
+[Discount Evaluation in Service Layer]
+   ├── 1. Find all active rules.
+   ├── 2. Filter rules by Channel source (e.g., if COUNTER, check applyOnCounter == true).
+   ├── 3. Determine subtotal context (individual Order subtotal or collective Table Session subtotal).
+   ├── 4. Check minSubtotal requirements.
+   └── 5. Deduct fixed amounts or percentage-based values sequentially.
+          │
+          ▼
+Order total is updated and saved. Table session cart reflects the new calculated discount.
+```

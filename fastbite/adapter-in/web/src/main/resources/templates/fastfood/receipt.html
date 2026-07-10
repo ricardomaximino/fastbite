@@ -185,10 +185,14 @@
 
     <div class="divider"></div>
 
-    <div class="total-section" th:with="grandTotal=${#aggregates.sum(orders.![total])}">
-        <div class="info-row" style="font-size: 14px;">
+    <div class="total-section">
+        <div class="info-row" style="font-size: 13px;">
             <span th:text="#{label.subtotal} + ':'">Subtotal:</span>
-            <span th:text="${#numbers.formatDecimal(grandTotal, 1, 2)}">10.00</span>
+            <span th:text="${#numbers.formatDecimal(rawSubtotal, 1, 2)}">10.00</span>
+        </div>
+        <div th:if="${discount > 0}" class="info-row text-danger" style="font-size: 13px;">
+            <span th:text="#{label.discount} + ':'">Discount:</span>
+            <span th:text="'-' + ${#numbers.formatDecimal(discount, 1, 2)}">-2.00</span>
         </div>
         <div class="total-row">
             <span th:text="#{label.total} + ':'">TOTAL:</span>

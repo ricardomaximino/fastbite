@@ -14,7 +14,6 @@ import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ import java.util.Optional;
  */
 @Service
 @Profile("jpa")
-@RequiredArgsConstructor
 @Transactional
 public class OrderServiceJpaImpl implements OrderService {
 
@@ -41,6 +39,24 @@ public class OrderServiceJpaImpl implements OrderService {
     private final I18nConfig i18nConfig;
     private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
+    private final es.brasatech.fastbite.application.discount.DiscountService discountService;
+
+    public OrderServiceJpaImpl(
+            OrderJpaRepository repository,
+            CustomizationOptionJpaRepository optionRepository,
+            CustomizationOptionTranslationJpaRepository optionTranslationRepository,
+            I18nConfig i18nConfig,
+            TableService tableService,
+            ApplicationEventPublisher eventPublisher,
+            @org.springframework.context.annotation.Lazy es.brasatech.fastbite.application.discount.DiscountService discountService) {
+        this.repository = repository;
+        this.optionRepository = optionRepository;
+        this.optionTranslationRepository = optionTranslationRepository;
+        this.i18nConfig = i18nConfig;
+        this.tableService = tableService;
+        this.eventPublisher = eventPublisher;
+        this.discountService = discountService;
+    }
 
     @Override
     public List<Order> findAll() {
@@ -175,7 +191,22 @@ public class OrderServiceJpaImpl implements OrderService {
         entity.setCreatedAt(order.createdAt());
         entity.setUpdatedAt(order.updatedAt());
         entity.setStatus(order.status());
-        entity.setTotal(order.total());
+
+        // Calculate total considering discount deductions
+        java.math.BigDecimal subtotal = order.items().stream()
+                .map(CartItem::totalPrice)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        String calculatedTableId = null;
+        if (order.id() != null) {
+            calculatedTableId = tableService.findTableByOrderId(order.id()).map(Table::id).orElse(null);
+        }
+        java.math.BigDecimal discount = discountService.calculateDiscount(order.items(), null, calculatedTableId, order.orderChannel());
+        java.math.BigDecimal orderTotal = subtotal.subtract(discount);
+        if (orderTotal.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            orderTotal = java.math.BigDecimal.ZERO;
+        }
+        entity.setTotal(orderTotal);
+
         entity.setCancelReason(order.cancelReason());
         entity.setPaymentStatus(order.paymentStatus());
         entity.setOrderChannel(order.orderChannel());

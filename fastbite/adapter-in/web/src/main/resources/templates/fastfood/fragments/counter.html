@@ -160,6 +160,20 @@
                             <span th:text="${#numbers.formatDecimal(item.totalPrice, 1, 2)}">10.00</span>
                         </div>
                     </div>
+                    <div class="border-top pt-2 mb-2 small">
+                        <div class="d-flex justify-content-between text-muted">
+                            <span th:text="#{label.subtotal}">Subtotal</span>
+                            <span th:text="${#numbers.formatDecimal(order.subtotal, 1, 2)}">10.00</span>
+                        </div>
+                        <div th:if="${order.discount > 0}" class="d-flex justify-content-between text-danger">
+                            <span th:text="#{label.discount}">Discount</span>
+                            <span th:text="'-' + ${#numbers.formatDecimal(order.discount, 1, 2)}">-2.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span th:text="#{label.total}">Total</span>
+                            <span th:text="${#numbers.formatDecimal(order.total, 1, 2)}">10.00</span>
+                        </div>
+                    </div>
                     <div class="d-flex gap-2 border-top pt-2">
                         <button class="btn btn-sm btn-outline-primary" th:data-id="${order.id}"
                             onclick="editOrderFromTable(this.dataset.id)"

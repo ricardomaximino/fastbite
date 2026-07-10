@@ -158,3 +158,26 @@ CREATE TABLE IF NOT EXISTS cart_item_customizations (
     quantity INT,
     FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE
 );
+
+-- Discounts
+CREATE TABLE IF NOT EXISTS discount_rules (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    scope VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    discount_value DECIMAL(10, 2) NOT NULL,
+    min_subtotal DECIMAL(10, 2) NOT NULL,
+    coupon_code VARCHAR(255),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    accumulative BOOLEAN NOT NULL DEFAULT FALSE,
+    apply_on_counter BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS discount_rule_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    discount_rule_id VARCHAR(36) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    UNIQUE (discount_rule_id, language),
+    FOREIGN KEY (discount_rule_id) REFERENCES discount_rules(id) ON DELETE CASCADE
+);

@@ -37,6 +37,7 @@ public class CounterController {
     private final GroupService groupService;
     private final ProductService productService;
     private final CustomizationService customizationService;
+    private final es.brasatech.fastbite.application.discount.DiscountService discountService;
 
     @GetMapping
     public String counter(Model model) {
@@ -69,6 +70,25 @@ public class CounterController {
 
         if (request.tableId() != null && !request.tableId().isEmpty()) {
             tableService.assignOrder(request.tableId(), order.id());
+            // Recalculate order to apply table scope discounts since table is now associated
+            order = orderService.findById(order.id()).orElse(order);
+            var updatedOrder = new Order(
+                    order.items(),
+                    order.orderNumber(),
+                    order.id(),
+                    order.createdAt(),
+                    java.time.LocalDateTime.now(),
+                    order.status(),
+                    order.items().stream()
+                            .map(CartItem::totalPrice)
+                            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add),
+                    order.cancelReason(),
+                    order.paymentStatus(),
+                    order.orderChannel(),
+                    order.orderLanguage(),
+                    order.userId(),
+                    order.customerName());
+            order = orderService.update(order.id(), updatedOrder).orElse(order);
         }
 
         return Map.of("status", "success", "orderNumber", orderNumber, "orderId", order.id());
@@ -196,7 +216,7 @@ public class CounterController {
     }
 
     @PostMapping("/fragments/order-cart")
-    public String getOrderCartFragment(Model model, @RequestBody List<CartItem> items) {
+    public String getOrderCartFragment(Model model, @RequestBody List<CartItem> items, jakarta.servlet.http.HttpServletResponse response) {
         // Enriched list for the fragment
         var enrichedItems = items.stream().map(item -> {
             boolean customizable = productService.findById(item.itemId())
@@ -211,13 +231,29 @@ public class CounterController {
                     "customizable", customizable);
         }).toList();
 
+        var subtotal = items.stream().map(CartItem::totalPrice).reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        var discount = discountService.calculateDiscount(items, null, null, es.brasatech.fastbite.domain.order.OrderChannel.COUNTER);
+        var total = subtotal.subtract(discount);
+        if (total.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            total = java.math.BigDecimal.ZERO;
+        }
+
         model.addAttribute("items", enrichedItems);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("discount", discount);
+        model.addAttribute("total", total);
+
+        response.setHeader("X-Cart-Subtotal", subtotal.toString());
+        response.setHeader("X-Cart-Discount", discount.toString());
+        response.setHeader("X-Cart-Total", total.toString());
+
         return "fastfood/fragments/counter :: order-cart";
     }
 
     @GetMapping("/fragments/table-session-cart/{tableId}")
     public String getTableSessionCartFragment(Model model, @PathVariable String tableId,
-            @RequestParam(required = false) List<Integer> expandedIndices) {
+            @RequestParam(required = false) List<Integer> expandedIndices,
+            jakarta.servlet.http.HttpServletResponse response) {
         var orders = orderService.findActiveByTableId(tableId);
 
         // Wrap orders to include expansion state and simplify data for fragment
@@ -234,9 +270,19 @@ public class CounterController {
                 return m;
             }).toList();
 
+            java.math.BigDecimal orderSubtotal = order.items().stream()
+                    .map(item -> item.totalPrice())
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            java.math.BigDecimal orderDiscount = orderSubtotal.subtract(order.total());
+            if (orderDiscount.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                orderDiscount = java.math.BigDecimal.ZERO;
+            }
+
             Map<String, Object> map = new java.util.HashMap<>();
             map.put("id", order.id());
             map.put("orderNumber", order.orderNumber());
+            map.put("subtotal", orderSubtotal);
+            map.put("discount", orderDiscount);
             map.put("total", order.total());
             map.put("status", order.status() != null ? order.status().name() : "CREATED");
             map.put("paymentStatus", order.paymentStatus() != null ? order.paymentStatus().name() : "UNPAID");
@@ -245,6 +291,30 @@ public class CounterController {
 
             wrappedOrders.add(map);
         }
+
+        // Calculate combined unpaid table totals
+        java.math.BigDecimal subtotal = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+
+        for (var o : orders) {
+            if (o.paymentStatus() != es.brasatech.fastbite.domain.order.OrderPaymentStatus.PAID && o.status() != es.brasatech.fastbite.domain.order.OrderStatus.CANCELLED) {
+                // Table orders are already discounted/stored. Sum their items totalPrice as raw subtotal.
+                java.math.BigDecimal orderSubtotal = o.items().stream()
+                        .map(item -> item.totalPrice())
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                subtotal = subtotal.add(orderSubtotal);
+                total = total.add(o.total());
+            }
+        }
+
+        java.math.BigDecimal discount = subtotal.subtract(total);
+        if (discount.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            discount = java.math.BigDecimal.ZERO;
+        }
+
+        response.setHeader("X-Cart-Subtotal", subtotal.toString());
+        response.setHeader("X-Cart-Discount", discount.toString());
+        response.setHeader("X-Cart-Total", total.toString());
 
         model.addAttribute("orders", wrappedOrders);
         return "fastfood/fragments/counter :: table-session-cart";
@@ -282,7 +352,24 @@ public class CounterController {
                 .map(id -> orderService.findById(id).orElseThrow(() -> new RuntimeException("Order not found: " + id)))
                 .toList();
 
+        var rawSubtotal = orders.stream()
+                .flatMap(o -> o.items().stream())
+                .map(item -> item.totalPrice())
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        var grandTotal = orders.stream()
+                .map(o -> o.total())
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        var discount = rawSubtotal.subtract(grandTotal);
+        if (discount.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            discount = java.math.BigDecimal.ZERO;
+        }
+
         model.addAttribute("orders", orders);
+        model.addAttribute("rawSubtotal", rawSubtotal);
+        model.addAttribute("discount", discount);
+        model.addAttribute("grandTotal", grandTotal);
         model.addAttribute("isInvoice", isInvoice);
         model.addAttribute("isProforma", isProforma);
 

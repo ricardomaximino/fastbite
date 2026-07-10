@@ -112,3 +112,20 @@ mvn clean test
    *   **Customer Menu**: `http://localhost:8080/menu`
    *   **BackOffice Management**: `http://localhost:8080/backoffice`
    *   **Cashier/Orders Dashboard**: `http://localhost:8080/dashboard`
+
+---
+
+## 🏷️ Phase 6: Dynamic Promos & Discounts
+
+FastBite features a robust rule-based promotional and discount engine that supports:
+
+*   **Discount Scopes**:
+    *   `ORDER`: Applies to individual orders.
+    *   `TABLE`: Gathers active orders currently bound to a table to compute eligibility thresholds and applies a proportional, scaled-down discount to each customer's order.
+*   **Discount Types**:
+    *   `PERCENTAGE`: Subtracts a percentage of the eligible subtotal.
+    *   `FIXED_AMOUNT`: Subtracts a flat currency amount.
+*   **Application Modes**:
+    *   `AUTOMATIC`: Applied automatically when subtotal requirements are met (no coupon code needed).
+    *   `MANUAL`: Requires the customer to enter a specific coupon code during checkout.
+*   **Internationalization (i18n)**: Translation rules are supported for all discount titles/names, allowing back-office operators to input localized promotional texts for their target languages.

@@ -1,5 +1,6 @@
 package es.brasatech.fastbite.controller;
 
+import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.office.CustomizationService;
 import es.brasatech.fastbite.application.office.GroupService;
 import es.brasatech.fastbite.application.office.I18nConfig;
@@ -8,6 +9,7 @@ import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.customization.CustomizationI18n;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionI18n;
+import es.brasatech.fastbite.domain.discount.DiscountRuleI18n;
 import es.brasatech.fastbite.domain.group.GroupI18n;
 import es.brasatech.fastbite.domain.product.ProductI18n;
 import es.brasatech.fastbite.domain.table.TableI18n;
@@ -32,6 +34,7 @@ public class I18nController {
         private final ProductService productService;
         private final CustomizationService customizationService;
         private final TableService tableService;
+        private final DiscountService discountService;
         private final I18nConfig i18NConfig;
 
         // ===== Group Translations =====
@@ -210,6 +213,51 @@ public class I18nController {
                                 existingTable.active());
 
                 tableService.updateI18n(id, updated);
+
+                redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
+                return "redirect:/backoffice";
+        }
+
+        // ===== Discount Translations =====
+
+        @GetMapping("/discounts/{id}")
+        public String showDiscountTranslations(@PathVariable String id, Model model) {
+                DiscountRuleI18n discountI18n = discountService.findI18nById(id)
+                                .orElseThrow(() -> new RuntimeException("Discount not found: " + id));
+
+                model.addAttribute("entityType", "discount");
+                model.addAttribute("entityId", id);
+                model.addAttribute("discount", discountI18n);
+                model.addAttribute("defaultLanguage", i18NConfig.getDefaultLanguage());
+                model.addAttribute("availableLocales", i18NConfig.getSupportedLocales());
+
+                return "fastfood/translations";
+        }
+
+        @PostMapping("/discounts/{id}")
+        public String saveDiscountTranslations(
+                        @PathVariable String id,
+                        @RequestParam Map<String, String> formData,
+                        RedirectAttributes redirectAttributes) {
+
+                DiscountRuleI18n existingDiscount = discountService.findI18nById(id)
+                                .orElseThrow(() -> new RuntimeException("Discount not found: " + id));
+
+                I18nField updatedName = parseFieldTranslations(existingDiscount.name(), formData, "name");
+
+                DiscountRuleI18n updated = new DiscountRuleI18n(
+                                id,
+                                updatedName,
+                                existingDiscount.scope(),
+                                existingDiscount.type(),
+                                existingDiscount.value(),
+                                existingDiscount.minSubtotal(),
+                                existingDiscount.couponCode(),
+                                existingDiscount.active(),
+                                existingDiscount.accumulative(),
+                                existingDiscount.applyOnCounter());
+
+                discountService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
                 return "redirect:/backoffice";

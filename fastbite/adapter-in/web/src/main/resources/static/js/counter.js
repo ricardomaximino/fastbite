@@ -368,15 +368,36 @@ async function renderTableCart() {
         if (res.ok) {
             container.innerHTML = await res.text();
 
+            const subtotalHeader = res.headers.get('X-Cart-Subtotal');
+            const discountHeader = res.headers.get('X-Cart-Discount');
+            const totalHeader = res.headers.get('X-Cart-Total');
+
+            if (subtotalHeader && discountHeader && totalHeader) {
+                const subVal = parseFloat(subtotalHeader);
+                const discVal = parseFloat(discountHeader);
+                const totVal = parseFloat(totalHeader);
+
+                document.getElementById('cart-subtotal').textContent = formatPrice(subVal);
+                document.getElementById('cart-discount').textContent = (discVal > 0 ? '-' : '') + formatPrice(discVal);
+                document.getElementById('cart-total').textContent = formatPrice(totVal);
+            } else {
+                let totalUnpaid = 0;
+                tableOrders.forEach(order => {
+                    if (order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED') {
+                        totalUnpaid += order.total;
+                    }
+                });
+                document.getElementById('cart-total').textContent = formatPrice(totalUnpaid);
+                document.getElementById('cart-subtotal').textContent = formatPrice(totalUnpaid);
+                document.getElementById('cart-discount').textContent = formatPrice(0);
+            }
+
             let totalUnpaid = 0;
             tableOrders.forEach(order => {
                 if (order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED') {
                     totalUnpaid += order.total;
                 }
             });
-
-            document.getElementById('cart-total').textContent = formatPrice(totalUnpaid);
-            document.getElementById('cart-subtotal').textContent = formatPrice(totalUnpaid);
             document.getElementById('btn-proceed-payment').disabled = totalUnpaid <= 0;
             document.getElementById('btn-assign-table').classList.add('d-none');
             document.getElementById('btn-billing').classList.remove('d-none');
@@ -803,9 +824,27 @@ async function updateCartUI() {
         if (res.ok) {
             container.innerHTML = await res.text();
 
-            const total = calculateTotal();
-            document.getElementById('cart-subtotal').textContent = formatPrice(total);
-            document.getElementById('cart-total').textContent = formatPrice(total);
+            // Extract calculated subtotal, discount and total from headers or DOM dataset if available
+            // Let's add header values from controller response to update calculations on the fly!
+            const subtotalHeader = res.headers.get('X-Cart-Subtotal');
+            const discountHeader = res.headers.get('X-Cart-Discount');
+            const totalHeader = res.headers.get('X-Cart-Total');
+
+            if (subtotalHeader && discountHeader && totalHeader) {
+                const subVal = parseFloat(subtotalHeader);
+                const discVal = parseFloat(discountHeader);
+                const totVal = parseFloat(totalHeader);
+
+                document.getElementById('cart-subtotal').textContent = formatPrice(subVal);
+                document.getElementById('cart-discount').textContent = (discVal > 0 ? '-' : '') + formatPrice(discVal);
+                document.getElementById('cart-total').textContent = formatPrice(totVal);
+            } else {
+                // Fallback to simple calculation if headers are missing
+                const total = calculateTotal();
+                document.getElementById('cart-subtotal').textContent = formatPrice(total);
+                document.getElementById('cart-discount').textContent = formatPrice(0);
+                document.getElementById('cart-total').textContent = formatPrice(total);
+            }
 
             const mobileBadge = document.getElementById('mobile-cart-count');
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);

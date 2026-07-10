@@ -54,6 +54,11 @@
                             onclick="showSection('payment')">
                             <i class="fas fa-credit-card me-2"></i> <span>Payment</span>
                         </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="nav-discounts"
+                            onclick="showSection('discounts')">
+                            <i class="fas fa-percentage me-2"></i> <span th:text="#{backoffice.discounts.list.title}">Discounts</span>
+                            <span class="badge bg-primary float-end" id="discounts-count">0</span>
+                        </a>
                     </div>
 
                     <h6 class="text-muted mb-3 mt-4" th:text="#{backoffice.quick.actions}">QUICK ACTIONS</h6>
@@ -360,6 +365,22 @@
                             <!-- Payment Config will be loaded here -->
                         </div>
                     </div>
+
+                    <!-- Discounts Section -->
+                    <div id="discounts-section" class="section-content" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3><i class="fas fa-percentage"></i> <span th:text="#{backoffice.discounts.title}">Discounts Management</span></h3>
+                            <button class="btn btn-primary" onclick="showDiscountForm()">
+                                <i class="fas fa-plus"></i> <span th:text="#{backoffice.discounts.new}">New Discount</span>
+                            </button>
+                        </div>
+                        <div id="discount-form-container">
+                            <!-- Discount Form will be loaded here -->
+                        </div>
+                        <div id="discounts-list">
+                            <!-- Discounts will be populated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -385,6 +406,11 @@
 
                     <!-- Products Quick View -->
                     <div id="products-quick-view" class="quick-view-section" style="display: none;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Discounts Quick View -->
+                    <div id="discounts-quick-view" class="quick-view-section" style="display: none;">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
@@ -634,7 +660,10 @@
         th:data-products-save-success="#{backoffice.products.save.success}"
         th:data-products-save-error="#{backoffice.products.save.error}"
         th:data-products-delete-success="#{backoffice.products.delete.success}"
-        th:data-products-delete-error="#{backoffice.products.delete.error}"></div>
+        th:data-products-delete-error="#{backoffice.products.delete.error}"
+        th:data-discounts-delete-confirm="#{backoffice.discounts.delete.confirm}"
+        th:data-discounts-save-success="#{backoffice.discounts.save.success}"
+        th:data-discounts-delete-success="#{backoffice.discounts.delete.success}"></div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/backOffice.js" th:src="@{/js/backOffice.js}" defer></script>

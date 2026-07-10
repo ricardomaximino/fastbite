@@ -5,6 +5,7 @@ let products = [];
 let tables = [];
 let allPaymentConfigs = [];
 let selectedPaymentConfig = null;
+let discounts = [];
 let currentSection = 'groups';
 let editingId = null;
 let selectedProductsForGroup = [];
@@ -138,6 +139,24 @@ async function loadData() {
             }));
         }
 
+        // Load discounts
+        const discountsResponse = await fetch('/api/backoffice/discounts');
+        if (discountsResponse.ok) {
+            const discountsData = await discountsResponse.json();
+            discounts = discountsData.map(data => ({
+                id: data.id,
+                name: data.customFields.name,
+                scope: data.customFields.scope,
+                type: data.customFields.type,
+                value: data.customFields.value,
+                minSubtotal: data.customFields.minSubtotal,
+                couponCode: data.customFields.couponCode,
+                active: data.customFields.active,
+                accumulative: data.customFields.accumulative,
+                applyOnCounter: data.customFields.applyOnCounter
+            }));
+        }
+
         // Load payment configs
         const paymentResponse = await fetch('/api/backoffice/payment/all');
         if (paymentResponse.ok) {
@@ -164,6 +183,7 @@ function renderAll() {
     renderProductsList();
     renderTablesList();
     renderPaymentConfig();
+    renderDiscountsList();
     renderQuickViews();
     updateCounts();
 }
@@ -210,6 +230,7 @@ function createNew() {
     else if (currentSection === 'customizations') showCustomizationForm();
     else if (currentSection === 'products') showProductForm();
     else if (currentSection === 'tables') showTableForm();
+    else if (currentSection === 'discounts') showDiscountForm();
 }
 
 // Update counts
@@ -219,6 +240,8 @@ function updateCounts() {
     document.getElementById('products-count').textContent = products.length;
     const tablesCount = document.getElementById('tables-count');
     if (tablesCount) tablesCount.textContent = tables.length;
+    const discountsCount = document.getElementById('discounts-count');
+    if (discountsCount) discountsCount.textContent = discounts.length;
 }
 
 // Cancel form
@@ -232,6 +255,10 @@ function cancelForm() {
     const tableFormContainer = document.getElementById('table-form-container');
     if (tableList) tableList.style.display = 'block';
     if (tableFormContainer) tableFormContainer.innerHTML = '';
+    const discountList = document.getElementById('discounts-list');
+    const discountFormContainer = document.getElementById('discount-form-container');
+    if (discountList) discountList.style.display = 'block';
+    if (discountFormContainer) discountFormContainer.innerHTML = '';
     editingId = null;
 }
 
@@ -1280,13 +1307,135 @@ function openDenomImageSelector() {
     });
 }
 
-// Override cancelForm to handle table list visibility
+// Override cancelForm to handle table and discount list visibility
 const originalCancelForm = cancelForm;
 window.cancelForm = function () {
     const tableList = document.getElementById('tables-list');
     const tableFormContainer = document.getElementById('table-form-container');
     if (tableList) tableList.style.display = 'block';
     if (tableFormContainer) tableFormContainer.innerHTML = '';
+    const discountList = document.getElementById('discounts-list');
+    const discountFormContainer = document.getElementById('discount-form-container');
+    if (discountList) discountList.style.display = 'block';
+    if (discountFormContainer) discountFormContainer.innerHTML = '';
     originalCancelForm();
 };
+
+// === DISCOUNTS MANAGEMENT ===
+async function renderDiscountsList() {
+    const list = document.getElementById('discounts-list');
+    if (!list) return;
+    list.innerHTML = await fetchFragment('/api/backoffice/fragments/discounts-list', discounts);
+}
+
+async function showDiscountForm(ruleId = null) {
+    editingId = ruleId;
+    const container = document.getElementById('discount-form-container');
+    const list = document.getElementById('discounts-list');
+
+    if (list) list.style.display = 'none';
+
+    let rule = null;
+    if (ruleId) {
+        rule = discounts.find(d => d.id === ruleId);
+    }
+
+    container.innerHTML = await fetchFragment('/api/backoffice/fragments/discount-form', {
+        discount: rule
+    });
+
+    if (rule) {
+        document.getElementById('discount-form-title').textContent = 'Edit Discount';
+        document.getElementById('discount-id').value = rule.id;
+        document.getElementById('discount-name').value = rule.name;
+        document.getElementById('discount-scope').value = rule.scope;
+        document.getElementById('discount-type').value = rule.type;
+        document.getElementById('discount-value').value = rule.value;
+        document.getElementById('discount-minSubtotal').value = rule.minSubtotal;
+        document.getElementById('discount-couponCode').value = rule.couponCode || '';
+        document.getElementById('discount-active').checked = rule.active;
+        document.getElementById('discount-accumulative').checked = rule.accumulative;
+        document.getElementById('discount-applyOnCounter').checked = rule.applyOnCounter || false;
+    }
+
+    const form = document.getElementById('discountFormElement');
+    if (form) {
+        form.addEventListener('submit', handleDiscountSubmit);
+    }
+
+    container.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function handleDiscountSubmit(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('discount-id').value;
+    const discountData = {
+        name: document.getElementById('discount-name').value,
+        scope: document.getElementById('discount-scope').value,
+        type: document.getElementById('discount-type').value,
+        value: parseFloat(document.getElementById('discount-value').value),
+        minSubtotal: parseFloat(document.getElementById('discount-minSubtotal').value),
+        couponCode: document.getElementById('discount-couponCode').value.trim() || null,
+        active: document.getElementById('discount-active').checked,
+        accumulative: document.getElementById('discount-accumulative').checked,
+        applyOnCounter: document.getElementById('discount-applyOnCounter').checked
+    };
+
+    try {
+        const url = id ? `/api/backoffice/discounts/${id}` : '/api/backoffice/discounts';
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify(discountData)
+        });
+
+        if (response.ok) {
+            await loadData();
+            cancelForm();
+            showToast(i18n.discountsSaveSuccess || 'Discount saved successfully!');
+        } else {
+            showToast('Error saving discount', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving discount:', error);
+        showToast('Error saving discount', 'error');
+    }
+}
+
+function editDiscount(id) {
+    showDiscountForm(id);
+}
+
+async function deleteDiscount(id) {
+    if (confirm(i18n.discountsDeleteConfirm || 'Are you sure you want to delete this discount?')) {
+        try {
+            const response = await fetch(`/api/backoffice/discounts/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            if (response.ok) {
+                await loadData();
+                showToast(i18n.discountsDeleteSuccess || 'Discount deleted successfully!');
+            } else {
+                showToast('Error deleting discount', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting discount:', error);
+            showToast('Error deleting discount', 'error');
+        }
+    }
+}
+
+function manageDiscountTranslations(ruleId) {
+    window.location.assign(`/backoffice/translations/discounts/${ruleId}`);
+}
 

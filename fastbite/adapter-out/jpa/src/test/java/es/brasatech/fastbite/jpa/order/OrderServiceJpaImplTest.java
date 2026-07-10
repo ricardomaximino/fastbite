@@ -1,6 +1,7 @@
 package es.brasatech.fastbite.jpa.order;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
+import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
@@ -44,6 +45,12 @@ class OrderServiceJpaImplTest {
     @Mock
     private I18nConfig i18nConfig;
 
+    @Mock
+    private es.brasatech.fastbite.application.discount.DiscountService discountService;
+
+    @Mock
+    private TableService tableService;
+
     @InjectMocks
     private OrderServiceJpaImpl service;
 
@@ -53,6 +60,7 @@ class OrderServiceJpaImplTest {
     @BeforeEach
     void setUp() {
         when(i18nConfig.getDefaultLanguage()).thenReturn(DEFAULT_LANG);
+        when(discountService.calculateDiscount(any(), any(), any(), any())).thenReturn(BigDecimal.ZERO);
     }
 
     @Test

@@ -440,13 +440,49 @@ function toggleCart() {
     }
 }
 
+let activeCouponCode = null;
+
+function applyCoupon() {
+    const code = document.getElementById('couponCode')?.value?.trim();
+    if (code) {
+        activeCouponCode = code;
+    } else {
+        activeCouponCode = null;
+    }
+    loadCartData();
+}
+
 function loadCartData() {
-    loadFragments(cartUrl)
+    const url = activeCouponCode ? `${cartUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : cartUrl;
+    loadFragments(url)
         .then(html => {
             cartSection.innerHTML = html;
             disableNonCustomizableEditButtons();
         })
         .catch(error => console.error('Error:', error));
+}
+
+function proceedToCheckout() {
+    const url = activeCouponCode ? `${confirmationUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : confirmationUrl;
+    loadFragments(url).then(html => {
+        const confirmationSection = document.getElementById('confirmationSection');
+        confirmationSection.innerHTML = html;
+        document.getElementById('cartSection').style.display = 'none';
+        confirmationSection.style.display = 'block';
+        updateStep(3);
+    }).catch(error => console.error('Error:', error));
+}
+
+function loadFragments(url, payload = cart) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(response => response.text());
 }
 
 function disableNonCustomizableEditButtons() {
@@ -469,17 +505,6 @@ function backToMenu() {
     document.getElementById('cartSection').style.display = 'none';
     document.getElementById('menuSection').style.display = 'block';
     updateStep(1);
-}
-
-// Proceed to checkout
-function proceedToCheckout() {
-    loadFragments(confirmationUrl).then(html => {
-        const confirmationSection = document.getElementById('confirmationSection');
-        confirmationSection.innerHTML = html;
-        document.getElementById('cartSection').style.display = 'none';
-        confirmationSection.style.display = 'block';
-        updateStep(3);
-    }).catch(error => console.error('Error:', error));
 }
 
 // Back to cart
