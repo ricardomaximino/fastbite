@@ -35,16 +35,21 @@ public interface OrderService {
     Order createOrderForTable(List<CartItem> cartItems, int orderNumber, String tableNumber, String orderLanguage, String customerName);
 
     default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
-            OrderChannel orderChannel, String orderLanguage, String userId) {
-        var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId);
+            OrderChannel orderChannel, String orderLanguage, String userId, String customerName) {
+        var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId, customerName);
         var savedOrder = create(order);
         publishEvent(new OrderStatusChangedEvent(savedOrder));
         return savedOrder;
     }
 
     default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
+            OrderChannel orderChannel, String orderLanguage, String userId) {
+        return createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId, null);
+    }
+
+    default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
             OrderChannel orderChannel, String orderLanguage) {
-        return createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, null);
+        return createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, null, null);
     }
 
     default void moveToNextStatus(String id) {

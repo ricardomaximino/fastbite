@@ -29,7 +29,7 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER")
 
                         // BackOffice access (admin and manager only)
-                        .requestMatchers("/backoffice/**", "/api/backoffice/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/backoffice/**", "/api/backoffice/**", "/api/backoffice/orders/reassign-table").hasAnyRole("ADMIN", "MANAGER")
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())

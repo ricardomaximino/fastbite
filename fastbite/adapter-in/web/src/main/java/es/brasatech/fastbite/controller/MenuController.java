@@ -30,22 +30,27 @@ public class MenuController {
     private double taxPercentage;
 
     @GetMapping(value = { "/", "/menu" })
-    public String sample2(@RequestParam(value = "table", required = false) String tableParam, HttpSession session, Model model) {
-        if (tableParam != null && !tableParam.trim().isEmpty()) {
-            var opt = tableService.findById(tableParam);
-            if (opt.isPresent()) {
-                session.setAttribute("tableNumber", opt.get().id());
-                session.setAttribute("tableName", opt.get().name());
-            } else {
-                var tables = tableService.findAll();
-                for (var t : tables) {
-                    if (t.name().equalsIgnoreCase(tableParam) || t.name().equalsIgnoreCase("Table " + tableParam) || t.id().equals(tableParam)) {
-                        session.setAttribute("tableNumber", t.id());
-                        session.setAttribute("tableName", t.name());
-                        break;
-                    }
-                }
+    @SuppressWarnings("unchecked")
+    public String menu(
+            @RequestParam(value = "table", required = false) String tableParam,
+            @RequestParam(value = "token", required = false) String tokenParam,
+            HttpSession session,
+            Model model) {
+        
+        try {
+            String existingTableNumber = (String) session.getAttribute("tableNumber");
+            List<CartItem> cartItems = (List<CartItem>) session.getAttribute("cart");
+            String boundTableId = tableService.validateAndBindTableSession(tableParam, tokenParam, existingTableNumber, cartItems);
+            
+            if (boundTableId != null) {
+                var tableOpt = tableService.findById(boundTableId);
+                tableOpt.ifPresent(table -> {
+                    session.setAttribute("tableNumber", table.id());
+                    session.setAttribute("tableName", table.name());
+                });
             }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
         }
         return "fastfood/menu";
     }

@@ -19,6 +19,12 @@
 
     <!-- Main Content -->
     <div class="container mt-4">
+        <!-- Error Message Alert -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}">Error Message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <!-- Step Indicator -->
         <div class="step-indicator animate-up">
             <div class="step active" id="step1">1</div>

@@ -110,7 +110,8 @@ public class CounterController {
                 request.paid() ? OrderPaymentStatus.PAID : existingOrder.paymentStatus(),
                 existingOrder.orderChannel(),
                 existingOrder.orderLanguage(),
-                existingOrder.userId());
+                existingOrder.userId(),
+                existingOrder.customerName());
 
         orderService.update(orderId, updatedOrder);
         return Map.of("status", "success", "orderId", orderId);

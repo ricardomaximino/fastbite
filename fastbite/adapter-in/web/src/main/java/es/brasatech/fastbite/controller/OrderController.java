@@ -99,6 +99,15 @@ public class OrderController {
         orderService.setOrderStatus(id, orderStatusChange.value());
     }
 
+    @ResponseBody
+    @PostMapping("/api/backoffice/orders/reassign-table")
+    public Map<String, Object> reassignTable(@RequestParam String orderId, @RequestParam String tableId) {
+        var table = tableService.findTableByOrderId(orderId);
+        table.ifPresent(value -> tableService.unassignOrder(value.id(), orderId));
+        tableService.assignOrder(tableId, orderId);
+        return Map.of("status", "success");
+    }
+
     @GetMapping("/order-confirmation")
     public String confirmation(HttpSession session, Model model) {
         var orderNumber = session.getAttribute("orderNumber");

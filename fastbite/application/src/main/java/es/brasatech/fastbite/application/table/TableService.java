@@ -28,4 +28,8 @@ public interface TableService {
     void resetTableSessionIfAllPaid(String tableId);
 
     Optional<Table> findTableByOrderId(String orderId);
+
+    Optional<Table> findTableByNameOrId(String tableParam);
+
+    String validateAndBindTableSession(String tableParam, String tokenParam, String existingTableNumber, List<?> cartItems);
 }

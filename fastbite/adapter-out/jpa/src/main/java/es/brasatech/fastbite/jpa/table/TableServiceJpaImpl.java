@@ -25,6 +25,7 @@ public class TableServiceJpaImpl implements TableService {
     private final TableTranslationJpaRepository translationRepository;
     private final I18nConfig i18nConfig;
     private final es.brasatech.fastbite.jpa.order.OrderJpaRepository orderRepository;
+    private final es.brasatech.fastbite.application.table.TableSignatureUtil tableSignatureUtil;
 
     @Override
     public List<Table> findAll() {
@@ -159,6 +160,48 @@ public class TableServiceJpaImpl implements TableService {
                 .filter(table -> table.getOrderIds().contains(orderId))
                 .findFirst()
                 .map(this::toDomain);
+    }
+
+    @Override
+    public Optional<Table> findTableByNameOrId(String tableParam) {
+        if (tableParam == null || tableParam.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        var opt = findById(tableParam);
+        if (opt.isPresent()) {
+            return opt;
+        }
+        var tables = findAll();
+        for (var t : tables) {
+            if (t.name().equalsIgnoreCase(tableParam) || t.name().equalsIgnoreCase("Table " + tableParam) || t.id().equals(tableParam)) {
+                return Optional.of(t);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public String validateAndBindTableSession(String tableParam, String tokenParam, String existingTableNumber, List<?> cartItems) {
+        if (tableParam == null || tableParam.trim().isEmpty()) {
+            return null;
+        }
+        var opt = findTableByNameOrId(tableParam);
+        if (opt.isPresent()) {
+            var foundTable = opt.get();
+            // Cryptographic validation of signed URL parameter
+            if (tokenParam == null || !tableSignatureUtil.isValid(foundTable.id(), tokenParam)) {
+                throw new IllegalArgumentException("Invalid or missing secure table token. Scan the QR code at your table.");
+            }
+
+            // Session boundary protection: Active unpaid order on Table A cannot switch to Table B
+            if (existingTableNumber != null && !existingTableNumber.equals(foundTable.id())) {
+                if (cartItems != null && !cartItems.isEmpty()) {
+                    throw new IllegalStateException("You have an active ordering session on another table. Please complete or clear it first.");
+                }
+            }
+            return foundTable.id();
+        }
+        return null;
     }
 
     private Table toDomain(TableEntity entity) {

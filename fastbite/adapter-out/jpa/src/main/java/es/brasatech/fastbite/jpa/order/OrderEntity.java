@@ -32,6 +32,7 @@ public class OrderEntity {
     private OrderChannel orderChannel;
     private String orderLanguage;
     private String userId;
+    private String customerName;
 
     public String getId() {
         return id;
@@ -127,5 +128,13 @@ public class OrderEntity {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 }

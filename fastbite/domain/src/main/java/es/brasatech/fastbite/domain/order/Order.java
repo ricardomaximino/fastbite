@@ -7,10 +7,10 @@ import java.util.UUID;
 
 public record Order(List<CartItem> items, int orderNumber, String id, LocalDateTime createdAt, LocalDateTime updatedAt,
         OrderStatus status, BigDecimal total, String cancelReason, OrderPaymentStatus paymentStatus,
-        OrderChannel orderChannel, String orderLanguage, String userId) {
+        OrderChannel orderChannel, String orderLanguage, String userId, String customerName) {
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
-            String orderLanguage, String userId) {
+            String orderLanguage, String userId, String customerName) {
         this(cartItems,
              orderNumber,
              UUID.randomUUID().toString(),
@@ -22,77 +22,83 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
              paymentStatus,
              orderChannel,
              orderLanguage,
-             userId);
+             userId,
+             customerName);
+    }
+
+    public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
+            String orderLanguage, String userId) {
+        this(cartItems, orderNumber, paymentStatus, orderChannel, orderLanguage, userId, null);
     }
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
             String orderLanguage) {
-        this(cartItems, orderNumber, paymentStatus, orderChannel, orderLanguage, null);
+        this(cartItems, orderNumber, paymentStatus, orderChannel, orderLanguage, null, null);
     }
 
     public Order next() {
         if (status == OrderStatus.CREATED) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.ACCEPTED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.ACCEPTED) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.PROCESSING, total,
-                    null, paymentStatus, orderChannel, orderLanguage, userId);
+                    null, paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.PROCESSING) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DONE, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.DONE) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DELIVERED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.COMPLETE, total, null,
-                paymentStatus, orderChannel, orderLanguage, userId);
+                paymentStatus, orderChannel, orderLanguage, userId, customerName);
     }
 
     public Order previous() {
         if (status == OrderStatus.ACCEPTED) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CREATED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.PROCESSING) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.ACCEPTED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.DONE) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.PROCESSING, total,
-                    null, paymentStatus, orderChannel, orderLanguage, userId);
+                    null, paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.DELIVERED) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DONE, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         if (status == OrderStatus.COMPLETE) {
             return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DELIVERED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId);
+                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
         }
         return this;
     }
 
     public Order cancel(String cancelReason) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CANCELLED, total,
-                cancelReason, paymentStatus, orderChannel, orderLanguage, userId);
+                cancelReason, paymentStatus, orderChannel, orderLanguage, userId, customerName);
     }
 
     public Order setStatus(OrderStatus status) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId);
+                orderChannel, orderLanguage, userId, customerName);
     }
 
     public Order setPaymentStatus(OrderPaymentStatus paymentStatus) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId);
+                orderChannel, orderLanguage, userId, customerName);
     }
 
     public Order setChannel(OrderChannel orderChannel) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId);
+                orderChannel, orderLanguage, userId, customerName);
     }
 
 }

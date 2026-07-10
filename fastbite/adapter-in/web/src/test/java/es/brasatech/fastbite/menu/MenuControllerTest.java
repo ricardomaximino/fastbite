@@ -24,6 +24,7 @@ import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,6 +50,9 @@ class MenuControllerTest {
         @MockitoBean
         private es.brasatech.fastbite.application.table.TableService tableService;
 
+        @MockitoBean
+        private es.brasatech.fastbite.application.table.TableSignatureUtil tableSignatureUtil;
+
         private List<CartItem> testCartItems;
         private MockHttpSession mockSession;
 
@@ -68,6 +72,10 @@ class MenuControllerTest {
 
                 when(menuDataService.buildMenuData(any(Locale.class)))
                                 .thenReturn(new MenuData(new HashMap<>(), List.of(), "", dictionary, List.of(), ""));
+
+                // Mock TableSignatureUtil to return true for standard signatures
+                org.mockito.Mockito.when(tableSignatureUtil.isValid(any(), any())).thenReturn(true);
+                org.mockito.Mockito.when(tableSignatureUtil.generateSignature(any())).thenReturn("val_sig");
 
                 // Create test cart items
                 testCartItems = new ArrayList<>();
@@ -104,6 +112,38 @@ class MenuControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/menu"))
                                 .andExpect(model().attributeExists("menuData"));
+        }
+
+        @Test
+        @DisplayName("GET /menu with table param and missing token - Should fail token validation")
+        void testGetMenuWithTableMissingToken() throws Exception {
+                when(tableService.validateAndBindTableSession(eq("table-1"), eq(null), any(), any()))
+                                .thenThrow(new IllegalArgumentException("Invalid or missing secure table token. Scan the QR code at your table."));
+
+                mockMvc.perform(get("/menu").param("table", "table-1").with(csrf()))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("fastfood/menu"))
+                                .andExpect(model().attribute("errorMessage", "Invalid or missing secure table token. Scan the QR code at your table."));
+        }
+
+        @Test
+        @DisplayName("GET /menu with table and valid token - Should set session attributes")
+        void testGetMenuWithTableAndToken() throws Exception {
+                es.brasatech.fastbite.domain.table.Table table = new es.brasatech.fastbite.domain.table.Table("table-1", "Table 1", 4, es.brasatech.fastbite.domain.table.TableStatus.AVAILABLE, true, new ArrayList<>());
+                when(tableService.findById("table-1")).thenReturn(Optional.of(table));
+                when(tableService.validateAndBindTableSession(eq("table-1"), eq("valid-token"), any(), any()))
+                                .thenReturn("table-1");
+
+                mockMvc.perform(get("/menu").param("table", "table-1").param("token", "valid-token").with(csrf()))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("fastfood/menu"))
+                                .andExpect(result -> {
+                                        MockHttpSession session = (MockHttpSession) result.getRequest().getSession();
+                                        assert "table-1".equals(session.getAttribute("tableNumber"));
+                                        assert "Table 1".equals(session.getAttribute("tableName"));
+                                });
         }
 
         @Test
