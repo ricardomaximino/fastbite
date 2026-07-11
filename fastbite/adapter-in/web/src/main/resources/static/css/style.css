@@ -1,28 +1,74 @@
 :root {
-  /* Main Theme Colors */
+  /* FastFood Theme (Default base styles) */
   --primary-color: #dc3545;
   --primary-hover: #c82333;
   --secondary-color: #ffc107;
   --success-color: #28a745;
   --info-color: #17a2b8;
-  --warning-color: #ffc107;
+  --warning-color: #ff9f43;
   --danger-color: #dc3545;
   --dark-color: #212529;
-  --light-color: #f8f9fa;
-
-  /* Layout Variables */
+  --light-color: #FFFDF9;
+  --bg-color: #FFFDF9;
+  --card-bg: #FFFFFF;
+  --text-color: #212529;
+  
+  /* Layout Tokens */
   --sidebar-bg: #2c3e50;
   --sidebar-width: 250px;
   --cart-width: 380px;
-  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --border-radius: 20px;
+  --font-family: 'Outfit', 'Segoe UI', sans-serif;
+  --gradient-nav: linear-gradient(135deg, var(--primary-color), #e85d75);
+}
+
+/* Cafe Theme Overrides */
+[data-theme="cafe"] {
+  --primary-color: #6F4E37;
+  --primary-hover: #5A3E2B;
+  --secondary-color: #D2B48C;
+  --success-color: #2E7D32;
+  --danger-color: #C62828;
+  --warning-color: #EF6C00;
+  --dark-color: #2D231E;
+  --light-color: #FAF6F0;
+  --bg-color: #FAF6F0;
+  --card-bg: #FFFFFF;
+  --text-color: #2D231E;
+  --border-radius: 12px;
+  --font-family: 'Outfit', 'Georgia', serif;
+  --gradient-nav: linear-gradient(135deg, #6F4E37, #8B5A2B);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Modern Theme Overrides */
+[data-theme="modern"] {
+  --primary-color: #1A1A1A;
+  --primary-hover: #333333;
+  --secondary-color: #737373;
+  --success-color: #15803D;
+  --danger-color: #B91C1C;
+  --warning-color: #B45309;
+  --dark-color: #111827;
+  --light-color: #F9FAFB;
+  --bg-color: #F9FAFB;
+  --card-bg: #FFFFFF;
+  --text-color: #111827;
+  --border-radius: 4px;
+  --font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  --gradient-nav: linear-gradient(135deg, #1A1A1A, #2D3748);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* Global Styles */
 body {
-  background-color: var(--light-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--dark-color);
+  background-color: var(--bg-color);
+  font-family: var(--font-family);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -41,8 +87,8 @@ h6 {
 }
 
 .navbar {
-  background: linear-gradient(135deg, var(--primary-color), #e85d75) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--gradient-nav) !important;
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar-brand {
@@ -69,7 +115,7 @@ h6 {
 
 .dropdown-menu {
     animation: navFadeIn 0.3s ease-out;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     padding: 8px;
 }
 
@@ -81,7 +127,7 @@ h6 {
 /* Generic Components */
 .product-card {
   border: none;
-  border-radius: 15px;
+  border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
   transition: all 0.3s ease;
   overflow: hidden;
@@ -137,8 +183,7 @@ h6 {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #e85d75;
-  /* Slightly softer red like reference */
+  background: var(--primary-color);
   color: white;
   display: flex;
   align-items: center;
@@ -146,12 +191,12 @@ h6 {
   font-size: 0.8rem;
   transition: all 0.2s;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(232, 93, 117, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .menu-qty-btn:hover {
   transform: scale(1.1);
-  background: #d64d64;
+  background: var(--primary-hover);
 }
 
 .menu-qty-btn i {
@@ -162,18 +207,19 @@ h6 {
   background: var(--primary-color);
   color: white;
   padding: 5px 15px;
-  border-radius: 20px;
+  border-radius: var(--border-radius);
   font-weight: bold;
   font-size: 1.1rem;
 }
 
 /* Cart Styles (Shared) */
 .cart-item {
-  background: white;
-  border-radius: 10px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
   padding: 15px;
   margin-bottom: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-color);
 }
 
 /* Cart Quantity Control */
@@ -181,9 +227,9 @@ h6 {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #f8f9fa;
+  background: var(--light-color);
   padding: 5px 10px;
-  border-radius: 20px;
+  border-radius: var(--border-radius);
   width: fit-content;
 }
 
@@ -332,10 +378,21 @@ h6 {
 }
 
 /* Counter POS Specific Layout */
-.pos-container {
+.pos-wrapper {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+
+.pos-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.navbar-hidden .navbar {
+  display: none !important;
 }
 
 .pos-sidebar {
@@ -369,7 +426,7 @@ h6 {
   margin: 4px 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   color: rgba(255, 255, 255, 0.7);
@@ -381,10 +438,10 @@ h6 {
 }
 
 .category-item.active {
-  background: linear-gradient(135deg, var(--primary-color), #e85d75);
+  background: var(--gradient-nav);
   color: white;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* UI Elements */
@@ -392,12 +449,13 @@ h6 {
   padding: 12px 20px !important;
   margin-bottom: 20px !important;
   border: 1px solid #f0f0f0;
+  border-radius: var(--border-radius);
 }
 
 .pos-main #productSearch {
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
   padding: 10px 15px;
-  background-color: #f8f9fa;
+  background-color: var(--light-color);
   border: 1px solid #dee2e6;
   border-left: none;
 }
@@ -409,15 +467,15 @@ h6 {
 }
 
 .pos-main .input-group-text {
-  border-radius: 10px 0 0 10px;
-  background-color: #f8f9fa;
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+  background-color: var(--light-color);
   border: 1px solid #dee2e6;
   border-right: none;
   color: #adb5bd;
 }
 
 .btn-pos-primary {
-  background: linear-gradient(135deg, var(--primary-color), #e85d75);
+  background: var(--gradient-nav);
   border: none;
   color: white;
   font-weight: 700;
@@ -425,6 +483,7 @@ h6 {
   padding: 14px;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
+  border-radius: var(--border-radius);
 }
 
 .btn-pos-primary:hover {
@@ -434,9 +493,9 @@ h6 {
 }
 
 .btn-add-to-cart {
-  background: linear-gradient(135deg, var(--primary-color), #e85d75);
+  background: var(--gradient-nav);
   border: none;
-  border-radius: 25px;
+  border-radius: var(--border-radius);
   padding: 8px 20px;
   font-weight: bold;
   color: white;
@@ -445,9 +504,9 @@ h6 {
 /* POS Specific Overrides */
 .pos-main .product-card {
   position: relative;
-  border-radius: 24px;
+  border-radius: var(--border-radius);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
+  background: var(--card-bg);
   border: 1px solid #f0f0f0;
 }
 
@@ -1146,3 +1205,191 @@ h6 {
     display: none !important;
   }
 }
+
+/* Dashboard Theme Adjustments */
+[data-theme="cafe"] .card-header.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+[data-theme="cafe"] .card-header.bg-warning {
+  background-color: #8C6239 !important; /* Soft brown alert */
+  color: white !important;
+}
+[data-theme="cafe"] .card-header.bg-info {
+  background-color: #5C4033 !important; /* Darker brown info */
+}
+[data-theme="cafe"] .card-header.bg-success {
+  background-color: var(--success-color) !important;
+}
+[data-theme="cafe"] .card-header.bg-danger {
+  background-color: #4E2725 !important; /* Deep mahogany/coffee dark warm tone */
+}
+
+/* Cafe Backoffice List Group Active Overrides */
+[data-theme="cafe"] .list-group-item.active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Cafe Table Modal Selection Adjustments */
+[data-theme="cafe"] .modal-header {
+  background: var(--gradient-nav);
+  color: white;
+}
+[data-theme="cafe"] .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="modern"] .card-header.bg-primary {
+  background-color: #1A1A1A !important;
+}
+[data-theme="modern"] .card-header.bg-warning {
+  background-color: #2D3748 !important; /* Dark slate */
+  color: white !important;
+}
+[data-theme="modern"] .card-header.bg-info {
+  background-color: #4A5568 !important;
+}
+[data-theme="modern"] .card-header.bg-success {
+  background-color: #1A202C !important;
+}
+[data-theme="modern"] .card-header.bg-danger {
+  background-color: #2D3748 !important;
+}
+
+/* Modern Backoffice List Group Active Overrides */
+[data-theme="modern"] .list-group-item.active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Modern Table Modal Selection Adjustments */
+[data-theme="modern"] .modal-header {
+  background: var(--gradient-nav);
+  color: white;
+}
+[data-theme="modern"] .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Cafe Theme Button & Label Overrides */
+[data-theme="cafe"] .btn-primary,
+[data-theme="cafe"] .btn-outline-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+[data-theme="cafe"] .btn-primary:hover,
+[data-theme="cafe"] .btn-outline-primary:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+[data-theme="cafe"] .btn-outline-primary {
+  background-color: transparent !important;
+  color: var(--primary-color) !important;
+}
+[data-theme="cafe"] .btn-outline-primary:hover {
+  color: white !important;
+}
+[data-theme="cafe"] .badge.bg-primary {
+  background-color: var(--secondary-color) !important;
+  color: #2D231E !important;
+}
+[data-theme="cafe"] .badge.bg-info {
+  background-color: #8C6239 !important; /* Muted brown */
+  color: white !important;
+}
+
+/* Modern Theme Button & Label Overrides */
+[data-theme="modern"] .btn-primary,
+[data-theme="modern"] .btn-outline-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+  border-radius: 4px !important;
+}
+[data-theme="modern"] .btn-primary:hover,
+[data-theme="modern"] .btn-outline-primary:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+[data-theme="modern"] .btn-outline-primary {
+  background-color: transparent !important;
+  color: var(--primary-color) !important;
+}
+[data-theme="modern"] .btn-outline-primary:hover {
+  color: white !important;
+}
+[data-theme="modern"] .badge.bg-primary {
+  background-color: var(--secondary-color) !important;
+  color: white !important;
+}
+[data-theme="modern"] .badge.bg-info {
+  background-color: #4A5568 !important; /* Muted slate */
+  color: white !important;
+}
+
+/* POS Theme Specific Adjustments */
+[data-theme="cafe"] .pos-sidebar {
+  background: linear-gradient(180deg, #3E2723 0%, #271510 100%) !important;
+}
+[data-theme="cafe"] .pos-sidebar .bg-dark {
+  background-color: #271510 !important;
+}
+[data-theme="cafe"] .payment-method-btn.active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+[data-theme="cafe"] .cart-header {
+  background: var(--gradient-nav) !important;
+}
+[data-theme="cafe"] .pos-cart #btn-clear-cart {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+}
+[data-theme="cafe"] .modal-footer .btn-success,
+[data-theme="cafe"] #btn-complete-order {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+[data-theme="cafe"] .modal-footer .btn-secondary {
+  background-color: #D2B48C !important;
+  border-color: #D2B48C !important;
+  color: #2D231E !important;
+}
+
+[data-theme="modern"] .pos-sidebar {
+  background: linear-gradient(180deg, #111827 0%, #030712 100%) !important;
+}
+[data-theme="modern"] .pos-sidebar .bg-dark {
+  background-color: #030712 !important;
+}
+[data-theme="modern"] .payment-method-btn.active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+[data-theme="modern"] .cart-header {
+  background: var(--gradient-nav) !important;
+}
+[data-theme="modern"] .pos-cart #btn-clear-cart {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+}
+[data-theme="modern"] .modal-footer .btn-success,
+[data-theme="modern"] #btn-complete-order {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+  border-radius: 4px !important;
+}
+[data-theme="modern"] .modal-footer .btn-secondary {
+  background-color: #374151 !important;
+  border-color: #374151 !important;
+  color: white !important;
+  border-radius: 4px !important;
+}
+
+
+
+
+

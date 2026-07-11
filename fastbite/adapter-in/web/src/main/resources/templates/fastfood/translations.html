@@ -275,6 +275,11 @@
     </div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Restore theme preference
+        const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </body>
 
 </html>

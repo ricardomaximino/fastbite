@@ -77,6 +77,14 @@
                                     </div>
                                 </div>
                             </li>
+                            <li class="px-3 py-2 border-bottom" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                                <label class="small text-muted mb-1" th:text="#{label.theme} ?: 'Theme'">Theme</label>
+                                <select class="form-select form-select-sm" id="navbarThemeSelector" onchange="switchTheme(this.value)">
+                                    <option value="fastfood">FastFood</option>
+                                    <option value="cafe">Cafe</option>
+                                    <option value="modern">Modern Restaurant</option>
+                                </select>
+                            </li>
                             <li>
                                 <form th:action="@{/logout}" method="post" class="m-0">
                                     <button type="submit" class="dropdown-item py-2 text-danger">
@@ -96,4 +104,16 @@
             </div>
         </div>
     </nav>
+    <script>
+        function switchTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('fastbite-theme', theme);
+            const selector = document.getElementById('navbarThemeSelector');
+            if (selector) selector.value = theme;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
+            switchTheme(savedTheme);
+        });
+    </script>
 </th:block>

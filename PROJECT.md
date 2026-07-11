@@ -247,4 +247,66 @@ When a table order is created, the system must assign the order to the table *be
           │
           ▼
 Order total is updated and saved. Table session cart reflects the new calculated discount.
+
+---
+
+## 10. UI & CSS Theme Harmonization Guidelines
+
+FastBite supports dynamic multi-theme layout selection (`fastfood`, `cafe`, and `modern`). To keep the user interface consistent and properly aligned, developers must adhere to the following rules when creating or updating views.
+
+### A. Theme-Level Color Variables (Design Tokens)
+All views must consume theme-specific CSS variables declared in the `:root`, `[data-theme="cafe"]`, and `[data-theme="modern"]` selectors within [style.css](file:///d:/git/fastbite/fastbite/adapter-in/web/src/main/resources/static/css/style.css):
+
+*   `--primary-color` / `--primary-hover`: The main brand focus colors (e.g., used for active links, primary buttons, headers).
+*   `--secondary-color`: The primary label/badge background.
+*   `--success-color` / `--danger-color` / `--warning-color` / `--info-color`: Contextual alerts.
+*   `--bg-color` / `--light-color` / `--card-bg`: Background and grid surfaces.
+*   `--gradient-nav`: Gradient style mapped to the Navigation bars.
+*   `--border-radius`: Element roundness parameter (e.g., `20px` for FastFood, `12px` for Cafe, `4px` for Modern).
+
+### B. HTML Template Setup (Thymeleaf)
+When creating new HTML pages under `resources/templates/fastfood/`:
+1.  **Define Namespaces**: Always include the Thymeleaf XML namespaces on the root element to ensure server-side rendering is parsed correctly:
+    ```html
+    <!DOCTYPE html>
+    <html lang="en" xmlns:th="http://www.thymeleaf.org">
+    ```
+2.  **Include the CSS stylesheet**: Ensure the global styles are loaded in the `<head>` block:
+    ```html
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    ```
+3.  **Restore Theme Selection**: Include the following JavaScript block right before the closing `</body>` tag to instantly apply the active theme configuration stored in the client's `localStorage` on page load:
+    ```html
+    <script>
+        const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+    ```
+
+### C. Overriding Bootstrap Colors
+Do not use hardcoded color values or static Bootstrap contextual background color rules (e.g. `.bg-primary`, `.bg-warning`, `.bg-danger`) directly on layout elements if they need to change per theme. Instead, map class selector overrides in [style.css](file:///d:/git/fastbite/fastbite/adapter-in/web/src/main/resources/static/css/style.css) using `[data-theme="..."]` prefixes:
+```css
+/* Cafe override example */
+[data-theme="cafe"] .card-header.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+[data-theme="cafe"] .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+```
+
+### D. Global Theme Switcher
+The shared navbar fragment ([navbar.html](file:///d:/git/fastbite/fastbite/adapter-in/web/src/main/resources/templates/fastfood/fragments/navbar.html)) provides a global dropdown switcher. Selection changes propagate to all pages automatically via:
+```javascript
+function switchTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('fastbite-theme', theme);
+    const selector = document.getElementById('navbarThemeSelector');
+    if (selector) selector.value = theme;
+}
+```
+If a custom layout wrapper requires a dynamic layout recalculation (like height updates on the Counter POS toggling the navbar), wrap the viewport inside a flex container (e.g. `.pos-wrapper`) and toggle utility styling hooks dynamically.
+
 ```

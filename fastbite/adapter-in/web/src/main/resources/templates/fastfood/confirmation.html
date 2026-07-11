@@ -69,6 +69,11 @@
             </div>
         </div>
     </div>
+    <script>
+        // Restore theme preference
+        const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </body>
 
 </html>

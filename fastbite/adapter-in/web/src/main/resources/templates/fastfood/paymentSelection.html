@@ -137,6 +137,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Restore theme preference
+        const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
         // Add selected styling to payment cards
         document.querySelectorAll('.btn-check').forEach(radio => {
             radio.addEventListener('change', function () {
@@ -149,8 +153,9 @@
                 // Add selected styling to checked card
                 if (this.checked) {
                     const label = this.nextElementSibling;
-                    label.style.borderColor = '#dc3545';
-                    label.style.backgroundColor = '#fff5f5';
+                    // Resolve active theme variables dynamically
+                    label.style.borderColor = 'var(--primary-color)';
+                    label.style.backgroundColor = 'var(--light-color)';
                 }
             });
         });
