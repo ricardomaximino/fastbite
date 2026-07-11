@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
                         .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation",
-                                "/api/create-order", "/order-confirmation/**", "/select-payment", "/signup").permitAll()
+                                "/api/create-order", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe").permitAll()
                         .requestMatchers("/t/*/menu/**", "/t/*/api/calculate-cart", "/t/*/api/calculate-confirmation",
                                 "/t/*/api/create-order", "/t/*/order-confirmation/**", "/t/*/select-payment").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
@@ -44,9 +44,9 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                         .permitAll())
-                .csrf(csrf -> {
-                    // Enable CSRF (default)
-                })
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/webhooks/stripe")
+                )
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 );
