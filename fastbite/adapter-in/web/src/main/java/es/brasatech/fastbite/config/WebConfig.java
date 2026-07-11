@@ -39,4 +39,18 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
         registry.addInterceptor(new TenantInterceptor());
     }
+
+    @org.springframework.context.annotation.Bean
+    public TenantRoutingFilter tenantRoutingFilter() {
+        return new TenantRoutingFilter();
+    }
+
+    @org.springframework.context.annotation.Bean
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<TenantRoutingFilter> tenantRoutingFilterRegistration(TenantRoutingFilter filter) {
+        org.springframework.boot.web.servlet.FilterRegistrationBean<TenantRoutingFilter> registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
+        registration.setFilter(filter);
+        registration.addUrlPatterns("/*");
+        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        return registration;
+    }
 }

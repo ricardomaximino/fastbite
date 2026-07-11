@@ -16,11 +16,16 @@ public class TenantInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String tenantId = null;
 
+        // Try extracting from request attribute first
+        tenantId = (String) request.getAttribute("tenantId");
+
         // Try extracting from URI template variables first (e.g. if mapped with /t/{tenantId}/**)
-        @SuppressWarnings("unchecked")
-        Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        if (pathVariables != null && pathVariables.containsKey("tenantId")) {
-            tenantId = pathVariables.get("tenantId");
+        if (tenantId == null) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+            if (pathVariables != null && pathVariables.containsKey("tenantId")) {
+                tenantId = pathVariables.get("tenantId");
+            }
         }
 
         // Fallback: manually parse URI path starting with /t/

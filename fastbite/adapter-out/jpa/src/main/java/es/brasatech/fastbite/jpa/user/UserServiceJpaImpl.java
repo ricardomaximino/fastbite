@@ -31,7 +31,7 @@ public class UserServiceJpaImpl implements UserService {
         entity.setUsername(userDto.username());
         entity.setPassword(userDto.password());
         entity.setFullName(userDto.fullName());
-        entity.setRoles(userDto.roles());
+        entity.setRoles(userDto.roles() != null ? new java.util.HashSet<>(userDto.roles()) : new java.util.HashSet<>());
         entity.setActive(userDto.active());
 
         userRepository.save(entity);
