@@ -36,6 +36,25 @@ public class TenantInterceptor implements HandlerInterceptor {
             }
         }
 
+        // Fallback 2: parse Referer header for AJAX requests
+        if (tenantId == null) {
+            String referer = request.getHeader("Referer");
+            if (referer != null) {
+                try {
+                    java.net.URI refererUri = new java.net.URI(referer);
+                    String refererPath = refererUri.getPath();
+                    if (refererPath.startsWith("/t/")) {
+                        String[] segments = refererPath.split("/");
+                        if (segments.length > 2) {
+                            tenantId = segments[2];
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore malformed referer
+                }
+            }
+        }
+
         if (tenantId != null) {
             TenantContext.setCurrentTenant(tenantId);
         } else {

@@ -84,4 +84,16 @@ class TenantInterceptorTest {
         interceptor.afterCompletion(request, response, new Object(), null);
         assertNull(TenantContext.getCurrentTenant());
     }
+
+    @Test
+    void testExtractTenantFromReferer() throws Exception {
+        request.setRequestURI("/api/calculate-cart");
+        request.setContextPath("");
+        request.addHeader("Referer", "http://localhost:8080/t/tenant-ref-val/menu");
+
+        boolean result = interceptor.preHandle(request, response, new Object());
+
+        assert result;
+        assertEquals("tenant-ref-val", TenantContext.getCurrentTenant());
+    }
 }

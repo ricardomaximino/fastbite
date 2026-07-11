@@ -47,6 +47,7 @@ spring:
         format_sql: true
         temp:
           use_jdbc_metadata_defaults: false
+        multi_tenancy: SCHEMA
   session:
     store-type: jdbc
     jdbc:
