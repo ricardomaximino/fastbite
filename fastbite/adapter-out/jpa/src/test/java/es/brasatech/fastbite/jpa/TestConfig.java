@@ -6,6 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@ComponentScan(basePackages = "es.brasatech.fastbite.jpa.tenant")
+@ComponentScan(basePackages = {
+    "es.brasatech.fastbite.jpa.tenant",
+    "es.brasatech.fastbite.jpa.user",
+    "es.brasatech.fastbite.application.tenant"
+})
 public class TestConfig {
 }

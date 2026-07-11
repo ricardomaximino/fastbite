@@ -1,0 +1,75 @@
+package es.brasatech.fastbite.jpa.tenant;
+
+import es.brasatech.fastbite.domain.tenant.TenantContext;
+import es.brasatech.fastbite.jpa.TestConfig;
+import es.brasatech.fastbite.jpa.user.UserEntity;
+import es.brasatech.fastbite.jpa.user.UserJpaRepository;
+import es.brasatech.fastbite.application.tenant.TenantSignupService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest(classes = TestConfig.class)
+@ActiveProfiles("jpa")
+class TenantSignupIntegrationTest {
+
+    @Autowired
+    private TenantSignupService tenantSignupService;
+
+    @Autowired
+    private UserJpaRepository userRepository;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @BeforeEach
+    void setUp() {
+        TenantContext.clear();
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
+    }
+
+    @Test
+    void testTenantSignupAndSelfProvisioning() {
+        String tenantId = "tenantnew";
+        String adminUsername = "newtenantadmin";
+
+        // Perform registration & self-provisioning
+        assertDoesNotThrow(() ->
+            tenantSignupService.registerTenant(tenantId, adminUsername, "bcrypt_password_hash", "New Tenant Owner")
+        );
+
+        // Switch to the newly created tenant context
+        TenantContext.setCurrentTenant(tenantId);
+
+        // Verify the user exists inside the new tenant schema
+        transactionTemplate.execute(status -> {
+            Optional<UserEntity> userOpt = userRepository.findByUsername(adminUsername);
+            assertTrue(userOpt.isPresent(), "Admin user should exist in the new tenant schema");
+            UserEntity user = userOpt.get();
+            assertEquals("New Tenant Owner", user.getFullName());
+            assertEquals("bcrypt_password_hash", user.getPassword());
+            assertTrue(user.isActive());
+            return null;
+        });
+
+        // Switch back to default context and verify the user does NOT exist there
+        TenantContext.setCurrentTenant("default");
+        transactionTemplate.execute(status -> {
+            Optional<UserEntity> userOpt = userRepository.findByUsername(adminUsername);
+            assertFalse(userOpt.isPresent(), "Admin user should not exist in the default schema");
+            return null;
+        });
+    }
+}
