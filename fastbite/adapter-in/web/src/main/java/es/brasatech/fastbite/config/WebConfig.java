@@ -34,4 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
         // System images are already served from /static/images by Spring Boot's default
         // configuration
     }
+
+    @Override
+    public void addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
+        registry.addInterceptor(new TenantInterceptor());
+    }
 }
