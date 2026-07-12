@@ -118,11 +118,11 @@ CREATE TABLE IF NOT EXISTS customization_translations (
 
 CREATE TABLE IF NOT EXISTS customization_option_translations (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    option_id VARCHAR(255) NOT NULL,
+    customization_option_id VARCHAR(255) NOT NULL,
     language VARCHAR(10) NOT NULL,
     name VARCHAR(255),
-    UNIQUE (option_id, language),
-    FOREIGN KEY (option_id) REFERENCES customization_options(id) ON DELETE CASCADE
+    UNIQUE (customization_option_id, language),
+    FOREIGN KEY (customization_option_id) REFERENCES customization_options(id) ON DELETE CASCADE
 );
 
 -- Orders
