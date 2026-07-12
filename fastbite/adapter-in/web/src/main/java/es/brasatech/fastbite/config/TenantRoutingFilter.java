@@ -30,7 +30,9 @@ public class TenantRoutingFilter implements Filter {
                segment.equals("logout") ||
                segment.equals("menu") ||
                segment.equals("select-payment") ||
-               segment.equals("order-confirmation");
+               segment.equals("order-confirmation") ||
+               segment.equals(".well-known") ||
+               segment.equals("appspecific");
     }
 
     @Override

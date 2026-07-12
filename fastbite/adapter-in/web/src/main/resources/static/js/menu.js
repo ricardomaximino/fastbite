@@ -12,7 +12,7 @@ function getTenantPrefix() {
     const segments = path.split('/');
     if (segments.length > 1) {
         const firstSegment = segments[1];
-        const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation"];
+        const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation", ".well-known", "appspecific"];
         if (firstSegment && !reserved.includes(firstSegment)) {
             return '/' + firstSegment;
         }

@@ -16,13 +16,13 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TenantSchemaInitializer implements CommandLineRunner {
+public class TenantSchemaInitializer implements org.springframework.beans.factory.InitializingBean {
 
     private final DataSource dataSource;
     private final ResourceLoader resourceLoader;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void afterPropertiesSet() throws Exception {
         log.info("Initializing tenant schemas...");
         List<String> tenants = List.of("default", "kebab");
         for (String tenant : tenants) {
