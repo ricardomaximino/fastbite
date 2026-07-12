@@ -54,7 +54,7 @@ public class SecurityConfig {
                             String[] segments = path.split("/");
                             if (segments.length > 2 && "logout".equals(segments[segments.length - 1])) {
                                 String tenantId = segments[1];
-                                return !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(tenantId);
+                                return !es.brasatech.fastbite.config.TenantInterceptor.isReserved(tenantId);
                             }
                             return false;
                         })
@@ -87,7 +87,7 @@ public class SecurityConfig {
             String[] segments = path.split("/");
             if (segments.length > 1) {
                 String firstSegment = segments[1];
-                if (!es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(firstSegment)) {
+                if (!es.brasatech.fastbite.config.TenantInterceptor.isReserved(firstSegment)) {
                     response.sendRedirect(contextPath + "/" + firstSegment + "/login");
                     return;
                 }
@@ -102,9 +102,12 @@ public class SecurityConfig {
         public void onAuthenticationSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException, jakarta.servlet.ServletException {
             String tenantId = (String) request.getAttribute("tenantId");
             if (tenantId == null) {
+                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
+            }
+            if (tenantId == null) {
                 String path = request.getRequestURI().substring(request.getContextPath().length());
                 String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
                     tenantId = segments[1];
                 }
             }
@@ -134,9 +137,12 @@ public class SecurityConfig {
         public void onLogoutSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException {
             String tenantId = (String) request.getAttribute("tenantId");
             if (tenantId == null) {
+                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
+            }
+            if (tenantId == null) {
                 String path = request.getRequestURI().substring(request.getContextPath().length());
                 String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
                     tenantId = segments[1];
                 }
             }
@@ -154,9 +160,12 @@ public class SecurityConfig {
         public void onAuthenticationFailure(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException exception) throws java.io.IOException, jakarta.servlet.ServletException {
             String tenantId = (String) request.getAttribute("tenantId");
             if (tenantId == null) {
+                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
+            }
+            if (tenantId == null) {
                 String path = request.getRequestURI().substring(request.getContextPath().length());
                 String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
                     tenantId = segments[1];
                 }
             }

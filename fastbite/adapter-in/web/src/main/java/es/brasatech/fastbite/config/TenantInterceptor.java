@@ -36,7 +36,7 @@ public class TenantInterceptor implements HandlerInterceptor {
             String[] segments = path.split("/");
             if (segments.length > 1) {
                 String firstSegment = segments[1];
-                if (!TenantRoutingFilter.isReserved(firstSegment)) {
+                if (!isReserved(firstSegment)) {
                     tenantId = firstSegment;
                 }
             }
@@ -53,7 +53,7 @@ public class TenantInterceptor implements HandlerInterceptor {
                         String[] segments = refererPath.split("/");
                         if (segments.length > 1) {
                             String firstSegment = segments[1];
-                            if (!TenantRoutingFilter.isReserved(firstSegment)) {
+                            if (!isReserved(firstSegment)) {
                                 tenantId = firstSegment;
                             }
                         }
@@ -72,6 +72,32 @@ public class TenantInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    public static boolean isReserved(String segment) {
+        if (segment == null || segment.isEmpty()) {
+            return true;
+        }
+        return segment.equals("signup") ||
+               segment.equals("login") ||
+               segment.equals("css") ||
+               segment.equals("js") ||
+               segment.equals("images") ||
+               segment.equals("webjars") ||
+               segment.equals("stripe") ||
+               segment.equals("error") ||
+               segment.equals("favicon.ico") ||
+               segment.equals("actuator") ||
+               segment.equals("api") ||
+               segment.equals("counter") ||
+               segment.equals("backoffice") ||
+               segment.equals("dashboard") ||
+               segment.equals("logout") ||
+               segment.equals("menu") ||
+               segment.equals("select-payment") ||
+               segment.equals("order-confirmation") ||
+               segment.equals(".well-known") ||
+               segment.equals("appspecific");
     }
 
     @Override

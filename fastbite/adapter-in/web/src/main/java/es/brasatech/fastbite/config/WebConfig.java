@@ -41,13 +41,13 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @org.springframework.context.annotation.Bean
-    public TenantRoutingFilter tenantRoutingFilter() {
-        return new TenantRoutingFilter();
+    public TenantContextFilter tenantContextFilter() {
+        return new TenantContextFilter();
     }
 
     @org.springframework.context.annotation.Bean
-    public org.springframework.boot.web.servlet.FilterRegistrationBean<TenantRoutingFilter> tenantRoutingFilterRegistration(TenantRoutingFilter filter) {
-        org.springframework.boot.web.servlet.FilterRegistrationBean<TenantRoutingFilter> registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<TenantContextFilter> tenantContextFilterRegistration(TenantContextFilter filter) {
+        org.springframework.boot.web.servlet.FilterRegistrationBean<TenantContextFilter> registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
         registration.setFilter(filter);
         registration.addUrlPatterns("/*");
         registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);

@@ -29,7 +29,12 @@ public class MenuController {
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
 
-    @GetMapping(value = { "/", "/menu" })
+    @GetMapping("/")
+    public String rootRedirect() {
+        return "redirect:/signup";
+    }
+
+    @GetMapping("/{tenantId}/menu")
     @SuppressWarnings("unchecked")
     public String menu(
             @RequestParam(value = "table", required = false) String tableParam,
@@ -83,7 +88,7 @@ public class MenuController {
         return "fastfood/fragments/menu :: toast";
     }
 
-    @GetMapping("/select-payment")
+    @GetMapping("/{tenantId}/select-payment")
     @SuppressWarnings("unchecked")
     public String selectPayment(HttpSession session, Model model) {
         var orderNumberObj = session.getAttribute("orderNumber");

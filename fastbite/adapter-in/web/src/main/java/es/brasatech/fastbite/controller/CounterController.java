@@ -26,7 +26,6 @@ import java.util.Locale;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/counter")
 @RequiredArgsConstructor
 public class CounterController {
 
@@ -39,7 +38,7 @@ public class CounterController {
     private final CustomizationService customizationService;
     private final es.brasatech.fastbite.application.discount.DiscountService discountService;
 
-    @GetMapping
+    @GetMapping("/{tenantId}/counter")
     public String counter(Model model) {
         model.addAttribute("tables", tableService.findAll());
         var config = paymentService.getActiveConfig();
@@ -51,7 +50,7 @@ public class CounterController {
     }
 
     @ResponseBody
-    @PostMapping("/api/order")
+    @PostMapping("/counter/api/order")
     public Map<String, Object> createOrder(
             @RequestBody CounterOrderRequest request,
             @AuthenticationPrincipal UserDetails userDetails,
@@ -95,20 +94,20 @@ public class CounterController {
     }
 
     @ResponseBody
-    @GetMapping("/api/tables/{tableId}/active-orders")
+    @GetMapping("/counter/api/tables/{tableId}/active-orders")
     public List<Order> getActiveOrders(@PathVariable String tableId) {
         return orderService.findActiveByTableId(tableId);
     }
 
     @ResponseBody
-    @PostMapping("/api/tables/{tableId}/status")
+    @PostMapping("/counter/api/tables/{tableId}/status")
     public Map<String, Object> updateTableStatus(@PathVariable String tableId, @RequestParam TableStatus status) {
         orderService.setTableStatus(tableId, status);
         return Map.of("status", "success");
     }
 
     @ResponseBody
-    @PutMapping("/api/orders/{orderId}")
+    @PutMapping("/counter/api/orders/{orderId}")
     public Map<String, Object> updateOrder(
             @PathVariable String orderId,
             @RequestBody CounterOrderRequest request) {
@@ -138,7 +137,7 @@ public class CounterController {
     }
 
     @ResponseBody
-    @PostMapping("/api/orders/{orderId}/cancel")
+    @PostMapping("/counter/api/orders/{orderId}/cancel")
     public Map<String, Object> cancelOrder(@PathVariable String orderId,
             @RequestParam(required = false) String reason) {
         orderService.cancelOrder(orderId, reason != null ? reason : "Canceled at Counter");
@@ -146,7 +145,7 @@ public class CounterController {
     }
 
     @ResponseBody
-    @PostMapping("/api/orders/{orderId}/reassign")
+    @PostMapping("/counter/api/orders/{orderId}/reassign")
     public Map<String, Object> reassignOrder(@PathVariable String orderId, @RequestParam String tableId) {
         tableService.findTableByOrderId(orderId).ifPresent(table -> {
             tableService.unassignOrder(table.id(), orderId);
@@ -158,7 +157,7 @@ public class CounterController {
 
     // ===== Fragment Endpoints =====
 
-    @GetMapping("/fragments/categories")
+    @GetMapping("/counter/fragments/categories")
     public String getCategoriesFragment(Model model,
             @RequestParam(required = false, defaultValue = "all") String selectedGroup) {
         model.addAttribute("categories", groupService.findAll());
@@ -166,7 +165,7 @@ public class CounterController {
         return "fastfood/fragments/counter :: categories";
     }
 
-    @GetMapping("/fragments/products")
+    @GetMapping("/counter/fragments/products")
     public String getProductsFragment(Model model,
             @RequestParam(required = false, defaultValue = "all") String groupId,
             @RequestParam(required = false, defaultValue = "") String filter) {
@@ -188,21 +187,21 @@ public class CounterController {
         return "fastfood/fragments/counter :: products";
     }
 
-    @GetMapping("/fragments/tables")
+    @GetMapping("/counter/fragments/tables")
     public String getTablesFragment(Model model, @RequestParam(required = false) String selectedTableId) {
         model.addAttribute("tables", tableService.findAll());
         model.addAttribute("selectedTableId", selectedTableId);
         return "fastfood/fragments/counter :: tables";
     }
 
-    @GetMapping("/fragments/reassign-tables")
+    @GetMapping("/counter/fragments/reassign-tables")
     public String getReassignTablesFragment(Model model, @RequestParam(required = false) String currentTableId) {
         model.addAttribute("tables", tableService.findAll());
         model.addAttribute("currentTableId", currentTableId);
         return "fastfood/fragments/counter :: reassign-tables";
     }
 
-    @GetMapping("/fragments/active-orders/{tableId}")
+    @GetMapping("/counter/fragments/active-orders/{tableId}")
     public String getActiveOrdersFragment(Model model, @PathVariable String tableId) {
         var orders = orderService.findActiveByTableId(tableId);
         var enriched = orders.stream().map(o -> Map.of(
@@ -215,7 +214,7 @@ public class CounterController {
         return "fastfood/fragments/counter :: active-orders";
     }
 
-    @PostMapping("/fragments/order-cart")
+    @PostMapping("/counter/fragments/order-cart")
     public String getOrderCartFragment(Model model, @RequestBody List<CartItem> items, jakarta.servlet.http.HttpServletResponse response) {
         // Enriched list for the fragment
         var enrichedItems = items.stream().map(item -> {
@@ -250,7 +249,7 @@ public class CounterController {
         return "fastfood/fragments/counter :: order-cart";
     }
 
-    @GetMapping("/fragments/table-session-cart/{tableId}")
+    @GetMapping("/counter/fragments/table-session-cart/{tableId}")
     public String getTableSessionCartFragment(Model model, @PathVariable String tableId,
             @RequestParam(required = false) List<Integer> expandedIndices,
             jakarta.servlet.http.HttpServletResponse response) {
@@ -320,7 +319,7 @@ public class CounterController {
         return "fastfood/fragments/counter :: table-session-cart";
     }
 
-    @GetMapping("/fragments/customization-options/{productId}")
+    @GetMapping("/counter/fragments/customization-options/{productId}")
     public String getCustomizationOptionsFragment(Model model,
             @PathVariable String productId,
             @RequestParam(required = false) List<String> selected) {
@@ -338,7 +337,7 @@ public class CounterController {
         return "fastfood/fragments/counter :: customization-options";
     }
 
-    @GetMapping("/receipt")
+    @GetMapping("/counter/receipt")
     public String getReceipt(
             @RequestParam("ids") List<String> orderIds,
             @RequestParam(required = false, defaultValue = "false") boolean isInvoice,
