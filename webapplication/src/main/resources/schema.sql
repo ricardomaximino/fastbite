@@ -135,7 +135,9 @@ CREATE TABLE IF NOT EXISTS orders (
     cancel_reason VARCHAR(255),
     payment_status SMALLINT,
     order_channel SMALLINT,
-    order_language VARCHAR(10)
+    order_language VARCHAR(10),
+    user_id VARCHAR(255),
+    customer_name VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS cart_items (

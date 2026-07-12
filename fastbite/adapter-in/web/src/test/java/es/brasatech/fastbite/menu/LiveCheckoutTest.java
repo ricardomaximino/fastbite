@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled("Requires a live running server on port 8080")
+//@Disabled("Requires a live running server on port 8080")
 public class LiveCheckoutTest {
 
     @Test
@@ -25,9 +25,9 @@ public class LiveCheckoutTest {
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
 
-        // 1. GET /menu to retrieve page and CSRF Token
+        // 1. GET /kebab/menu to retrieve page and CSRF Token
         HttpRequest menuRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/menu"))
+                .uri(URI.create("http://localhost:8080/kebab/menu"))
                 .GET()
                 .build();
 
@@ -61,7 +61,7 @@ public class LiveCheckoutTest {
             }
           ],
           "customerName": "QA Automator",
-          "tableNumber": "Table 5",
+          "tableNumber": "Table 1",
           "paymentMethod": "cash"
         }
         """;
@@ -79,9 +79,9 @@ public class LiveCheckoutTest {
         assertTrue(createOrderResponseBody.contains("success"), "Order creation failed: " + createOrderResponseBody);
         System.out.println("Order created successfully! Response: " + createOrderResponseBody);
 
-        // 3. GET /select-payment to verify session state
+        // 3. GET /kebab/select-payment to verify session state
         HttpRequest selectPaymentRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/select-payment"))
+                .uri(URI.create("http://localhost:8080/kebab/select-payment"))
                 .GET()
                 .build();
 
@@ -91,9 +91,9 @@ public class LiveCheckoutTest {
                    "select-payment page content mismatch");
         System.out.println("select-payment page loaded successfully!");
 
-        // 4. GET /order-confirmation
+        // 4. GET /kebab/order-confirmation
         HttpRequest confirmationRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/order-confirmation"))
+                .uri(URI.create("http://localhost:8080/kebab/order-confirmation"))
                 .GET()
                 .build();
 
