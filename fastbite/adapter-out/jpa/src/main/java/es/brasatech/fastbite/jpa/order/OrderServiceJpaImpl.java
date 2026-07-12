@@ -125,8 +125,22 @@ public class OrderServiceJpaImpl implements OrderService {
     @Override
     public void setTableStatus(String tableId, TableStatus status) {
         tableService.findById(tableId).ifPresent(table -> {
+            List<String> orderIds = table.orderIds();
+            if (status == TableStatus.AVAILABLE) {
+                if (orderIds != null) {
+                    for (String orderId : orderIds) {
+                        repository.findById(orderId).ifPresent(order -> {
+                            if (order.getStatus() != OrderStatus.CANCELLED) {
+                                order.setStatus(OrderStatus.COMPLETE);
+                                repository.save(order);
+                            }
+                        });
+                    }
+                }
+                orderIds = List.of();
+            }
             Table updatedTable = new Table(table.id(), table.name(), table.seats(), status, table.active(),
-                    table.orderIds());
+                    orderIds);
             tableService.update(tableId, updatedTable);
         });
     }
