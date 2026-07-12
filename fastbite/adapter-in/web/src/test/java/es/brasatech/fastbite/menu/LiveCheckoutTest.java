@@ -1,6 +1,5 @@
 package es.brasatech.fastbite.menu;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.CookieManager;
@@ -70,6 +69,7 @@ public class LiveCheckoutTest {
                 .uri(URI.create("http://localhost:8080/api/create-order"))
                 .header("Content-Type", "application/json")
                 .header("X-CSRF-TOKEN", csrfToken)
+                .header("Referer", "http://localhost:8080/kebab/menu")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .build();
 
