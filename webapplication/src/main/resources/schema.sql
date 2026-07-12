@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS group_translations (
     group_id VARCHAR(36) NOT NULL,
     language VARCHAR(10) NOT NULL,
     name VARCHAR(255),
+    description VARCHAR(1000),
     UNIQUE (group_id, language),
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
