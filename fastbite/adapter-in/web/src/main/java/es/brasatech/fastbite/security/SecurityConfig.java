@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(new TenantAuthenticationSuccessHandler())
+                        .failureHandler(new TenantAuthenticationFailureHandler())
                         .permitAll())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new TenantAuthenticationEntryPoint()))
@@ -132,6 +133,28 @@ public class SecurityConfig {
                 response.sendRedirect(request.getContextPath() + "/" + tenantId + "/menu");
             } else {
                 response.sendRedirect(request.getContextPath() + "/signup");
+            }
+        }
+    }
+
+    // Custom Failure Handler to redirect back to /{tenantId}/login?error on login failure
+    private static class TenantAuthenticationFailureHandler extends org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler {
+        @Override
+        public void onAuthenticationFailure(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException exception) throws java.io.IOException, jakarta.servlet.ServletException {
+            String tenantId = (String) request.getAttribute("tenantId");
+            if (tenantId == null) {
+                String path = request.getRequestURI().substring(request.getContextPath().length());
+                String[] segments = path.split("/");
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                    tenantId = segments[1];
+                }
+            }
+            if (tenantId != null) {
+                saveException(request, exception);
+                getRedirectStrategy().sendRedirect(request, response, "/" + tenantId + "/login?error");
+            } else {
+                setDefaultFailureUrl("/login?error");
+                super.onAuthenticationFailure(request, response, exception);
             }
         }
     }
