@@ -113,6 +113,17 @@ public class SecurityConfig {
             } else {
                 setDefaultTargetUrl("/");
             }
+
+            // Sanitize RequestCache to prevent devtools or background JSON endpoints from capturing post-login redirect target
+            org.springframework.security.web.savedrequest.RequestCache requestCache = new org.springframework.security.web.savedrequest.HttpSessionRequestCache();
+            org.springframework.security.web.savedrequest.SavedRequest savedRequest = requestCache.getRequest(request, response);
+            if (savedRequest != null) {
+                String redirectUrl = savedRequest.getRedirectUrl();
+                if (redirectUrl.contains("com.chrome.devtools") || redirectUrl.contains("/appspecific/") || redirectUrl.endsWith(".json") || redirectUrl.contains("/favicon.ico")) {
+                    requestCache.removeRequest(request, response);
+                }
+            }
+
             super.onAuthenticationSuccess(request, response, authentication);
         }
     }
