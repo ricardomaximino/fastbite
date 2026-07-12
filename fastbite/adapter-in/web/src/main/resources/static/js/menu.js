@@ -7,6 +7,19 @@ const cartUrl = '/api/calculate-cart';
 const confirmationUrl = '/api/calculate-confirmation';
 const orderConfirmationUrl = '/order-confirmation'
 
+function getTenantPrefix() {
+    const path = window.location.pathname;
+    const segments = path.split('/');
+    if (segments.length > 1) {
+        const firstSegment = segments[1];
+        const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation"];
+        if (firstSegment && !reserved.includes(firstSegment)) {
+            return '/' + firstSegment;
+        }
+    }
+    return '';
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function () {
     handleAddEventListener();
@@ -555,9 +568,9 @@ function submitOrder() {
     .then(data => {
         if (data.status === 'success') {
             if (paymentMethod === 'online') {
-                window.location.assign('/select-payment');
+                window.location.assign(getTenantPrefix() + '/select-payment');
             } else {
-                window.location.assign(orderConfirmationUrl);
+                window.location.assign(getTenantPrefix() + orderConfirmationUrl);
             }
         } else {
             alert("Error creating order: " + (data.message || "Unknown error"));

@@ -17,6 +17,19 @@ function getCsrfToken() {
     return document.querySelector('meta[name="_csrf"]')?.content || '';
 }
 
+function getTenantPrefix() {
+    const path = window.location.pathname;
+    const segments = path.split('/');
+    if (segments.length > 1) {
+        const firstSegment = segments[1];
+        const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation"];
+        if (firstSegment && !reserved.includes(firstSegment)) {
+            return '/' + firstSegment;
+        }
+    }
+    return '';
+}
+
 async function fetchFragment(url, payload) {
     const response = await fetch(url, {
         method: 'POST',
@@ -1007,28 +1020,28 @@ function formatFileSize(bytes) {
  * Navigate to group translations page
  */
 function manageGroupTranslations(groupId) {
-    window.location.assign(`/backoffice/translations/groups/${groupId}`);
+    window.location.assign(getTenantPrefix() + `/backoffice/translations/groups/${groupId}`);
 }
 
 /**
  * Navigate to product translations page
  */
 function manageProductTranslations(productId) {
-    window.location.assign(`/backoffice/translations/products/${productId}`);
+    window.location.assign(getTenantPrefix() + `/backoffice/translations/products/${productId}`);
 }
 
 /**
  * Navigate to customization translations page
  */
 function manageCustomizationTranslations(customizationId) {
-    window.location.assign(`/backoffice/translations/customizations/${customizationId}`);
+    window.location.assign(getTenantPrefix() + `/backoffice/translations/customizations/${customizationId}`);
 }
 
 /**
  * Navigate to table translations page
  */
 function manageTableTranslations(tableId) {
-    window.location.assign(`/backoffice/translations/tables/${tableId}`);
+    window.location.assign(getTenantPrefix() + `/backoffice/translations/tables/${tableId}`);
 }
 
 // === TABLES MANAGEMENT ===
@@ -1436,6 +1449,6 @@ async function deleteDiscount(id) {
 }
 
 function manageDiscountTranslations(ruleId) {
-    window.location.assign(`/backoffice/translations/discounts/${ruleId}`);
+    window.location.assign(getTenantPrefix() + `/backoffice/translations/discounts/${ruleId}`);
 }
 

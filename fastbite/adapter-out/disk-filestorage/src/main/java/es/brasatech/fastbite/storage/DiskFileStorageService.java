@@ -2,6 +2,7 @@ package es.brasatech.fastbite.storage;
 
 import es.brasatech.fastbite.application.storage.FileStorageService;
 import es.brasatech.fastbite.domain.image.ImageInfo;
+import es.brasatech.fastbite.domain.tenant.TenantContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -51,6 +52,10 @@ public class DiskFileStorageService implements FileStorageService {
         validateFile(originalFilename);
 
         Path uploadPath = Paths.get(uploadDirectory);
+        String tenantId = TenantContext.getCurrentTenant();
+        if (tenantId != null && !tenantId.trim().isEmpty()) {
+            uploadPath = uploadPath.resolve(tenantId.trim());
+        }
         if (folder != null && !folder.trim().isEmpty()) {
             uploadPath = uploadPath.resolve(folder.trim());
         }
@@ -64,7 +69,10 @@ public class DiskFileStorageService implements FileStorageService {
 
         log.info("Stored file: {} to {}", filename, filePath);
 
-        String urlPath = "/user-images/" + (folder != null && !folder.trim().isEmpty() ? folder + "/" : "") + filename;
+        String urlPath = "/user-images/" +
+                (tenantId != null && !tenantId.trim().isEmpty() ? tenantId.trim() + "/" : "") +
+                (folder != null && !folder.trim().isEmpty() ? folder.trim() + "/" : "") +
+                filename;
 
         return new ImageInfo(
                 filename,
@@ -94,9 +102,13 @@ public class DiskFileStorageService implements FileStorageService {
         Map<String, List<ImageInfo>> imagesByFolder = new HashMap<>();
         try {
             Path uploadPath = Paths.get(uploadDirectory);
+            String tenantId = TenantContext.getCurrentTenant();
+            if (tenantId != null && !tenantId.trim().isEmpty()) {
+                uploadPath = uploadPath.resolve(tenantId.trim());
+            }
             if (Files.exists(uploadPath)) {
                 File uploadsDir = uploadPath.toFile();
-                scanDirectory(uploadsDir, "", imagesByFolder, "user", "/user-images");
+                scanDirectory(uploadsDir, "", imagesByFolder, "user", "/user-images" + (tenantId != null && !tenantId.trim().isEmpty() ? "/" + tenantId.trim() : ""));
             }
         } catch (Exception e) {
             log.warn("Could not read user images: {}", e.getMessage());
