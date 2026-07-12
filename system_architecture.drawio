@@ -1,0 +1,133 @@
+<mxfile host="Electron" modified="2026-07-12T00:00:00.000Z" agent="5.0" version="21.0.0" type="device">
+  <diagram id="fastbite-arch" name="FastBite System Architecture">
+    <mxGraphModel dx="1422" dy="898" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- ==================== HEXAGON CONTAINER ==================== -->
+        <mxCell id="hexagon-boundary" value="FastBite Core Application (Hexagonal Architecture)" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;align=center;fillColor=#F5F7FA;strokeColor=#4A5568;fontSize=14;fontColor=#2D3748;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="80" width="540" height="520" as="geometry" />
+        </mxCell>
+        
+        <!-- Domain Layer -->
+        <mxCell id="domain-layer" value="Core Domain Model&lt;br&gt;&lt;br&gt;• Order / Cart / CartItem&lt;br&gt;• Product / Category (Group)&lt;br&gt;• Table / SeatingSession&lt;br&gt;• User / Role" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF8FF;strokeColor=#3182CE;fontColor=#2B6CB0;fontStyle=1;align=center;fontSize=12;" vertex="1" parent="hexagon-boundary">
+          <mxGeometry x="150" y="270" width="240" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Application Services Layer -->
+        <mxCell id="application-layer" value="Application Services (Core Logic)&lt;br&gt;&lt;br&gt;• OrderService / DiscountService&lt;br&gt;• TenantSignupService / UserService&lt;br&gt;• TableService / CustomizationService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF2F7;strokeColor=#4A5568;fontColor=#2D3748;fontStyle=1;align=center;fontSize=12;" vertex="1" parent="hexagon-boundary">
+          <mxGeometry x="130" y="80" width="280" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Edges within core -->
+        <mxCell id="service-to-domain" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#718096;strokeWidth=2;" edge="1" parent="hexagon-boundary" source="application-layer" target="domain-layer">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Dynamic Ports -->
+        <mxCell id="port-in" value="Driving Ports (Use Cases)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ED8936;strokeColor=#C05621;fontColor=#FFFFFF;fontStyle=1;fontSize=10;" vertex="1" parent="hexagon-boundary">
+          <mxGeometry x="10" y="190" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="port-out" value="Driven Ports (SPI)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#38A169;strokeColor=#22543D;fontColor=#FFFFFF;fontStyle=1;fontSize=10;" vertex="1" parent="hexagon-boundary">
+          <mxGeometry x="420" y="190" width="110" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== DRIVING ADAPTERS (INBOUND) ==================== -->
+        <mxCell id="driving-adapters" value="Inbound Driving Adapters" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;align=center;fillColor=#FFFDF5;strokeColor=#D69E2E;fontSize=13;fontColor=#B7791F;" vertex="1" parent="1">
+          <mxGeometry x="40" y="160" width="230" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="spring-mvc-controllers" value="Spring MVC Controllers&lt;br&gt;(Storefront, Counter POS, BackOffice)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCBF;strokeColor=#D69E2E;fontColor=#B7791F;fontSize=11;" vertex="1" parent="driving-adapters">
+          <mxGeometry x="20" y="50" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="spring-security" value="Spring Security Filter Chain&lt;br&gt;(Tenant Authentication/Rules)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCBF;strokeColor=#D69E2E;fontColor=#B7791F;fontSize=11;" vertex="1" parent="driving-adapters">
+          <mxGeometry x="20" y="130" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="stripe-webhook" value="Stripe Webhook Handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCBF;strokeColor=#D69E2E;fontColor=#B7791F;fontSize=11;" vertex="1" parent="driving-adapters">
+          <mxGeometry x="20" y="210" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="tenant-interceptor" value="TenantContextFilter &amp; Interceptor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCBF;strokeColor=#D69E2E;fontColor=#B7791F;fontSize=11;fontStyle=1;" vertex="1" parent="driving-adapters">
+          <mxGeometry x="20" y="280" width="190" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== DRIVEN ADAPTERS (OUTBOUND) ==================== -->
+        <mxCell id="driven-adapters" value="Outbound Driven Adapters" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;align=center;fillColor=#F0FFF4;strokeColor=#38A169;fontSize=13;fontColor=#276749;" vertex="1" parent="1">
+          <mxGeometry x="900" y="160" width="230" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="jpa-adapter" value="JPA / Hibernate Adapter&lt;br&gt;(Multi-Tenant Connection Provider)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6F6D5;strokeColor=#38A169;fontColor=#276749;fontSize=11;fontStyle=1;" vertex="1" parent="driven-adapters">
+          <mxGeometry x="20" y="50" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="disk-filestorage" value="Disk File Storage Adapter&lt;br&gt;(Local image uploads)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6F6D5;strokeColor=#38A169;fontColor=#276749;fontSize=11;" vertex="1" parent="driven-adapters">
+          <mxGeometry x="20" y="140" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="email-adapter" value="SMTP Email Sender Adapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6F6D5;strokeColor=#38A169;fontColor=#276749;fontSize=11;" vertex="1" parent="driven-adapters">
+          <mxGeometry x="20" y="230" width="190" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== INFRASTRUCTURE & DEPENDENCIES ==================== -->
+        <mxCell id="infrastructure" value="Infrastructure &amp; External Dependencies" style="swimlane;whiteSpace=wrap;html=1;fontStyle=1;align=center;fillColor=#EDF2F7;strokeColor=#4A5568;fontSize=13;fontColor=#2D3748;" vertex="1" parent="1">
+          <mxGeometry x="320" y="650" width="540" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- Relational Database H2 -->
+        <mxCell id="h2-database" value="H2 Relational Database File&lt;br&gt;(./data/fast_bite.db)" style="shape=datastore;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#4A5568;fontColor=#2D3748;fontSize=11;fontStyle=1;" vertex="1" parent="infrastructure">
+          <mxGeometry x="30" y="45" width="130" height="85" as="geometry" />
+        </mxCell>
+        
+        <!-- Schemas inside H2 -->
+        <mxCell id="schema-default" value="tenant_default" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CBD5E0;fontSize=10;" vertex="1" parent="infrastructure">
+          <mxGeometry x="180" y="45" width="90" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="schema-kebab" value="tenant_kebab" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CBD5E0;fontSize=10;" vertex="1" parent="infrastructure">
+          <mxGeometry x="180" y="75" width="90" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="schema-custom" value="tenant_{tenantId}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CBD5E0;fontSize=10;dashed=1;" vertex="1" parent="infrastructure">
+          <mxGeometry x="180" y="105" width="90" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- External APIs -->
+        <mxCell id="stripe-api" value="Stripe Payment Gateway&lt;br&gt;(External API)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#EBF8FF;strokeColor=#4299E1;fontColor=#2B6CB0;fontSize=10;" vertex="1" parent="infrastructure">
+          <mxGeometry x="300" y="45" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="smtp-server" value="SMTP Server&lt;br&gt;(External Email Provider)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#EBF8FF;strokeColor=#4299E1;fontColor=#2B6CB0;fontSize=10;" vertex="1" parent="infrastructure">
+          <mxGeometry x="420" y="45" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== FLOW ARROWS ==================== -->
+        <!-- Driving Adapters to Ports -->
+        <mxCell id="arrow-controllers-to-port" value="" style="endArrow=classic;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#D69E2E;strokeWidth=2;" edge="1" parent="1" source="driving-adapters" target="port-in">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Ports to Driven Adapters -->
+        <mxCell id="arrow-port-to-driven" value="" style="endArrow=classic;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#38A169;strokeWidth=2;" edge="1" parent="1" source="port-out" target="driven-adapters">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Driven Adapters to Infra -->
+        <mxCell id="arrow-jpa-to-db" value="Schema SQL &amp; JPA" style="endArrow=classic;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.9;entryY=0.2;entryDx=0;entryDy=0;strokeColor=#2F855A;strokeWidth=2;" edge="1" parent="1" source="jpa-adapter" target="schema-custom">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-email-to-smtp" value="SMTP" style="endArrow=classic;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.96;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#2F855A;strokeWidth=2;" edge="1" parent="1" source="email-adapter" target="smtp-server">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- External events to Web Hook -->
+        <mxCell id="stripe-webhook-trigger" value="Stripe Webhook Events" style="endArrow=classic;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#3182CE;strokeWidth=2;dashed=1;" edge="1" parent="1" source="stripe-api" target="stripe-webhook">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- User requests -->
+        <mxCell id="user-browser" value="Customer Browser / POS Tablet" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#EDF2F7;strokeColor=#4A5568;" vertex="1" parent="1">
+          <mxGeometry x="100" y="20" width="40" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="http-requests" value="HTTP Requests&lt;br&gt;(URL prefixes: /kebab/...)" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#4A5568;strokeWidth=2;" edge="1" parent="1" source="user-browser" target="spring-security">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

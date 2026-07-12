@@ -2,7 +2,6 @@ package es.brasatech.fastbite.jpa.tenant;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -20,11 +18,34 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
 
     private final DataSource dataSource;
     private final ResourceLoader resourceLoader;
+    private final org.springframework.core.env.Environment environment;
 
     @Override
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing tenant schemas...");
-        List<String> tenants = List.of("default", "kebab");
+        boolean isProd = java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        
+        java.util.Set<String> tenants = new java.util.HashSet<>();
+        tenants.add("default");
+        
+        if (isProd) {
+            try (Connection connection = dataSource.getConnection()) {
+                try (java.sql.ResultSet rs = connection.getMetaData().getSchemas()) {
+                    while (rs.next()) {
+                        String schemaName = rs.getString("TABLE_SCHEM");
+                        if (schemaName != null && schemaName.toLowerCase().startsWith("tenant_")) {
+                            String tenantId = schemaName.substring("tenant_".length()).toLowerCase();
+                            tenants.add(tenantId);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to discover tenant schemas from database metadata", e);
+            }
+        } else {
+            tenants.add("kebab");
+        }
+
         for (String tenant : tenants) {
             initializeSchema(tenant);
         }
@@ -48,29 +69,27 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
                 log.warn("schema.sql not found in classpath!");
             }
 
-            if ("tenant_kebab".equals(schemaName)) {
-                boolean hasData = false;
-                try (Statement stmt = connection.createStatement()) {
-                    try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM groups")) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            hasData = true;
-                        }
+            boolean hasData = false;
+            try (Statement stmt = connection.createStatement()) {
+                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM groups")) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        hasData = true;
                     }
-                } catch (Exception e) {
-                    // Ignore, let script run
                 }
+            } catch (Exception e) {
+                // Ignore, let script run
+            }
 
-                if (!hasData) {
-                    Resource dataResource = resourceLoader.getResource("classpath:data-jpa.sql");
-                    if (dataResource.exists()) {
-                        ScriptUtils.executeSqlScript(connection, dataResource);
-                        log.info("Successfully executed data-jpa.sql for tenant: {}", schemaName);
-                    } else {
-                        log.warn("data-jpa.sql not found in classpath!");
-                    }
+            if (!hasData) {
+                Resource dataResource = resourceLoader.getResource("classpath:data-jpa.sql");
+                if (dataResource.exists()) {
+                    ScriptUtils.executeSqlScript(connection, dataResource);
+                    log.info("Successfully executed data-jpa.sql for tenant: {}", schemaName);
                 } else {
-                    log.info("Initial data already exists for tenant: {}, skipping data-jpa.sql", schemaName);
+                    log.warn("data-jpa.sql not found in classpath!");
                 }
+            } else {
+                log.info("Initial data already exists for tenant: {}, skipping data-jpa.sql", schemaName);
             }
         } catch (Exception e) {
             log.error("Failed to initialize schema for tenant: " + schemaName, e);
