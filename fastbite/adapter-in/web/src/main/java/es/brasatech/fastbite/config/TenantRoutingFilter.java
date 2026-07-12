@@ -76,6 +76,29 @@ public class TenantRoutingFilter implements Filter {
         // Direct/non-tenant route protection
         boolean isTenantForwarded = request.getAttribute("tenantId") != null;
         if (!isTenantForwarded) {
+            String referer = httpRequest.getHeader("Referer");
+            if (referer != null) {
+                try {
+                    java.net.URI refererUri = new java.net.URI(referer);
+                    String refererPath = refererUri.getPath();
+                    if (refererPath != null && refererPath.startsWith("/")) {
+                        String[] segmentsRef = refererPath.split("/");
+                        if (segmentsRef.length > 1) {
+                            String firstSegmentRef = segmentsRef[1];
+                            if (!isReserved(firstSegmentRef)) {
+                                request.setAttribute("tenantId", firstSegmentRef);
+                                TenantContext.setCurrentTenant(firstSegmentRef);
+                                isTenantForwarded = true;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
+        }
+
+        if (!isTenantForwarded) {
             if (path.equals("/menu") || path.equals("/") || path.startsWith("/select-payment") || 
                 path.startsWith("/order-confirmation") || path.startsWith("/backoffice") || 
                 path.startsWith("/counter") || path.startsWith("/dashboard")) {
