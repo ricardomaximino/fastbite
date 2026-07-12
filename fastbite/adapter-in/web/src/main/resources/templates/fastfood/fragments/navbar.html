@@ -1,7 +1,7 @@
 <th:block th:fragment="navbar(activeTab)" xmlns:sec="http://www.w3.org/1999/xhtml">
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm sticky-top">
         <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center" th:href="@{/menu}">
+            <a class="navbar-brand d-flex align-items-center" th:href="${tenantId != null ? '/' + tenantId + '/menu' : '/menu'}">
                 <div class="bg-white rounded-circle p-1 me-2 shadow-sm">
                     <i class="fas fa-hamburger text-primary"></i>
                 </div>
@@ -17,7 +17,7 @@
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-2" sec:authorize="isAuthenticated()">
                     <!-- Menu Link (Everyone) -->
                     <li class="nav-item">
-                        <a class="nav-link px-3 rounded-pill" th:href="@{/menu}" 
+                        <a class="nav-link px-3 rounded-pill" th:href="${tenantId != null ? '/' + tenantId + '/menu' : '/menu'}" 
                            th:classappend="${activeTab == 'menu' ? 'active glass-bg' : ''}">
                             <i class="fas fa-utensils me-1"></i> <span th:text="#{menu.title}">Menu</span>
                         </a>
@@ -25,7 +25,7 @@
                     
                     <!-- Dashboard Link (Staff) -->
                     <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'MANAGER', 'CASHIER', 'COOK', 'WAITER')">
-                        <a class="nav-link px-3 rounded-pill" th:href="@{/dashboard}" 
+                        <a class="nav-link px-3 rounded-pill" th:href="${tenantId != null ? '/' + tenantId + '/dashboard' : '/dashboard'}" 
                            th:classappend="${activeTab == 'dashboard' ? 'active glass-bg' : ''}">
                             <i class="fas fa-tachometer-alt me-1"></i> <span th:text="#{label.dashboard}">Dashboard</span>
                         </a>
@@ -33,7 +33,7 @@
                     
                     <!-- Counter Link (Staff) -->
                     <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'MANAGER', 'CASHIER', 'COOK', 'WAITER')">
-                        <a class="nav-link px-3 rounded-pill" th:href="@{/counter}" 
+                        <a class="nav-link px-3 rounded-pill" th:href="${tenantId != null ? '/' + tenantId + '/counter' : '/counter'}" 
                            th:classappend="${activeTab == 'counter' ? 'active glass-bg' : ''}">
                             <i class="fas fa-cash-register me-1"></i> <span th:text="#{page.title.counter}">Counter</span>
                         </a>
@@ -41,7 +41,7 @@
                     
                     <!-- BackOffice Link (Admin/Manager) -->
                     <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                        <a class="nav-link px-3 rounded-pill" th:href="@{/backoffice}" 
+                        <a class="nav-link px-3 rounded-pill" th:href="${tenantId != null ? '/' + tenantId + '/backoffice' : '/backoffice'}" 	
                            th:classappend="${activeTab == 'backoffice' ? 'active glass-bg' : ''}">
                             <i class="fas fa-user-shield me-1"></i> <span th:text="#{backoffice.title}">BackOffice</span>
                         </a>
@@ -86,7 +86,7 @@
                                 </select>
                             </li>
                             <li>
-                                <form th:action="@{/logout}" method="post" class="m-0">
+                                <form th:action="${tenantId != null ? '/' + tenantId + '/logout' : '/logout'}" method="post" class="m-0">
                                     <button type="submit" class="dropdown-item py-2 text-danger">
                                         <i class="fas fa-sign-out-alt me-2"></i> <span th:text="#{button.logout}">Logout</span>
                                     </button>
@@ -96,7 +96,7 @@
                     </div>
 
                     <!-- Login Button (Not Authenticated) -->
-                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" 
+                    <a sec:authorize="!isAuthenticated()" th:href="${tenantId != null ? '/' + tenantId + '/login' : '/login'}" 	
                        class="btn btn-outline-light rounded-pill px-4 shadow-sm">
                         <i class="fas fa-sign-in-alt me-2"></i> <span th:text="#{button.login}">Login</span>
                     </a>

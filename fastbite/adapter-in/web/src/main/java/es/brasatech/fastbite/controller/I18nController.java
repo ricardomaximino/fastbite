@@ -77,7 +77,7 @@ public class I18nController {
                 groupService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/backoffice";
+                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
         }
 
         // ===== Product Translations =====
@@ -121,7 +121,7 @@ public class I18nController {
                 productService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/backoffice";
+                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
         }
 
         // ===== Customization Translations =====
@@ -175,7 +175,7 @@ public class I18nController {
                 customizationService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/backoffice";
+                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
         }
 
         // ===== Table Translations =====
@@ -215,7 +215,7 @@ public class I18nController {
                 tableService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/backoffice";
+                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
         }
 
         // ===== Discount Translations =====
@@ -260,7 +260,7 @@ public class I18nController {
                 discountService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/backoffice";
+                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
         }
 
         // ===== Helper Methods =====

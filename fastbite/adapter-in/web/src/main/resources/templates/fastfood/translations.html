@@ -28,7 +28,7 @@
                 </p>
             </div>
             <div>
-                <a th:href="@{/backoffice}" class="btn btn-secondary">
+                <a th:href="${tenantId != null ? '/' + tenantId + '/backoffice' : '/backoffice'}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Back to BackOffice
                 </a>
             </div>
@@ -62,7 +62,7 @@
 
         <!-- Translation Grid for Groups -->
         <div th:if="${entityType == 'group'}" class="translation-grid">
-            <form th:action="@{/backoffice/translations/groups/{id}(id=${entityId})}" method="post">
+            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/groups/' + entityId : '/backoffice/translations/groups/' + entityId}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -106,7 +106,7 @@
 
         <!-- Translation Grid for Products -->
         <div th:if="${entityType == 'product'}" class="translation-grid">
-            <form th:action="@{/backoffice/translations/products/{id}(id=${entityId})}" method="post">
+            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/products/' + entityId : '/backoffice/translations/products/' + entityId}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -150,7 +150,7 @@
 
         <!-- Translation Grid for Customizations -->
         <div th:if="${entityType == 'customization'}" class="translation-grid">
-            <form th:action="@{/backoffice/translations/customizations/{id}(id=${entityId})}" method="post">
+            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/customizations/' + entityId : '/backoffice/translations/customizations/' + entityId}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -198,7 +198,7 @@
 
         <!-- Translation Grid for Tables -->
         <div th:if="${entityType == 'table'}" class="translation-grid">
-            <form th:action="@{/backoffice/translations/tables/{id}(id=${entityId})}" method="post">
+            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/tables/' + entityId : '/backoffice/translations/tables/' + entityId}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -231,7 +231,7 @@
 
         <!-- Translation Grid for Discounts -->
         <div th:if="${entityType == 'discount'}" class="translation-grid">
-            <form th:action="@{/backoffice/translations/discounts/{id}(id=${entityId})}" method="post">
+            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/discounts/' + entityId : '/backoffice/translations/discounts/' + entityId}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>

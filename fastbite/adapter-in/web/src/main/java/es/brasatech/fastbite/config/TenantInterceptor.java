@@ -28,15 +28,16 @@ public class TenantInterceptor implements HandlerInterceptor {
             }
         }
 
-        // Fallback: manually parse URI path starting with /t/
+        // Fallback: manually parse URI path
         if (tenantId == null) {
             String uri = request.getRequestURI();
             String contextPath = request.getContextPath();
             String path = uri.substring(contextPath.length());
-            if (path.startsWith("/t/")) {
-                String[] segments = path.split("/");
-                if (segments.length > 2) {
-                    tenantId = segments[2];
+            String[] segments = path.split("/");
+            if (segments.length > 1) {
+                String firstSegment = segments[1];
+                if (!TenantRoutingFilter.isReserved(firstSegment)) {
+                    tenantId = firstSegment;
                 }
             }
         }
@@ -48,10 +49,13 @@ public class TenantInterceptor implements HandlerInterceptor {
                 try {
                     java.net.URI refererUri = new java.net.URI(referer);
                     String refererPath = refererUri.getPath();
-                    if (refererPath.startsWith("/t/")) {
+                    if (refererPath != null && refererPath.startsWith("/")) {
                         String[] segments = refererPath.split("/");
-                        if (segments.length > 2) {
-                            tenantId = segments[2];
+                        if (segments.length > 1) {
+                            String firstSegment = segments[1];
+                            if (!TenantRoutingFilter.isReserved(firstSegment)) {
+                                tenantId = firstSegment;
+                            }
                         }
                     }
                 } catch (Exception e) {

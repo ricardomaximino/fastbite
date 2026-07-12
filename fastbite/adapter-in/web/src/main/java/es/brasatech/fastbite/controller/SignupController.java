@@ -33,6 +33,7 @@ public class SignupController {
         try {
             String encodedPassword = passwordEncoder.encode(password);
             tenantSignupService.registerTenant(tenantId, username, encodedPassword, fullName);
+            model.addAttribute("registeredTenantId", tenantId);
             model.addAttribute("success", "Restaurant " + tenantId + " has been successfully registered and provisioned! You can now log in.");
             return "fastfood/signup";
         } catch (IllegalArgumentException e) {

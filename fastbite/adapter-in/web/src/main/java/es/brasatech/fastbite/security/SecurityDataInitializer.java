@@ -21,26 +21,40 @@ public class SecurityDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (!userService.existsAny()) {
-            log.info("No users found. Creating default staff users...");
+        // Initialize default/system database default users
+        try {
+            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("default");
+            if (!userService.existsAny()) {
+                log.info("No users found in default tenant. Creating default staff users...");
+                createUser("admin", "Admin User", "password", Role.ADMIN);
+                createUser("manager", "Store Manager", "password", Role.MANAGER);
+                createUser("cashier", "Cashier Staff", "password", Role.CASHIER);
+                createUser("cook", "Kitchen Staff", "password", Role.COOK);
+                createUser("waiter", "Service Staff", "password", Role.WAITER);
+            }
+        } finally {
+            es.brasatech.fastbite.domain.tenant.TenantContext.clear();
+        }
 
-            createUser("admin", "Admin User", Role.ADMIN);
-            createUser("manager", "Store Manager", Role.MANAGER);
-            createUser("cashier", "Cashier Staff", Role.CASHIER);
-            createUser("cook", "Kitchen Staff", Role.COOK);
-            createUser("waiter", "Service Staff", Role.WAITER);
-
-            log.info("Default users created successfully.");
+        // Initialize kebab tenant users
+        try {
+            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("kebab");
+            if (!userService.existsAny()) {
+                log.info("No users found in kebab tenant. Creating rasymm admin user...");
+                createUser("rasymm", "Rasymm", "Password2", Role.ADMIN);
+            }
+        } finally {
+            es.brasatech.fastbite.domain.tenant.TenantContext.clear();
         }
     }
 
-    private void createUser(String username, String fullName, Role role) {
+    private void createUser(String username, String fullName, String rawPassword, Role role) {
         UserDto user = new UserDto(
                 null,
                 username,
-                passwordEncoder.encode("password"),
+                passwordEncoder.encode(rawPassword),
                 fullName,
-                Set.of(role),
+                new java.util.HashSet<>(Set.of(role)),
                 true);
         userService.save(user);
         log.info("Created user: {} with role: {}", username, role);

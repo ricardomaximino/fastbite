@@ -19,28 +19,45 @@ public class SecurityConfig {
                         // Public areas
                         .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation",
                                 "/api/create-order", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe").permitAll()
-                        .requestMatchers("/t/*/menu/**", "/t/*/api/calculate-cart", "/t/*/api/calculate-confirmation",
-                                "/t/*/api/create-order", "/t/*/order-confirmation/**", "/t/*/select-payment").permitAll()
+                        .requestMatchers("/*/menu/**", "/*/api/calculate-cart", "/*/api/calculate-confirmation",
+                                "/*/api/create-order", "/*/order-confirmation/**", "/*/select-payment").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
-                        .requestMatchers("/login", "/error", "/t/*/login").permitAll()
+                        .requestMatchers("/login", "/error", "/*/login").permitAll()
 
                         // Dashboard access (all staff roles)
                         .requestMatchers("/dashboard/**", "/counter/**", "/api/order/**", "/api/counter/**",
-                                "/t/*/dashboard/**", "/t/*/counter/**", "/t/*/api/order/**", "/t/*/api/counter/**")
+                                "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/counter/**")
                         .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER")
 
                         // BackOffice access (admin and manager only)
                         .requestMatchers("/backoffice/**", "/api/backoffice/**", "/api/backoffice/orders/reassign-table",
-                                "/t/*/backoffice/**", "/t/*/api/backoffice/**").hasAnyRole("ADMIN", "MANAGER")
+                                "/*/backoffice/**", "/*/api/backoffice/**").hasAnyRole("ADMIN", "MANAGER")
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .successHandler(new TenantAuthenticationSuccessHandler())
                         .permitAll())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new TenantAuthenticationEntryPoint()))
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutRequestMatcher(request -> {
+                            String path = request.getRequestURI().substring(request.getContextPath().length());
+                            if (!"POST".equalsIgnoreCase(request.getMethod())) {
+                                return false;
+                            }
+                            if (path.equals("/logout")) {
+                                return true;
+                            }
+                            String[] segments = path.split("/");
+                            if (segments.length > 2 && "logout".equals(segments[segments.length - 1])) {
+                                String tenantId = segments[1];
+                                return !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(tenantId);
+                            }
+                            return false;
+                        })
+                        .logoutSuccessHandler(new TenantLogoutSuccessHandler())
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                         .permitAll())
@@ -57,5 +74,65 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // Custom Entry Point to redirect to /{tenantId}/login instead of global /login
+    private static class TenantAuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
+        @Override
+        public void commence(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException authException) throws java.io.IOException {
+            String uri = request.getRequestURI();
+            String contextPath = request.getContextPath();
+            String path = uri.substring(contextPath.length());
+            String[] segments = path.split("/");
+            if (segments.length > 1) {
+                String firstSegment = segments[1];
+                if (!es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(firstSegment)) {
+                    response.sendRedirect(contextPath + "/" + firstSegment + "/login");
+                    return;
+                }
+            }
+            response.sendRedirect(contextPath + "/login");
+        }
+    }
+
+    // Custom Success Handler to redirect to /{tenantId}/menu after successful login
+    private static class TenantAuthenticationSuccessHandler extends org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler {
+        @Override
+        public void onAuthenticationSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException, jakarta.servlet.ServletException {
+            String tenantId = (String) request.getAttribute("tenantId");
+            if (tenantId == null) {
+                String path = request.getRequestURI().substring(request.getContextPath().length());
+                String[] segments = path.split("/");
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                    tenantId = segments[1];
+                }
+            }
+            if (tenantId != null) {
+                setDefaultTargetUrl("/" + tenantId + "/menu");
+            } else {
+                setDefaultTargetUrl("/");
+            }
+            super.onAuthenticationSuccess(request, response, authentication);
+        }
+    }
+
+    // Custom Logout Success Handler to redirect back to /{tenantId}/menu on logout
+    private static class TenantLogoutSuccessHandler implements org.springframework.security.web.authentication.logout.LogoutSuccessHandler {
+        @Override
+        public void onLogoutSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException {
+            String tenantId = (String) request.getAttribute("tenantId");
+            if (tenantId == null) {
+                String path = request.getRequestURI().substring(request.getContextPath().length());
+                String[] segments = path.split("/");
+                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantRoutingFilter.isReserved(segments[1])) {
+                    tenantId = segments[1];
+                }
+            }
+            if (tenantId != null) {
+                response.sendRedirect(request.getContextPath() + "/" + tenantId + "/menu");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/signup");
+            }
+        }
     }
 }
