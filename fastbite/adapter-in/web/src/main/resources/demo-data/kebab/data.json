@@ -1,0 +1,57 @@
+{
+  "groups" : [ ],
+  "products" : [ ],
+  "customizations" : [ ],
+  "customizationOptions" : [ ],
+  "tables" : [ ],
+  "discountRules" : [ ],
+  "orders" : [ ],
+  "users" : [ {
+    "id" : "78f65501-a101-48d0-b53c-28c5c4535f0d",
+    "username" : "admin",
+    "password" : "$2a$10$ZphE9kkwbYK3FNo6iXUSPeSJb64s37CdrAnZUoRpVjuStY6DzWip2",
+    "fullName" : "Admin User",
+    "roles" : [ "ADMIN" ],
+    "active" : true
+  }, {
+    "id" : "55fe742d-761f-4420-9ad4-fe359f90414f",
+    "username" : "manager",
+    "password" : "$2a$10$ivZeMeAGHbroZe3C/Ftyt.u/xZ5rGQ6zvZRbNuvGvjL77HQWyNF3.",
+    "fullName" : "Store Manager",
+    "roles" : [ "MANAGER" ],
+    "active" : true
+  }, {
+    "id" : "05ac6119-5c06-41ac-b5a6-550ec8dbb5d9",
+    "username" : "cashier",
+    "password" : "$2a$10$CzYItJq/yx4Bj0KHBtrhxe4USjDPX41ityPsz2iPcv177QxjoD3bC",
+    "fullName" : "Cashier Staff",
+    "roles" : [ "CASHIER" ],
+    "active" : true
+  }, {
+    "id" : "54f50d60-8afe-49c3-ae7d-4196d32fe84a",
+    "username" : "cook",
+    "password" : "$2a$10$.Pca8RUParIlDDXu3U6X3.fhYE8zc8983tR8/IJVToQUUR4iZs.aG",
+    "fullName" : "Kitchen Staff",
+    "roles" : [ "COOK" ],
+    "active" : true
+  }, {
+    "id" : "225b6f16-af86-45f2-b91f-a47507ca04f3",
+    "username" : "waiter",
+    "password" : "$2a$10$g5F4zhXXEN1b3j0SYZxPaezsT99zerasUfkqcYMRYrHqEWDV6lbyG",
+    "fullName" : "Service Staff",
+    "roles" : [ "WAITER" ],
+    "active" : true
+  } ],
+  "paymentConfigs" : [ {
+    "id" : "default",
+    "activeModes" : [ ],
+    "moneyDenominations" : [ ],
+    "active" : true
+  } ],
+  "groupTranslations" : [ ],
+  "productTranslations" : [ ],
+  "customizationTranslations" : [ ],
+  "customizationOptionTranslations" : [ ],
+  "discountRuleTranslations" : [ ],
+  "tableTranslations" : [ ]
+}

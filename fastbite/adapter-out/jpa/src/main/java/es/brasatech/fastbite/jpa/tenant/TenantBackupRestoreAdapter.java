@@ -188,11 +188,69 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                 throw new IllegalArgumentException("Invalid backup file: data.json not found.");
             }
 
-            // 3. Populate database (ordered to satisfy dependencies using Hibernate replicate)
+            // 3. Resolve parent references for child/translation entities to prevent TransientPropertyValueException
+            org.hibernate.Session session = entityManager.unwrap(org.hibernate.Session.class);
+
+            if (backupData.getCustomizationOptions() != null) {
+                for (var opt : backupData.getCustomizationOptions()) {
+                    if (opt.getCustomization() != null && opt.getCustomization().getId() != null) {
+                        opt.setCustomization(session.getReference(es.brasatech.fastbite.jpa.customization.CustomizationEntity.class, opt.getCustomization().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getGroupTranslations() != null) {
+                for (var t : backupData.getGroupTranslations()) {
+                    if (t.getGroup() != null && t.getGroup().getId() != null) {
+                        t.setGroup(session.getReference(es.brasatech.fastbite.jpa.group.GroupEntity.class, t.getGroup().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getProductTranslations() != null) {
+                for (var t : backupData.getProductTranslations()) {
+                    if (t.getProduct() != null && t.getProduct().getId() != null) {
+                        t.setProduct(session.getReference(es.brasatech.fastbite.jpa.product.ProductEntity.class, t.getProduct().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getCustomizationTranslations() != null) {
+                for (var t : backupData.getCustomizationTranslations()) {
+                    if (t.getCustomization() != null && t.getCustomization().getId() != null) {
+                        t.setCustomization(session.getReference(es.brasatech.fastbite.jpa.customization.CustomizationEntity.class, t.getCustomization().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getCustomizationOptionTranslations() != null) {
+                for (var t : backupData.getCustomizationOptionTranslations()) {
+                    if (t.getCustomizationOption() != null && t.getCustomizationOption().getId() != null) {
+                        t.setCustomizationOption(session.getReference(es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity.class, t.getCustomizationOption().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getDiscountRuleTranslations() != null) {
+                for (var t : backupData.getDiscountRuleTranslations()) {
+                    if (t.getDiscountRule() != null && t.getDiscountRule().getId() != null) {
+                        t.setDiscountRule(session.getReference(es.brasatech.fastbite.jpa.discount.DiscountRuleEntity.class, t.getDiscountRule().getId()));
+                    }
+                }
+            }
+
+            if (backupData.getTableTranslations() != null) {
+                for (var t : backupData.getTableTranslations()) {
+                    if (t.getTable() != null && t.getTable().getId() != null) {
+                        t.setTable(session.getReference(es.brasatech.fastbite.jpa.table.TableEntity.class, t.getTable().getId()));
+                    }
+                }
+            }
+
+            // 4. Populate database (ordered to satisfy dependencies using Hibernate replicate)
             replicateAll(backupData.getGroups());
             replicateAll(backupData.getProducts());
             replicateAll(backupData.getCustomizations());
-            replicateAll(backupData.getCustomizationOptions());
             replicateAll(backupData.getTables());
             replicateAll(backupData.getDiscountRules());
             replicateAll(backupData.getOrders());

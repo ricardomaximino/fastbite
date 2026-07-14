@@ -28,6 +28,7 @@ public class CustomizationEntity {
 
     @OneToMany(mappedBy = "customization", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("optionIndex ASC")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("customization")
     private List<CustomizationOptionEntity> options = new ArrayList<>();
 
     @Column(nullable = false)

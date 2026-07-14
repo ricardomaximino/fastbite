@@ -22,6 +22,7 @@ public class CustomizationOptionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customization_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("options")
     private CustomizationEntity customization;
 
     @Column(nullable = false)
