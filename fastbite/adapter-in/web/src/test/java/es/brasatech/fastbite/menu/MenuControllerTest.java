@@ -114,7 +114,7 @@ class MenuControllerTest {
         @Test
         @DisplayName("GET /menu - Should return menu page")
         void testGetMenu() throws Exception {
-                mockMvc.perform(get("/menu").with(csrf()))
+                mockMvc.perform(get("/default/menu").with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/menu"))
@@ -127,7 +127,7 @@ class MenuControllerTest {
                 when(tableService.validateAndBindTableSession(eq("table-1"), eq(null), any(), any()))
                                 .thenThrow(new IllegalArgumentException("Invalid or missing secure table token. Scan the QR code at your table."));
 
-                mockMvc.perform(get("/menu").param("table", "table-1").with(csrf()))
+                mockMvc.perform(get("/default/menu").param("table", "table-1").with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/menu"))
@@ -142,7 +142,7 @@ class MenuControllerTest {
                 when(tableService.validateAndBindTableSession(eq("table-1"), eq("valid-token"), any(), any()))
                                 .thenReturn("table-1");
 
-                mockMvc.perform(get("/menu").param("table", "table-1").param("token", "valid-token").with(csrf()))
+                mockMvc.perform(get("/default/menu").param("table", "table-1").param("token", "valid-token").with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/menu"))
@@ -246,14 +246,14 @@ class MenuControllerTest {
         @Test
         @DisplayName("GET /select-payment - Should return payment selection page with order from session")
         void testSelectPayment() throws Exception {
-                mockMvc.perform(get("/select-payment").session(mockSession).with(csrf()))
+                mockMvc.perform(get("/default/select-payment").session(mockSession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
                                 .andExpect(model().attributeExists("order"))
                                 .andExpect(result -> {
                                         var order = (OrderDto) result.getModelAndView()
-                                                        .getModel().get("order");
+                                                         .getModel().get("order");
                                         assert order != null;
                                         assert "ORD-12345".equals(order.id());
                                         assert order.itemList().size() == 2;
@@ -266,14 +266,14 @@ class MenuControllerTest {
                 MockHttpSession emptySession = new MockHttpSession();
                 emptySession.setAttribute("orderNumber", "ORD-67890");
 
-                mockMvc.perform(get("/select-payment").session(emptySession).with(csrf()))
+                mockMvc.perform(get("/default/select-payment").session(emptySession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
                                 .andExpect(model().attributeExists("order"))
                                 .andExpect(result -> {
                                         var order = (OrderDto) result.getModelAndView()
-                                                        .getModel().get("order");
+                                                         .getModel().get("order");
                                         assert order != null;
                                         assert "ORD-67890".equals(order.id());
                                         assert order.itemList().isEmpty();
@@ -285,14 +285,14 @@ class MenuControllerTest {
         void testSelectPaymentWithNullSession() throws Exception {
                 MockHttpSession nullSession = new MockHttpSession();
 
-                mockMvc.perform(get("/select-payment").session(nullSession).with(csrf()))
+                mockMvc.perform(get("/default/select-payment").session(nullSession).with(csrf()))
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
                                 .andExpect(model().attributeExists("order"))
                                 .andExpect(result -> {
                                         var order = (OrderDto) result.getModelAndView()
-                                                        .getModel().get("order");
+                                                         .getModel().get("order");
                                         assert order != null;
                                         assert order.id() == null;
                                         assert order.itemList().isEmpty();

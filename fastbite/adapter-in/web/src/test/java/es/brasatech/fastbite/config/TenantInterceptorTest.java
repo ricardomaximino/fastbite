@@ -47,7 +47,7 @@ class TenantInterceptorTest {
 
     @Test
     void testExtractTenantFromURI() throws Exception {
-        request.setRequestURI("/t/tenant-uri-val/menu");
+        request.setRequestURI("/tenant-uri-val/menu");
         request.setContextPath("");
 
         boolean result = interceptor.preHandle(request, response, new Object());
@@ -58,7 +58,7 @@ class TenantInterceptorTest {
 
     @Test
     void testExtractTenantFromURIWithContextPath() throws Exception {
-        request.setRequestURI("/app/t/tenant-context-val/menu");
+        request.setRequestURI("/app/tenant-context-val/menu");
         request.setContextPath("/app");
 
         boolean result = interceptor.preHandle(request, response, new Object());
@@ -89,7 +89,7 @@ class TenantInterceptorTest {
     void testExtractTenantFromReferer() throws Exception {
         request.setRequestURI("/api/calculate-cart");
         request.setContextPath("");
-        request.addHeader("Referer", "http://localhost:8080/t/tenant-ref-val/menu");
+        request.addHeader("Referer", "http://localhost:8080/tenant-ref-val/menu");
 
         boolean result = interceptor.preHandle(request, response, new Object());
 

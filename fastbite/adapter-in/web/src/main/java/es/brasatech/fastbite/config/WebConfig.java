@@ -53,4 +53,10 @@ public class WebConfig implements WebMvcConfigurer {
         registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
         return registration;
     }
+
+    @org.springframework.context.annotation.Bean
+    @org.springframework.context.annotation.Primary
+    public com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper() {
+        return new com.fasterxml.jackson.databind.ObjectMapper();
+    }
 }

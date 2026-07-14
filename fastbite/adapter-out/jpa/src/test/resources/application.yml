@@ -13,3 +13,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         multi_tenancy: SCHEMA
+
+image:
+  upload:
+    directory: target/test-uploads

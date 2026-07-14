@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS group_translations (
     group_id VARCHAR(36) NOT NULL,
     language VARCHAR(10) NOT NULL,
     name VARCHAR(255),
+    description VARCHAR(1000),
     UNIQUE (group_id, language),
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
@@ -117,11 +118,11 @@ CREATE TABLE IF NOT EXISTS customization_translations (
 
 CREATE TABLE IF NOT EXISTS customization_option_translations (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    option_id VARCHAR(255) NOT NULL,
+    customization_option_id VARCHAR(255) NOT NULL,
     language VARCHAR(10) NOT NULL,
     name VARCHAR(255),
-    UNIQUE (option_id, language),
-    FOREIGN KEY (option_id) REFERENCES customization_options(id) ON DELETE CASCADE
+    UNIQUE (customization_option_id, language),
+    FOREIGN KEY (customization_option_id) REFERENCES customization_options(id) ON DELETE CASCADE
 );
 
 -- Orders
@@ -135,7 +136,9 @@ CREATE TABLE IF NOT EXISTS orders (
     cancel_reason VARCHAR(255),
     payment_status SMALLINT,
     order_channel SMALLINT,
-    order_language VARCHAR(10)
+    order_language VARCHAR(10),
+    user_id VARCHAR(255),
+    customer_name VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS cart_items (
@@ -180,4 +183,48 @@ CREATE TABLE IF NOT EXISTS discount_rule_translations (
     name VARCHAR(255),
     UNIQUE (discount_rule_id, language),
     FOREIGN KEY (discount_rule_id) REFERENCES discount_rules(id) ON DELETE CASCADE
+);
+
+-- Dining Tables
+CREATE TABLE IF NOT EXISTS dining_tables (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255),
+    seats INT,
+    status VARCHAR(50),
+    active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS table_orders (
+    table_id VARCHAR(36) NOT NULL,
+    order_id VARCHAR(255) NOT NULL,
+    FOREIGN KEY (table_id) REFERENCES dining_tables(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS table_translations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    table_id VARCHAR(36) NOT NULL,
+    language VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    UNIQUE (table_id, language),
+    FOREIGN KEY (table_id) REFERENCES dining_tables(id) ON DELETE CASCADE
+);
+
+-- Payment Configuration
+CREATE TABLE IF NOT EXISTS payment_configs (
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    active BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS payment_modes (
+    config_id VARCHAR(255) NOT NULL,
+    mode VARCHAR(255) NOT NULL,
+    FOREIGN KEY (config_id) REFERENCES payment_configs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS money_denominations (
+    config_id VARCHAR(255) NOT NULL,
+    denomination_value DECIMAL(10, 2) NOT NULL,
+    image VARCHAR(255),
+    type VARCHAR(50) NOT NULL,
+    FOREIGN KEY (config_id) REFERENCES payment_configs(id) ON DELETE CASCADE
 );

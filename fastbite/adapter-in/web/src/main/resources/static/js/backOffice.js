@@ -1452,3 +1452,112 @@ function manageDiscountTranslations(ruleId) {
     window.location.assign(getTenantPrefix() + `/backoffice/translations/discounts/${ruleId}`);
 }
 
+// ===== Maintenance (Backup & Restore) =====
+
+function triggerDownloadBackup() {
+    const tenantPrefix = getTenantPrefix();
+    window.location.assign(tenantPrefix + '/api/backoffice/maintenance/backup');
+}
+
+async function triggerCleanData() {
+    if (confirm('WARNING: Are you sure you want to completely reset the database? All categories, products, customizations, tables, discounts, and custom images will be permanently deleted!')) {
+        try {
+            const tenantPrefix = getTenantPrefix();
+            const response = await fetch(tenantPrefix + '/api/backoffice/maintenance/clean', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+                showToast(result.message || 'Database successfully reset.');
+                await loadData();
+            } else {
+                showToast(result.message || 'Error resetting data.', 'error');
+            }
+        } catch (error) {
+            console.error('Error cleaning data:', error);
+            showToast('Error resetting data.', 'error');
+        }
+    }
+}
+
+async function triggerRestoreBackup(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById('backupFile');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showToast('Please select a backup zip file first.', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const submitBtn = document.getElementById('restoreSubmitBtn');
+    const originalBtnHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Restoring...';
+
+    try {
+        const tenantPrefix = getTenantPrefix();
+        const response = await fetch(tenantPrefix + '/api/backoffice/maintenance/restore', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok && result.status === 'success') {
+            showToast(result.message || 'Backup successfully restored.');
+            fileInput.value = '';
+            await loadData();
+        } else {
+            showToast(result.message || 'Error restoring backup.', 'error');
+        }
+    } catch (error) {
+        console.error('Error restoring backup:', error);
+        showToast('Error restoring backup.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+    }
+}
+
+async function triggerRestoreDemo() {
+    if (confirm('Are you sure you want to load the demo template? This will overwrite all current configurations, categories, products, customizations, dining tables, and discounts.')) {
+        const submitBtn = document.getElementById('restoreDemoBtn');
+        const originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading Demo...';
+
+        try {
+            const tenantPrefix = getTenantPrefix();
+            const response = await fetch(tenantPrefix + '/api/backoffice/maintenance/restore-demo', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+                showToast(result.message || 'Demo data loaded successfully.');
+                await loadData();
+            } else {
+                showToast(result.message || 'Error loading demo data.', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading demo data:', error);
+            showToast('Error loading demo data.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
+    }
+}
+

@@ -29,6 +29,9 @@ public class SecurityConfig {
                                 "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/counter/**")
                         .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER")
 
+                        // Maintenance access (strictly Admin only)
+                        .requestMatchers("/*/api/backoffice/maintenance/**").hasRole("ADMIN")
+
                         // BackOffice access (admin and manager only)
                         .requestMatchers("/backoffice/**", "/api/backoffice/**", "/api/backoffice/orders/reassign-table",
                                 "/*/backoffice/**", "/*/api/backoffice/**").hasAnyRole("ADMIN", "MANAGER")

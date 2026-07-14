@@ -1,7 +1,9 @@
 package es.brasatech.fastbite.jpa;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootConfiguration
@@ -12,4 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
     "es.brasatech.fastbite.application.tenant"
 })
 public class TestConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }

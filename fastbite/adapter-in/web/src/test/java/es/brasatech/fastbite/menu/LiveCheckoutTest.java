@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//@Disabled("Requires a live running server on port 8080")
+@org.junit.jupiter.api.Disabled("Requires a live running server on port 8080")
 public class LiveCheckoutTest {
 
     @Test

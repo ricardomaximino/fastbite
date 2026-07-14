@@ -23,6 +23,9 @@ class TenantIsolationIntegrationTest {
     private ProductJpaRepository productRepository;
 
     @Autowired
+    private TenantProvisionerAdapter tenantProvisionerAdapter;
+
+    @Autowired
     private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @BeforeEach
@@ -37,6 +40,9 @@ class TenantIsolationIntegrationTest {
 
     @Test
     void testTenantDataIsolation() {
+        tenantProvisionerAdapter.provisionTenant("1");
+        tenantProvisionerAdapter.provisionTenant("2");
+
         // Save product in Tenant 1
         TenantContext.setCurrentTenant("1");
         String id1 = transactionTemplate.execute(status -> {
