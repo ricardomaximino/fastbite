@@ -32,7 +32,7 @@ public class TenantConnectionProvider implements MultiTenantConnectionProvider<S
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection connection = getAnyConnection();
         System.out.println("TenantConnectionProvider.getConnection is called for tenant: " + tenantIdentifier);
-        if (tenantIdentifier != null && !tenantIdentifier.trim().isEmpty() && !"default".equalsIgnoreCase(tenantIdentifier)) {
+        if (tenantIdentifier != null && !tenantIdentifier.trim().isEmpty() && !"default".equalsIgnoreCase(tenantIdentifier) && !"kebab".equalsIgnoreCase(tenantIdentifier)) {
             // H2 Dialect uses SET SCHEMA tenant_tenantIdentifier
             if (tenantIdentifier.matches("^[a-zA-Z0-9_]+$")) {
                 try (var statement = connection.createStatement()) {

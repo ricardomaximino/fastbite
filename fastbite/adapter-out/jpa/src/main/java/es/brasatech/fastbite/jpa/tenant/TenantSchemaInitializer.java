@@ -26,14 +26,14 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
         boolean isProd = java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod");
         
         java.util.Set<String> tenants = new java.util.HashSet<>();
-        tenants.add("default");
         
         if (isProd) {
+            tenants.add("default");
             try (Connection connection = dataSource.getConnection()) {
                 try (java.sql.ResultSet rs = connection.getMetaData().getSchemas()) {
                     while (rs.next()) {
                         String schemaName = rs.getString("TABLE_SCHEM");
-                        if (schemaName != null && schemaName.toLowerCase().startsWith("tenant_")) {
+                        if (schemaName != null && schemaName.toLowerCase().startsWith("tenant_") && !schemaName.equalsIgnoreCase("tenant_kebab")) {
                             String tenantId = schemaName.substring("tenant_".length()).toLowerCase();
                             tenants.add(tenantId);
                         }
@@ -46,6 +46,16 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
             tenants.add("kebab");
         }
 
+        // Clean up / drop the old kebab tenant schema completely if it exists
+        try (Connection connection = dataSource.getConnection()) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("DROP SCHEMA IF EXISTS tenant_kebab CASCADE");
+                log.info("Successfully dropped legacy tenant_kebab schema");
+            }
+        } catch (Exception e) {
+            log.warn("Failed to drop old tenant_kebab schema: {}", e.getMessage());
+        }
+
         for (String tenant : tenants) {
             initializeSchema(tenant);
         }
@@ -53,7 +63,7 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
     }
 
     public void initializeSchema(String tenantId) {
-        String schemaName = "default".equalsIgnoreCase(tenantId) ? "PUBLIC" : "tenant_" + tenantId;
+        String schemaName = "default".equalsIgnoreCase(tenantId) || "kebab".equalsIgnoreCase(tenantId) ? "PUBLIC" : "tenant_" + tenantId;
         log.info("Initializing schema for tenant: {}", schemaName);
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {

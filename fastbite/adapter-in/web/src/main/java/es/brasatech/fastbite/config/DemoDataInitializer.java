@@ -16,27 +16,41 @@ public class DemoDataInitializer implements CommandLineRunner {
 
     private final TenantBackupRestorePort tenantBackupRestorePort;
     private final String uploadDirectory;
+    private final jakarta.persistence.EntityManager entityManager;
 
     public DemoDataInitializer(TenantBackupRestorePort tenantBackupRestorePort,
-                               @org.springframework.beans.factory.annotation.Value("${image.upload.directory}") String uploadDirectory) {
+                               @org.springframework.beans.factory.annotation.Value("${image.upload.directory}") String uploadDirectory,
+                               jakarta.persistence.EntityManager entityManager) {
         this.tenantBackupRestorePort = tenantBackupRestorePort;
         this.uploadDirectory = uploadDirectory;
+        this.entityManager = entityManager;
     }
 
     @Override
     public void run(String... args) throws Exception {
         log.info("Checking demo data initialization for default tenants...");
         
-        initializeTenantDemo("default");
         initializeTenantDemo("kebab");
     }
 
     private void initializeTenantDemo(String tenantId) {
         try {
+            // Check if tenant has any data in the database
+            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant(tenantId);
+            long count = 0;
+            try {
+                count = ((Number) entityManager.createQuery("SELECT count(g) FROM Group g").getSingleResult()).longValue();
+            } catch (Exception ex) {
+                log.warn("Failed to check groups count for tenant {}: {}", tenantId, ex.getMessage());
+            } finally {
+                es.brasatech.fastbite.domain.tenant.TenantContext.clear();
+            }
+
             // Check if tenant upload directory is empty/missing
             Path tenantComboPath = Paths.get(uploadDirectory).resolve(tenantId).resolve("combo");
-            if (!Files.exists(tenantComboPath)) {
-                log.info("Provisioning demo data template for tenant: {}", tenantId);
+            if (count == 0 || !Files.exists(tenantComboPath)) {
+                log.info("Provisioning demo data template for tenant: {} (count={}, media_exists={})", 
+                         tenantId, count, Files.exists(tenantComboPath));
                 try (InputStream is = getClass().getResourceAsStream("/kebab_demo.zip")) {
                     if (is != null) {
                         tenantBackupRestorePort.importRestore(tenantId, is);

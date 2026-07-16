@@ -31,7 +31,7 @@ public class MenuController {
 
     @GetMapping("/")
     public String rootRedirect() {
-        return "redirect:/signup";
+        return "redirect:/kebab/menu";
     }
 
     @GetMapping("/{tenantId}/menu")

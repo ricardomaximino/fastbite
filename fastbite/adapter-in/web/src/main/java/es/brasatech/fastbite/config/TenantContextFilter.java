@@ -12,7 +12,7 @@ public class TenantContextFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String tenantId = null;
+        String tenantId = httpRequest.getParameter("tenantId");
 
         // 1. Resolve tenant from URL path
         String uri = httpRequest.getRequestURI();

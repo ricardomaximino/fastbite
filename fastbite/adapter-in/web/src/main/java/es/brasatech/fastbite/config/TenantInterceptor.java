@@ -14,10 +14,12 @@ public class TenantInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String tenantId = null;
+        String tenantId = request.getParameter("tenantId");
 
         // Try extracting from request attribute first
-        tenantId = (String) request.getAttribute("tenantId");
+        if (tenantId == null) {
+            tenantId = (String) request.getAttribute("tenantId");
+        }
 
         // Try extracting from URI template variables first (e.g. if mapped with /t/{tenantId}/**)
         if (tenantId == null) {
@@ -62,6 +64,15 @@ public class TenantInterceptor implements HandlerInterceptor {
                     // Ignore malformed referer
                 }
             }
+        }
+
+        if ("default".equalsIgnoreCase(tenantId)) {
+            String uri = request.getRequestURI();
+            String contextPath = request.getContextPath();
+            String path = uri.substring(contextPath.length());
+            String newPath = path.replaceFirst("^/default", "/kebab");
+            response.sendRedirect(contextPath + newPath + (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
+            return false;
         }
 
         if (tenantId != null) {
