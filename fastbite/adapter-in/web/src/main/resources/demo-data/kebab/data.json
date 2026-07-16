@@ -1,57 +1,836 @@
 {
-  "groups" : [ ],
-  "products" : [ ],
-  "customizations" : [ ],
-  "customizationOptions" : [ ],
-  "tables" : [ ],
+  "groups" : [ {
+    "id" : "group-combos",
+    "name" : "Combos",
+    "description" : "Complete meals with drinks",
+    "icon" : "fas fa-layer-group",
+    "products" : [ "prod-combo-kebab-l", "prod-combo-kebab-m", "prod-combo-kebab-s", "prod-combo-pita", "prod-combo-pizza", "prod-combo-box" ]
+  }, {
+    "id" : "group-food",
+    "name" : "Food",
+    "description" : "Main dishes and snacks",
+    "icon" : "fas fa-hamburger",
+    "products" : [ "prod-food-box", "prod-food-empanadillas", "prod-food-kebab-l", "prod-food-kebab-m", "prod-food-kebab-s", "prod-food-pita", "prod-food-pizza" ]
+  }, {
+    "id" : "group-drinks",
+    "name" : "Drinks",
+    "description" : "Refreshing beverages",
+    "icon" : "fas fa-wine-glass",
+    "products" : [ "prod-drink-coca-cola", "prod-drink-fanta-limon", "prod-drink-fanta-naranja", "prod-drink-sprite", "prod-drink-water" ]
+  } ],
+  "products" : [ {
+    "id" : "prod-combo-kebab-l",
+    "name" : "Kebab Large Combo",
+    "price" : 12.50,
+    "description" : "Large Kebab with fries and drink",
+    "image" : "/user-images/kebab/combo/combo-kebab-l.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-combo-kebab-m",
+    "name" : "Kebab Medium Combo",
+    "price" : 10.50,
+    "description" : "Medium Kebab with fries and drink",
+    "image" : "/user-images/kebab/combo/combo-kebab-m.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-combo-kebab-s",
+    "name" : "Kebab Small Combo",
+    "price" : 8.50,
+    "description" : "Small Kebab with fries and drink",
+    "image" : "/user-images/kebab/combo/combo-kebab-s.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-combo-pita",
+    "name" : "Pita Combo",
+    "price" : 11.00,
+    "description" : "Pita bread sandwich with fries and drink",
+    "image" : "/user-images/kebab/combo/combo-pita.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-combo-pizza",
+    "name" : "Pizza Mozzarella Combo",
+    "price" : 13.00,
+    "description" : "Personal pizza with fries and drink",
+    "image" : "/user-images/kebab/combo/combo-pizza-mozzarella.png",
+    "customizations" : [ "cust-toppings" ],
+    "active" : true
+  }, {
+    "id" : "prod-combo-box",
+    "name" : "Combo Box",
+    "price" : 14.50,
+    "description" : "The ultimate meal in a box",
+    "image" : "/user-images/kebab/combo/combo-box.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-box",
+    "name" : "Food Box",
+    "price" : 9.50,
+    "description" : "Meal in a box",
+    "image" : "/user-images/kebab/food/food-box.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-empanadillas",
+    "name" : "Empanadillas",
+    "price" : 4.50,
+    "description" : "3 pieces of crispy empanadillas",
+    "image" : "/user-images/kebab/food/food-empanadillas.png",
+    "customizations" : [ ],
+    "active" : true
+  }, {
+    "id" : "prod-food-kebab-l",
+    "name" : "Kebab Large",
+    "price" : 8.00,
+    "description" : "Large sized Kebab",
+    "image" : "/user-images/kebab/food/food-kebab-l.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-kebab-m",
+    "name" : "Kebab Medium",
+    "price" : 6.50,
+    "description" : "Medium sized Kebab",
+    "image" : "/user-images/kebab/food/food-kebab-m.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-kebab-s",
+    "name" : "Kebab Small",
+    "price" : 5.00,
+    "description" : "Small sized Kebab",
+    "image" : "/user-images/kebab/food/food-kebab-s.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-pita",
+    "name" : "Pita",
+    "price" : 7.00,
+    "description" : "Classic Pita bread sandwich",
+    "image" : "/user-images/kebab/food/food-pita.png",
+    "customizations" : [ "cust-sauce" ],
+    "active" : true
+  }, {
+    "id" : "prod-food-pizza",
+    "name" : "Pizza Mozzarella",
+    "price" : 9.00,
+    "description" : "Classic personal Pizza Mozzarella",
+    "image" : "/user-images/kebab/food/food-pizza-mozzarella.png",
+    "customizations" : [ "cust-toppings" ],
+    "active" : true
+  }, {
+    "id" : "prod-drink-coca-cola",
+    "name" : "Coca-Cola",
+    "price" : 2.50,
+    "description" : "330ml can",
+    "image" : "/user-images/kebab/drink/coca-cola.png",
+    "customizations" : [ ],
+    "active" : true
+  }, {
+    "id" : "prod-drink-fanta-limon",
+    "name" : "Fanta Limon",
+    "price" : 2.50,
+    "description" : "330ml can",
+    "image" : "/user-images/kebab/drink/fanta-limon.png",
+    "customizations" : [ ],
+    "active" : true
+  }, {
+    "id" : "prod-drink-fanta-naranja",
+    "name" : "Fanta Naranja",
+    "price" : 2.50,
+    "description" : "330ml can",
+    "image" : "/user-images/kebab/drink/fanta-naranja.png",
+    "customizations" : [ ],
+    "active" : true
+  }, {
+    "id" : "prod-drink-sprite",
+    "name" : "Sprite",
+    "price" : 2.50,
+    "description" : "330ml can",
+    "image" : "/user-images/kebab/drink/sprite.png",
+    "customizations" : [ ],
+    "active" : true
+  }, {
+    "id" : "prod-drink-water",
+    "name" : "Water",
+    "price" : 1.50,
+    "description" : "500ml bottle",
+    "image" : "/user-images/kebab/drink/water.png",
+    "customizations" : [ ],
+    "active" : true
+  } ],
+  "customizations" : [ {
+    "id" : "cust-sauce",
+    "name" : "Sauce",
+    "type" : "radio",
+    "options" : [ {
+      "id" : "cust-sauce-opt-0",
+      "name" : "Garlic Sauce",
+      "price" : 0.00,
+      "defaultValue" : 1,
+      "optionIndex" : 0,
+      "selectedByDefault" : true
+    }, {
+      "id" : "cust-sauce-opt-1",
+      "name" : "Spicy Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    }, {
+      "id" : "cust-sauce-opt-2",
+      "name" : "Yogurt Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 2,
+      "selectedByDefault" : false
+    } ],
+    "usageCount" : 0
+  }, {
+    "id" : "cust-toppings",
+    "name" : "Extra Toppings",
+    "type" : "checkbox",
+    "options" : [ {
+      "id" : "cust-toppings-opt-0",
+      "name" : "Extra Cheese",
+      "price" : 0.50,
+      "defaultValue" : 0,
+      "optionIndex" : 0,
+      "selectedByDefault" : false
+    }, {
+      "id" : "cust-toppings-opt-1",
+      "name" : "Extra Bacon",
+      "price" : 0.80,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    } ],
+    "usageCount" : 0
+  } ],
+  "customizationOptions" : [ {
+    "id" : "cust-sauce-opt-0",
+    "customization" : {
+      "id" : "cust-sauce",
+      "name" : "Sauce",
+      "type" : "radio",
+      "usageCount" : 0
+    },
+    "name" : "Garlic Sauce",
+    "price" : 0.00,
+    "defaultValue" : 1,
+    "optionIndex" : 0,
+    "selectedByDefault" : true
+  }, {
+    "id" : "cust-sauce-opt-1",
+    "customization" : {
+      "id" : "cust-sauce",
+      "name" : "Sauce",
+      "type" : "radio",
+      "usageCount" : 0
+    },
+    "name" : "Spicy Sauce",
+    "price" : 0.00,
+    "defaultValue" : 0,
+    "optionIndex" : 1,
+    "selectedByDefault" : false
+  }, {
+    "id" : "cust-sauce-opt-2",
+    "customization" : {
+      "id" : "cust-sauce",
+      "name" : "Sauce",
+      "type" : "radio",
+      "usageCount" : 0
+    },
+    "name" : "Yogurt Sauce",
+    "price" : 0.00,
+    "defaultValue" : 0,
+    "optionIndex" : 2,
+    "selectedByDefault" : false
+  }, {
+    "id" : "cust-toppings-opt-0",
+    "customization" : {
+      "id" : "cust-toppings",
+      "name" : "Extra Toppings",
+      "type" : "checkbox",
+      "usageCount" : 0
+    },
+    "name" : "Extra Cheese",
+    "price" : 0.50,
+    "defaultValue" : 0,
+    "optionIndex" : 0,
+    "selectedByDefault" : false
+  }, {
+    "id" : "cust-toppings-opt-1",
+    "customization" : {
+      "id" : "cust-toppings",
+      "name" : "Extra Toppings",
+      "type" : "checkbox",
+      "usageCount" : 0
+    },
+    "name" : "Extra Bacon",
+    "price" : 0.80,
+    "defaultValue" : 0,
+    "optionIndex" : 1,
+    "selectedByDefault" : false
+  } ],
+  "tables" : [ {
+    "id" : "00000000-0000-0000-0000-000000000001",
+    "name" : "Table 1",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000002",
+    "name" : "Table 2",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000003",
+    "name" : "Table 3",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000004",
+    "name" : "Table 4",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000005",
+    "name" : "Table 5",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000006",
+    "name" : "Table 6",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000007",
+    "name" : "Table 7",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000008",
+    "name" : "Table 8",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000009",
+    "name" : "Table 9",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  }, {
+    "id" : "00000000-0000-0000-0000-000000000010",
+    "name" : "Table 10",
+    "seats" : 4,
+    "status" : "AVAILABLE",
+    "active" : true,
+    "orderIds" : [ ]
+  } ],
   "discountRules" : [ ],
   "orders" : [ ],
-  "users" : [ {
-    "id" : "78f65501-a101-48d0-b53c-28c5c4535f0d",
-    "username" : "admin",
-    "password" : "$2a$10$ZphE9kkwbYK3FNo6iXUSPeSJb64s37CdrAnZUoRpVjuStY6DzWip2",
-    "fullName" : "Admin User",
-    "roles" : [ "ADMIN" ],
-    "active" : true
-  }, {
-    "id" : "55fe742d-761f-4420-9ad4-fe359f90414f",
-    "username" : "manager",
-    "password" : "$2a$10$ivZeMeAGHbroZe3C/Ftyt.u/xZ5rGQ6zvZRbNuvGvjL77HQWyNF3.",
-    "fullName" : "Store Manager",
-    "roles" : [ "MANAGER" ],
-    "active" : true
-  }, {
-    "id" : "05ac6119-5c06-41ac-b5a6-550ec8dbb5d9",
-    "username" : "cashier",
-    "password" : "$2a$10$CzYItJq/yx4Bj0KHBtrhxe4USjDPX41ityPsz2iPcv177QxjoD3bC",
-    "fullName" : "Cashier Staff",
-    "roles" : [ "CASHIER" ],
-    "active" : true
-  }, {
-    "id" : "54f50d60-8afe-49c3-ae7d-4196d32fe84a",
-    "username" : "cook",
-    "password" : "$2a$10$.Pca8RUParIlDDXu3U6X3.fhYE8zc8983tR8/IJVToQUUR4iZs.aG",
-    "fullName" : "Kitchen Staff",
-    "roles" : [ "COOK" ],
-    "active" : true
-  }, {
-    "id" : "225b6f16-af86-45f2-b91f-a47507ca04f3",
-    "username" : "waiter",
-    "password" : "$2a$10$g5F4zhXXEN1b3j0SYZxPaezsT99zerasUfkqcYMRYrHqEWDV6lbyG",
-    "fullName" : "Service Staff",
-    "roles" : [ "WAITER" ],
-    "active" : true
-  } ],
+  "users" : [ ],
   "paymentConfigs" : [ {
     "id" : "default",
-    "activeModes" : [ ],
-    "moneyDenominations" : [ ],
+    "activeModes" : [ "CASH", "CARD" ],
+    "moneyDenominations" : [ {
+      "value" : 50.00,
+      "image" : "/user-images/kebab/money/1771142914327_euros50.png",
+      "type" : "BANKNOTE"
+    }, {
+      "value" : 20.00,
+      "image" : "/user-images/kebab/money/1771142935336_euros20.jpg",
+      "type" : "BANKNOTE"
+    }, {
+      "value" : 10.00,
+      "image" : "/user-images/kebab/money/1771142947210_diezEuros.png",
+      "type" : "BANKNOTE"
+    }, {
+      "value" : 5.00,
+      "image" : "/user-images/kebab/money/1771142963956_euros5.gif",
+      "type" : "BANKNOTE"
+    }, {
+      "value" : 2.00,
+      "image" : "/user-images/kebab/money/1771142976041_dosEuros.png",
+      "type" : "COIN"
+    }, {
+      "value" : 1.00,
+      "image" : "/user-images/kebab/money/1771142992632_unEuro.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.50,
+      "image" : "/user-images/kebab/money/1771143001895_cincuentaCentimos.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.20,
+      "image" : "/user-images/kebab/money/1771143013372_vinteCentimos.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.10,
+      "image" : "/user-images/kebab/money/1771143022884_diezCentimo.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.05,
+      "image" : "/user-images/kebab/money/1771143035854_cincoCentimo.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.02,
+      "image" : "/user-images/kebab/money/1771143044590_dosCentimos.png",
+      "type" : "COIN"
+    }, {
+      "value" : 0.01,
+      "image" : "/user-images/kebab/money/1771143060155_unCentimo.png",
+      "type" : "COIN"
+    } ],
     "active" : true
   } ],
-  "groupTranslations" : [ ],
-  "productTranslations" : [ ],
-  "customizationTranslations" : [ ],
-  "customizationOptionTranslations" : [ ],
+  "groupTranslations" : [ {
+    "id" : "gt-combos-es",
+    "group" : {
+      "id" : "group-combos",
+      "name" : "Combos",
+      "description" : "Complete meals with drinks",
+      "icon" : "fas fa-layer-group",
+      "products" : [ "prod-combo-kebab-l", "prod-combo-kebab-m", "prod-combo-kebab-s", "prod-combo-pita", "prod-combo-pizza", "prod-combo-box" ]
+    },
+    "language" : "es",
+    "name" : "Combinados",
+    "description" : "Menús completos con bebida"
+  }, {
+    "id" : "gt-combos-pt",
+    "group" : {
+      "id" : "group-combos",
+      "name" : "Combos",
+      "description" : "Complete meals with drinks",
+      "icon" : "fas fa-layer-group",
+      "products" : [ "prod-combo-kebab-l", "prod-combo-kebab-m", "prod-combo-kebab-s", "prod-combo-pita", "prod-combo-pizza", "prod-combo-box" ]
+    },
+    "language" : "pt",
+    "name" : "Combinados",
+    "description" : "Refeições completas com bebida"
+  }, {
+    "id" : "gt-food-es",
+    "group" : {
+      "id" : "group-food",
+      "name" : "Food",
+      "description" : "Main dishes and snacks",
+      "icon" : "fas fa-hamburger",
+      "products" : [ "prod-food-box", "prod-food-empanadillas", "prod-food-kebab-l", "prod-food-kebab-m", "prod-food-kebab-s", "prod-food-pita", "prod-food-pizza" ]
+    },
+    "language" : "es",
+    "name" : "Comida",
+    "description" : "Platos principales y aperitivos"
+  }, {
+    "id" : "gt-food-pt",
+    "group" : {
+      "id" : "group-food",
+      "name" : "Food",
+      "description" : "Main dishes and snacks",
+      "icon" : "fas fa-hamburger",
+      "products" : [ "prod-food-box", "prod-food-empanadillas", "prod-food-kebab-l", "prod-food-kebab-m", "prod-food-kebab-s", "prod-food-pita", "prod-food-pizza" ]
+    },
+    "language" : "pt",
+    "name" : "Comida",
+    "description" : "Pratos principais e lanches"
+  }, {
+    "id" : "gt-drinks-es",
+    "group" : {
+      "id" : "group-drinks",
+      "name" : "Drinks",
+      "description" : "Refreshing beverages",
+      "icon" : "fas fa-wine-glass",
+      "products" : [ "prod-drink-coca-cola", "prod-drink-fanta-limon", "prod-drink-fanta-naranja", "prod-drink-sprite", "prod-drink-water" ]
+    },
+    "language" : "es",
+    "name" : "Bebidas",
+    "description" : "Refrescos y agua"
+  }, {
+    "id" : "gt-drinks-pt",
+    "group" : {
+      "id" : "group-drinks",
+      "name" : "Drinks",
+      "description" : "Refreshing beverages",
+      "icon" : "fas fa-wine-glass",
+      "products" : [ "prod-drink-coca-cola", "prod-drink-fanta-limon", "prod-drink-fanta-naranja", "prod-drink-sprite", "prod-drink-water" ]
+    },
+    "language" : "pt",
+    "name" : "Bebidas",
+    "description" : "Refrigerantes e água"
+  } ],
+  "productTranslations" : [ {
+    "id" : "pt-combo-kebab-l-es",
+    "product" : {
+      "id" : "prod-combo-kebab-l",
+      "name" : "Kebab Large Combo",
+      "price" : 12.50,
+      "description" : "Large Kebab with fries and drink",
+      "image" : "/user-images/kebab/combo/combo-kebab-l.png",
+      "customizations" : [ "cust-sauce" ],
+      "active" : true
+    },
+    "language" : "es",
+    "name" : "Menú Kebab Grande",
+    "description" : "Kebab grande con patatas y bebida"
+  }, {
+    "id" : "pt-combo-kebab-l-pt",
+    "product" : {
+      "id" : "prod-combo-kebab-l",
+      "name" : "Kebab Large Combo",
+      "price" : 12.50,
+      "description" : "Large Kebab with fries and drink",
+      "image" : "/user-images/kebab/combo/combo-kebab-l.png",
+      "customizations" : [ "cust-sauce" ],
+      "active" : true
+    },
+    "language" : "pt",
+    "name" : "Combo Kebab Grande",
+    "description" : "Kebab grande com batatas e bebida"
+  }, {
+    "id" : "pt-food-empanadillas-es",
+    "product" : {
+      "id" : "prod-food-empanadillas",
+      "name" : "Empanadillas",
+      "price" : 4.50,
+      "description" : "3 pieces of crispy empanadillas",
+      "image" : "/user-images/kebab/food/food-empanadillas.png",
+      "customizations" : [ ],
+      "active" : true
+    },
+    "language" : "es",
+    "name" : "Empanadillas",
+    "description" : "3 unidades de empanadillas crujientes"
+  }, {
+    "id" : "pt-food-empanadillas-pt",
+    "product" : {
+      "id" : "prod-food-empanadillas",
+      "name" : "Empanadillas",
+      "price" : 4.50,
+      "description" : "3 pieces of crispy empanadillas",
+      "image" : "/user-images/kebab/food/food-empanadillas.png",
+      "customizations" : [ ],
+      "active" : true
+    },
+    "language" : "pt",
+    "name" : "Empanadilhas",
+    "description" : "3 unidades de empanadilhas crocantes"
+  } ],
+  "customizationTranslations" : [ {
+    "id" : "ct-sauce-es",
+    "customization" : {
+      "id" : "cust-sauce",
+      "name" : "Sauce",
+      "type" : "radio",
+      "options" : [ {
+        "id" : "cust-sauce-opt-0",
+        "name" : "Garlic Sauce",
+        "price" : 0.00,
+        "defaultValue" : 1,
+        "optionIndex" : 0,
+        "selectedByDefault" : true
+      }, {
+        "id" : "cust-sauce-opt-1",
+        "name" : "Spicy Sauce",
+        "price" : 0.00,
+        "defaultValue" : 0,
+        "optionIndex" : 1,
+        "selectedByDefault" : false
+      }, {
+        "id" : "cust-sauce-opt-2",
+        "name" : "Yogurt Sauce",
+        "price" : 0.00,
+        "defaultValue" : 0,
+        "optionIndex" : 2,
+        "selectedByDefault" : false
+      } ],
+      "usageCount" : 0
+    },
+    "language" : "es",
+    "name" : "Salsa"
+  }, {
+    "id" : "ct-sauce-pt",
+    "customization" : {
+      "id" : "cust-sauce",
+      "name" : "Sauce",
+      "type" : "radio",
+      "options" : [ {
+        "id" : "cust-sauce-opt-0",
+        "name" : "Garlic Sauce",
+        "price" : 0.00,
+        "defaultValue" : 1,
+        "optionIndex" : 0,
+        "selectedByDefault" : true
+      }, {
+        "id" : "cust-sauce-opt-1",
+        "name" : "Spicy Sauce",
+        "price" : 0.00,
+        "defaultValue" : 0,
+        "optionIndex" : 1,
+        "selectedByDefault" : false
+      }, {
+        "id" : "cust-sauce-opt-2",
+        "name" : "Yogurt Sauce",
+        "price" : 0.00,
+        "defaultValue" : 0,
+        "optionIndex" : 2,
+        "selectedByDefault" : false
+      } ],
+      "usageCount" : 0
+    },
+    "language" : "pt",
+    "name" : "Molho"
+  }, {
+    "id" : "ct-toppings-es",
+    "customization" : {
+      "id" : "cust-toppings",
+      "name" : "Extra Toppings",
+      "type" : "checkbox",
+      "options" : [ {
+        "id" : "cust-toppings-opt-0",
+        "name" : "Extra Cheese",
+        "price" : 0.50,
+        "defaultValue" : 0,
+        "optionIndex" : 0,
+        "selectedByDefault" : false
+      }, {
+        "id" : "cust-toppings-opt-1",
+        "name" : "Extra Bacon",
+        "price" : 0.80,
+        "defaultValue" : 0,
+        "optionIndex" : 1,
+        "selectedByDefault" : false
+      } ],
+      "usageCount" : 0
+    },
+    "language" : "es",
+    "name" : "Ingredientes Extra"
+  }, {
+    "id" : "ct-toppings-pt",
+    "customization" : {
+      "id" : "cust-toppings",
+      "name" : "Extra Toppings",
+      "type" : "checkbox",
+      "options" : [ {
+        "id" : "cust-toppings-opt-0",
+        "name" : "Extra Cheese",
+        "price" : 0.50,
+        "defaultValue" : 0,
+        "optionIndex" : 0,
+        "selectedByDefault" : false
+      }, {
+        "id" : "cust-toppings-opt-1",
+        "name" : "Extra Bacon",
+        "price" : 0.80,
+        "defaultValue" : 0,
+        "optionIndex" : 1,
+        "selectedByDefault" : false
+      } ],
+      "usageCount" : 0
+    },
+    "language" : "pt",
+    "name" : "Ingredientes Extras"
+  } ],
+  "customizationOptionTranslations" : [ {
+    "id" : "cot-sauce-0-es",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-0",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Garlic Sauce",
+      "price" : 0.00,
+      "defaultValue" : 1,
+      "optionIndex" : 0,
+      "selectedByDefault" : true
+    },
+    "language" : "es",
+    "name" : "Salsa de Ajo"
+  }, {
+    "id" : "cot-sauce-0-pt",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-0",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Garlic Sauce",
+      "price" : 0.00,
+      "defaultValue" : 1,
+      "optionIndex" : 0,
+      "selectedByDefault" : true
+    },
+    "language" : "pt",
+    "name" : "Molho de Alho"
+  }, {
+    "id" : "cot-sauce-1-es",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-1",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Spicy Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    },
+    "language" : "es",
+    "name" : "Salsa Picante"
+  }, {
+    "id" : "cot-sauce-1-pt",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-1",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Spicy Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    },
+    "language" : "pt",
+    "name" : "Molho Picante"
+  }, {
+    "id" : "cot-sauce-2-es",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-2",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Yogurt Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 2,
+      "selectedByDefault" : false
+    },
+    "language" : "es",
+    "name" : "Salsa de Yogur"
+  }, {
+    "id" : "cot-sauce-2-pt",
+    "customizationOption" : {
+      "id" : "cust-sauce-opt-2",
+      "customization" : {
+        "id" : "cust-sauce",
+        "name" : "Sauce",
+        "type" : "radio",
+        "usageCount" : 0
+      },
+      "name" : "Yogurt Sauce",
+      "price" : 0.00,
+      "defaultValue" : 0,
+      "optionIndex" : 2,
+      "selectedByDefault" : false
+    },
+    "language" : "pt",
+    "name" : "Molho de Iogurte"
+  }, {
+    "id" : "cot-toppings-0-es",
+    "customizationOption" : {
+      "id" : "cust-toppings-opt-0",
+      "customization" : {
+        "id" : "cust-toppings",
+        "name" : "Extra Toppings",
+        "type" : "checkbox",
+        "usageCount" : 0
+      },
+      "name" : "Extra Cheese",
+      "price" : 0.50,
+      "defaultValue" : 0,
+      "optionIndex" : 0,
+      "selectedByDefault" : false
+    },
+    "language" : "es",
+    "name" : "Extra de Queso"
+  }, {
+    "id" : "cot-toppings-0-pt",
+    "customizationOption" : {
+      "id" : "cust-toppings-opt-0",
+      "customization" : {
+        "id" : "cust-toppings",
+        "name" : "Extra Toppings",
+        "type" : "checkbox",
+        "usageCount" : 0
+      },
+      "name" : "Extra Cheese",
+      "price" : 0.50,
+      "defaultValue" : 0,
+      "optionIndex" : 0,
+      "selectedByDefault" : false
+    },
+    "language" : "pt",
+    "name" : "Queijo Extra"
+  }, {
+    "id" : "cot-toppings-1-es",
+    "customizationOption" : {
+      "id" : "cust-toppings-opt-1",
+      "customization" : {
+        "id" : "cust-toppings",
+        "name" : "Extra Toppings",
+        "type" : "checkbox",
+        "usageCount" : 0
+      },
+      "name" : "Extra Bacon",
+      "price" : 0.80,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    },
+    "language" : "es",
+    "name" : "Extra de Bacon"
+  }, {
+    "id" : "cot-toppings-1-pt",
+    "customizationOption" : {
+      "id" : "cust-toppings-opt-1",
+      "customization" : {
+        "id" : "cust-toppings",
+        "name" : "Extra Toppings",
+        "type" : "checkbox",
+        "usageCount" : 0
+      },
+      "name" : "Extra Bacon",
+      "price" : 0.80,
+      "defaultValue" : 0,
+      "optionIndex" : 1,
+      "selectedByDefault" : false
+    },
+    "language" : "pt",
+    "name" : "Bacon Extra"
+  } ],
   "discountRuleTranslations" : [ ],
   "tableTranslations" : [ ]
 }

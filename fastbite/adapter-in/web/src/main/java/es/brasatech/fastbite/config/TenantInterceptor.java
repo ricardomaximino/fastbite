@@ -83,6 +83,7 @@ public class TenantInterceptor implements HandlerInterceptor {
                segment.equals("css") ||
                segment.equals("js") ||
                segment.equals("images") ||
+               segment.equals("user-images") ||
                segment.equals("webjars") ||
                segment.equals("stripe") ||
                segment.equals("error") ||

@@ -53,7 +53,7 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
     }
 
     public void initializeSchema(String tenantId) {
-        String schemaName = "tenant_" + tenantId;
+        String schemaName = "default".equalsIgnoreCase(tenantId) ? "PUBLIC" : "tenant_" + tenantId;
         log.info("Initializing schema for tenant: {}", schemaName);
         try (Connection connection = dataSource.getConnection()) {
             try (Statement statement = connection.createStatement()) {

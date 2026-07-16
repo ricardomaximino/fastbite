@@ -188,6 +188,15 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                 throw new IllegalArgumentException("Invalid backup file: data.json not found.");
             }
 
+            // Rewrite product image URLs to match the new tenant ID
+            if (backupData.getProducts() != null) {
+                for (var prod : backupData.getProducts()) {
+                    if (prod.getImage() != null) {
+                        prod.setImage(rewriteImageUrl(prod.getImage(), tenantId));
+                    }
+                }
+            }
+
             // 3. Resolve parent references for child/translation entities to prevent TransientPropertyValueException
             org.hibernate.Session session = entityManager.unwrap(org.hibernate.Session.class);
 
@@ -372,5 +381,17 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
         private List<CustomizationOptionTranslationEntity> customizationOptionTranslations = new ArrayList<>();
         private List<DiscountRuleTranslationEntity> discountRuleTranslations = new ArrayList<>();
         private List<TableTranslationEntity> tableTranslations = new ArrayList<>();
+    }
+
+    private String rewriteImageUrl(String originalUrl, String newTenantId) {
+        if (originalUrl == null) return null;
+        if (originalUrl.startsWith("/user-images/")) {
+            String remainder = originalUrl.substring("/user-images/".length());
+            int nextSlash = remainder.indexOf('/');
+            if (nextSlash != -1) {
+                return "/user-images/" + newTenantId + remainder.substring(nextSlash);
+            }
+        }
+        return originalUrl;
     }
 }
