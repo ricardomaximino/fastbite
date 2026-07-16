@@ -66,14 +66,7 @@ public class TenantInterceptor implements HandlerInterceptor {
             }
         }
 
-        if ("default".equalsIgnoreCase(tenantId)) {
-            String uri = request.getRequestURI();
-            String contextPath = request.getContextPath();
-            String path = uri.substring(contextPath.length());
-            String newPath = path.replaceFirst("^/default", "/kebab");
-            response.sendRedirect(contextPath + newPath + (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
-            return false;
-        }
+
 
         if (tenantId != null) {
             TenantContext.setCurrentTenant(tenantId);

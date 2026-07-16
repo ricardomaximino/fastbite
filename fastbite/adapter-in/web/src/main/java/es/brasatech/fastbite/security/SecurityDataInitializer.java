@@ -21,9 +21,10 @@ public class SecurityDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Initialize default/system database default users
+
+        // Initialize kebab tenant users
         try {
-            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("default");
+            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("kebab");
             if (!userService.existsAny()) {
                 log.info("No users found in default tenant. Creating default staff users...");
                 createUser("admin", "Admin User", "password", Role.ADMIN);
@@ -31,17 +32,6 @@ public class SecurityDataInitializer implements CommandLineRunner {
                 createUser("cashier", "Cashier Staff", "password", Role.CASHIER);
                 createUser("cook", "Kitchen Staff", "password", Role.COOK);
                 createUser("waiter", "Service Staff", "password", Role.WAITER);
-            }
-        } finally {
-            es.brasatech.fastbite.domain.tenant.TenantContext.clear();
-        }
-
-        // Initialize kebab tenant users
-        try {
-            es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("kebab");
-            if (!userService.existsAny()) {
-                log.info("No users found in kebab tenant. Creating rasymm admin user...");
-                createUser("rasymm", "Rasymm", "Password2", Role.ADMIN);
             }
         } finally {
             es.brasatech.fastbite.domain.tenant.TenantContext.clear();
