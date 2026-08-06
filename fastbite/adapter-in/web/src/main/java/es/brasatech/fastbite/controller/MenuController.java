@@ -29,10 +29,7 @@ public class MenuController {
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
 
-    @GetMapping("/")
-    public String rootRedirect() {
-        return "redirect:/kebab/menu";
-    }
+
 
     @GetMapping("/{tenantId}/menu")
     @SuppressWarnings("unchecked")

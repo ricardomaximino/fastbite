@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastBite - Modern Multi-Tenant POS & Interactive Menus</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #dc3545;
+            --primary-hover: #c82333;
+            --dark: #111827;
+            --light-bg: #f9fafb;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --gradient-hero: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            --accent: #ffc107;
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--light-bg);
+            color: #374151;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .display-font {
+            font-family: var(--font-display);
+            font-weight: 800;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: var(--dark) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            color: #4b5563 !important;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        .btn-signup {
+            background-color: var(--primary);
+            color: #fff !important;
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signup:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient-hero);
+            color: #fff;
+            padding: 160px 0 100px 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, var(--light-bg), transparent);
+        }
+
+        .hero-badge {
+            background: rgba(220, 53, 69, 0.15);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #f87171;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title span {
+            color: var(--primary);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #9ca3af;
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+            line-height: 1.6;
+        }
+
+        .hero-ctas {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background-color: var(--primary);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.8rem 2.2rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-hero-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.4);
+            color: #fff;
+        }
+
+        .btn-hero-secondary {
+            background-color: transparent;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.8rem 2.2rem;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-hero-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            transform: translateY(-3px);
+            color: #fff;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 4rem auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 80px 0;
+            background-color: #f3f4f6;
+        }
+
+        .pricing-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .pricing-card.popular {
+            border: 2px solid var(--primary);
+            transform: scale(1.03);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.3rem 3rem;
+            transform: rotate(45deg);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin: 1.5rem 0;
+        }
+
+        .pricing-price span {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pricing-features i {
+            color: #10b981;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: #9ca3af;
+            padding: 4rem 0 2rem 0;
+            border-top: 1px solid #374151;
+        }
+
+        .footer-logo {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo i {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand display-font" href="/">
+                <i class="fas fa-hamburger"></i> FastBite
+            </a>
+            <button class="navbar-expand-lg navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-3">
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/login"><i class="fas fa-sign-in-alt me-1"></i> Sign In</a></li>
+                    <li class="nav-item"><a class="btn-signup" href="/signup">Sign Up Free</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="fas fa-fire"></i> Multi-Tenant SaaS Platform
+            </div>
+            <h1 class="hero-title">
+                One Platform. Unlimited <span>Menus & POS</span>
+            </h1>
+            <p class="hero-subtitle">
+                FastBite powers your restaurant with digital menus, instant guest ordering, kitchen workflow queues, and a comprehensive manager backoffice.
+            </p>
+            <div class="hero-ctas">
+                <a href="/signup" class="btn-hero-primary">Start Free Trial <i class="fas fa-arrow-right ms-2"></i></a>
+                <a href="/kebab/menu" class="btn-hero-secondary">Explore Demo Menu <i class="fas fa-utensils ms-2"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Designed for Fast-Paced Kitchens</h2>
+                <p class="text-muted">Everything you need to manage tables, customize menu items, and process orders in real time.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <h4>Interactive Menus</h4>
+                        <p class="text-muted">Table-bound QR codes allow guests to scan, customize ingredients, and place orders directly from their phones.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-fire-burner"></i></div>
+                        <h4>Kitchen Queue POS</h4>
+                        <p class="text-muted">Cooks track orders and prepare dishes in real-time, instantly notifying waiters when meals are ready.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h4>Manager Backoffice</h4>
+                        <p class="text-muted">Easily manage your catalog, categories, product options, and pricing with instant cloud updates.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Simple, Predictable Plans</h2>
+                <p class="text-muted">Start with our free sandbox demo, then upgrade to premium features as your business grows.</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <!-- Free Plan -->
+                <div class="col-md-5 col-lg-4">
+                    <div class="pricing-card">
+                        <h4>Free Demo Plan</h4>
+                        <p class="text-muted">Perfect for sandbox testing and evaluating FastBite features.</p>
+                        <div class="pricing-price">$0<span>/month</span></div>
+                        <a href="/signup" class="btn btn-outline-dark w-100 rounded-pill py-2">Get Started</a>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i> Standard Interactive Menu</li>
+                            <li><i class="fas fa-check"></i> 1 Active Restaurant Tenant</li>
+                            <li><i class="fas fa-check"></i> Pre-loaded Kebab Demo Data</li>
+                            <li><i class="fas fa-check"></i> Basic POS Workflows</li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- Basic Plan -->
+                <div class="col-md-5 col-lg-4">
+                    <div class="pricing-card popular">
+                        <div class="popular-badge">Popular</div>
+                        <h4>Basic Plan</h4>
+                        <p class="text-muted">Unlock complete POS and backoffice controls for your restaurant.</p>
+                        <div class="pricing-price">$29<span>/month</span></div>
+                        <a href="/signup" class="btn btn-signup w-100 rounded-pill py-2">Start 14-Day Free Trial</a>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i> Everything in Free</li>
+                            <li><i class="fas fa-check"></i> Unlimited Active Products</li>
+                            <li><i class="fas fa-check"></i> QR Code Table Generator</li>
+                            <li><i class="fas fa-check"></i> Custom Restaurant Backoffice</li>
+                            <li><i class="fas fa-check"></i> Email Support (24/7 Response)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="footer-logo"><i class="fas fa-hamburger"></i> FastBite</div>
+                    <p>Building the future of restaurant operations, interactive customer ordering, and kitchen POS management.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#features" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="#pricing" class="text-muted text-decoration-none">Pricing</a></li>
+                        <li><a href="/login" class="text-muted text-decoration-none">Sign In</a></li>
+                        <li><a href="/signup" class="text-muted text-decoration-none">Sign Up</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom text-center">
+                <p>&copy; 2026 FastBite Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
