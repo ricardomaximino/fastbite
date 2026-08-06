@@ -31,7 +31,7 @@ public class MenuController {
 
 
 
-    @GetMapping("/{tenantId}/menu")
+    @GetMapping({"/{tenantId}/menu", "/menu"})
     @SuppressWarnings("unchecked")
     public String menu(
             @RequestParam(value = "table", required = false) String tableParam,
@@ -85,7 +85,7 @@ public class MenuController {
         return "fastfood/fragments/menu :: toast";
     }
 
-    @GetMapping("/{tenantId}/select-payment")
+    @GetMapping({"/{tenantId}/select-payment", "/select-payment"})
     @SuppressWarnings("unchecked")
     public String selectPayment(HttpSession session, Model model) {
         var orderNumberObj = session.getAttribute("orderNumber");

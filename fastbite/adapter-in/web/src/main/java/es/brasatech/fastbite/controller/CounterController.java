@@ -38,7 +38,7 @@ public class CounterController {
     private final CustomizationService customizationService;
     private final es.brasatech.fastbite.application.discount.DiscountService discountService;
 
-    @GetMapping("/{tenantId}/counter")
+    @GetMapping({"/{tenantId}/counter", "/counter"})
     public String counter(Model model) {
         model.addAttribute("tables", tableService.findAll());
         var config = paymentService.getActiveConfig();

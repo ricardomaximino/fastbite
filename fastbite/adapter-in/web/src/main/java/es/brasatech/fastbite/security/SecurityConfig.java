@@ -84,8 +84,25 @@ public class SecurityConfig {
     private static class TenantAuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
         @Override
         public void commence(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException authException) throws java.io.IOException {
-            String uri = request.getRequestURI();
             String contextPath = request.getContextPath();
+            String host = request.getHeader("Host");
+            boolean hasSubdomain = false;
+            if (host != null) {
+                String cleanHost = host.split(":")[0].toLowerCase();
+                String[] parts = cleanHost.split("\\.");
+                if (cleanHost.endsWith(".localhost")) {
+                    hasSubdomain = parts.length > 1 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
+                } else {
+                    hasSubdomain = parts.length > 2 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
+                }
+            }
+
+            if (hasSubdomain) {
+                response.sendRedirect(contextPath + "/login");
+                return;
+            }
+
+            String uri = request.getRequestURI();
             String path = uri.substring(contextPath.length());
             String[] segments = path.split("/");
             if (segments.length > 1) {
@@ -114,7 +131,22 @@ public class SecurityConfig {
                     tenantId = segments[1];
                 }
             }
-            if (tenantId != null) {
+
+            String host = request.getHeader("Host");
+            boolean hasSubdomain = false;
+            if (host != null) {
+                String cleanHost = host.split(":")[0].toLowerCase();
+                String[] parts = cleanHost.split("\\.");
+                if (cleanHost.endsWith(".localhost")) {
+                    hasSubdomain = parts.length > 1 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
+                } else {
+                    hasSubdomain = parts.length > 2 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
+                }
+            }
+
+            if (hasSubdomain) {
+                setDefaultTargetUrl("/menu");
+            } else if (tenantId != null) {
                 setDefaultTargetUrl("/" + tenantId + "/menu");
             } else {
                 setDefaultTargetUrl("/");

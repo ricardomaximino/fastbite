@@ -14,7 +14,33 @@ public class TenantInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String tenantId = request.getParameter("tenantId");
+        String tenantId = null;
+
+        // Resolve tenant from Host header (subdomain)
+        String host = request.getHeader("Host");
+        if (host != null) {
+            String cleanHost = host.split(":")[0].toLowerCase();
+            String[] parts = cleanHost.split("\\.");
+            if (cleanHost.endsWith(".localhost")) {
+                if (parts.length > 1) {
+                    String subdomain = parts[0];
+                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                        tenantId = subdomain;
+                    }
+                }
+            } else {
+                if (parts.length > 2) {
+                    String subdomain = parts[0];
+                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                        tenantId = subdomain;
+                    }
+                }
+            }
+        }
+
+        if (tenantId == null) {
+            tenantId = request.getParameter("tenantId");
+        }
 
         // Try extracting from request attribute first
         if (tenantId == null) {

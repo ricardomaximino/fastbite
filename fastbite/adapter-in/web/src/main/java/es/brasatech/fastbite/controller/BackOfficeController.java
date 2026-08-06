@@ -17,7 +17,7 @@ public class BackOfficeController {
     /**
      * Render the BackOffice page
      */
-    @GetMapping("/{tenantId}/backoffice")
+    @GetMapping({"/{tenantId}/backoffice", "/backoffice"})
     public String backOffice() {
         return "fastfood/backOffice";
     }

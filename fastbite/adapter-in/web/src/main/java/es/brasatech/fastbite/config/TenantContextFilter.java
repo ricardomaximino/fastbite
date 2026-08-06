@@ -12,7 +12,33 @@ public class TenantContextFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String tenantId = httpRequest.getParameter("tenantId");
+        String tenantId = null;
+
+        // 0. Resolve tenant from Host header (subdomain)
+        String host = httpRequest.getHeader("Host");
+        if (host != null) {
+            String cleanHost = host.split(":")[0].toLowerCase();
+            String[] parts = cleanHost.split("\\.");
+            if (cleanHost.endsWith(".localhost")) {
+                if (parts.length > 1) {
+                    String subdomain = parts[0];
+                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                        tenantId = subdomain;
+                    }
+                }
+            } else {
+                if (parts.length > 2) {
+                    String subdomain = parts[0];
+                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                        tenantId = subdomain;
+                    }
+                }
+            }
+        }
+
+        if (tenantId == null) {
+            tenantId = httpRequest.getParameter("tenantId");
+        }
 
         // 1. Resolve tenant from URL path
         String uri = httpRequest.getRequestURI();

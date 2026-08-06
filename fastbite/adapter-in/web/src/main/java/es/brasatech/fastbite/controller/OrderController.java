@@ -108,14 +108,14 @@ public class OrderController {
         return Map.of("status", "success");
     }
 
-    @GetMapping("/{tenantId}/order-confirmation")
+    @GetMapping({"/{tenantId}/order-confirmation", "/order-confirmation"})
     public String confirmation(HttpSession session, Model model) {
         var orderNumber = session.getAttribute("orderNumber");
         model.addAttribute("orderNumber", orderNumber);
         return "fastfood/confirmation";
     }
 
-    @GetMapping("/{tenantId}/dashboard")
+    @GetMapping({"/{tenantId}/dashboard", "/dashboard"})
     public String dashboard(HttpSession session, Model model) {
         return "fastfood/dashboard";
     }
