@@ -4,6 +4,13 @@ FastBite is a high-performance fast-food ordering system featuring a multi-persi
 
 ---
 
+## 🎯 FastBite Application Goal
+The main goal of **FastBite** is to provide a highly scalable, multi-tenant Point-of-Sale (POS) and guest-interactive menu system built on a clean **Hexagonal Architecture**. 
+* **Zero Configuration Startup**: A developer can run `mvn clean install` and start the server, and the application instantly boots with the pre-seeded **`kebab`** demo tenant loaded automatically into the `PUBLIC` schema.
+* **Subdomain Hostname Routing**: Multi-tenancy is handled via subdomains (e.g. `kebab.localhost` or `pizza.localhost`). No tenant ID path prefixes are needed.
+
+---
+
 ## 📋 Prerequisites
 
 Before setting up and running FastBite locally, ensure your development environment has the following installed:
@@ -109,9 +116,11 @@ mvn clean test
 ### Key Verification Checks:
 1. **Maven Build**: Verify that all modules (`domain`, `application`, `adapter-in`, `adapter-out`, `webapplication`) compile successfully.
 2. **Accessing the UI**: After starting the application, verify it is running by visiting:
-   *   **Customer Menu**: `http://localhost:8080/menu`
-   *   **BackOffice Management**: `http://localhost:8080/backoffice`
-   *   **Cashier/Orders Dashboard**: `http://localhost:8080/dashboard`
+   *   **SaaS Landing Page**: `http://localhost:8080/`
+   *   **Customer Menu (Demo)**: `http://kebab.localhost:8080/menu`
+   *   **BackOffice (Demo)**: `http://kebab.localhost:8080/backoffice`
+   *   **POS Counter (Demo)**: `http://kebab.localhost:8080/counter`
+   *   **Cashier/Orders Dashboard (Demo)**: `http://kebab.localhost:8080/dashboard`
 
 ---
 
@@ -129,3 +138,26 @@ FastBite features a robust rule-based promotional and discount engine that suppo
     *   `AUTOMATIC`: Applied automatically when subtotal requirements are met (no coupon code needed).
     *   `MANUAL`: Requires the customer to enter a specific coupon code during checkout.
 *   **Internationalization (i18n)**: Translation rules are supported for all discount titles/names, allowing back-office operators to input localized promotional texts for their target languages.
+
+---
+
+## 🌐 Subdomain Configuration Guide (Production Deployment)
+
+To configure production subdomains for your SaaS deployment using **Google Cloud Run (scaling to zero)** and **GoDaddy**:
+
+### 1. DNS Wildcard Setup (GoDaddy)
+1. Log in to your **GoDaddy Control Panel** and go to **DNS Management** for your domain (e.g., `fastbite.com`).
+2. Add a new record:
+   * **Type**: `CNAME`
+   * **Name**: `*` (Wildcard representing all subdomains)
+   * **Value**: Point this to your Google Cloud Run custom domain URL (or Load Balancer CNAME).
+   * **TTL**: `1 Hour` (or Default).
+
+### 2. Custom Wildcard Domain Mapping (Google Cloud Run)
+- If your Cloud Run region supports wildcard domains natively:
+  1. Go to the **Cloud Run Console** -> **Manage Custom Domains**.
+  2. Map `*.yourdomain.com` directly to your service.
+- If your region does not support direct wildcards:
+  1. Create a **Serverless Network Endpoint Group (NEG)** pointing to your Cloud Run service.
+  2. Set up a **Global HTTPS Load Balancer** with an SSL certificate.
+  3. Map your frontend to the Load Balancer IP, and point GoDaddy's CNAME wildcard (`*`) and root domain A records directly to this IP address.
