@@ -1,10 +1,10 @@
 package es.brasatech.fastbite.jpa.tenant;
 
+import es.brasatech.fastbite.application.tenant.TenantSignupService;
 import es.brasatech.fastbite.domain.tenant.TenantContext;
 import es.brasatech.fastbite.jpa.TestConfig;
 import es.brasatech.fastbite.jpa.user.UserEntity;
 import es.brasatech.fastbite.jpa.user.UserJpaRepository;
-import es.brasatech.fastbite.application.tenant.TenantSignupService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class TenantSignupIntegrationTest {
 
         // Verify the user exists inside the new tenant schema
         transactionTemplate.execute(status -> {
-            Optional<UserEntity> userOpt = userRepository.findByUsername(adminUsername);
+            Optional<UserEntity> userOpt = userRepository.findByUsername("admin");
             assertTrue(userOpt.isPresent(), "Admin user should exist in the new tenant schema");
             UserEntity user = userOpt.get();
             assertEquals("New Tenant Owner", user.getFullName());
@@ -64,11 +64,15 @@ class TenantSignupIntegrationTest {
             return null;
         });
 
-        // Switch back to default context and verify the user does NOT exist there
+        // Switch back to default context and verify the owner user exists there
         TenantContext.setCurrentTenant("default");
         transactionTemplate.execute(status -> {
             Optional<UserEntity> userOpt = userRepository.findByUsername(adminUsername);
-            assertFalse(userOpt.isPresent(), "Admin user should not exist in the default schema");
+            assertTrue(userOpt.isPresent(), "Owner user should exist in the default schema");
+            UserEntity user = userOpt.get();
+            assertEquals("New Tenant Owner", user.getFullName());
+            assertEquals("bcrypt_password_hash", user.getPassword());
+            assertTrue(user.isActive());
             return null;
         });
     }

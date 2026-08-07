@@ -11,5 +11,6 @@ public record UserDto(
                 String password,
                 String fullName,
                 Set<Role> roles,
-                boolean active) {
+                boolean active,
+                String tenantId) {
 }

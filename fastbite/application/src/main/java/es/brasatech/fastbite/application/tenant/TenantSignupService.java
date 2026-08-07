@@ -36,21 +36,40 @@ public class TenantSignupService {
         // 1. Provision database schema and initial tables
         tenantProvisionerPort.provisionTenant(tenantId);
 
-        // 2. Swapping context to save the admin user under the new tenant schema
+        // 2. Save the SaaS Tenant Owner in the master schema (PUBLIC)
+        try {
+            TenantContext.clear(); // Maps to PUBLIC
+            UserDto ownerUser = new UserDto(
+                    null,
+                    username,
+                    encodedPassword,
+                    fullName,
+                    Set.of(Role.OWNER),
+                    true,
+                    tenantId
+            );
+            userService.save(ownerUser);
+            LOGGER.info("SaaS Tenant Owner user '" + username + "' created in master schema for tenant: " + tenantId);
+        } catch (Exception e) {
+            LOGGER.severe("Failed to create SaaS Tenant Owner in master schema: " + e.getMessage());
+        }
+
+        // 3. Swapping context to save the operational admin user under the new tenant schema
         try {
             TenantContext.setCurrentTenant(tenantId);
 
             UserDto adminUser = new UserDto(
                     null,
-                    username,
-                    encodedPassword,
+                    "admin",
+                    encodedPassword, // Keep same password for easy onboarding
                     fullName,
                     Set.of(Role.ADMIN),
-                    true
+                    true,
+                    tenantId
             );
 
             userService.save(adminUser);
-            LOGGER.info("Admin user '" + username + "' created for tenant: " + tenantId);
+            LOGGER.info("Operational admin user 'admin' created for tenant: " + tenantId);
         } finally {
             TenantContext.clear();
         }

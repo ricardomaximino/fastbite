@@ -39,13 +39,15 @@ public class SecurityDataInitializer implements CommandLineRunner {
     }
 
     private void createUser(String username, String fullName, String rawPassword, Role role) {
+        String tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
         UserDto user = new UserDto(
                 null,
                 username,
                 passwordEncoder.encode(rawPassword),
                 fullName,
                 new java.util.HashSet<>(Set.of(role)),
-                true);
+                true,
+                tenantId);
         userService.save(user);
         log.info("Created user: {} with role: {}", username, role);
     }

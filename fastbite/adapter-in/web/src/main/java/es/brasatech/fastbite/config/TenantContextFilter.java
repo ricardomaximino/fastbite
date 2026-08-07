@@ -18,19 +18,21 @@ public class TenantContextFilter implements Filter {
         String host = httpRequest.getHeader("Host");
         if (host != null) {
             String cleanHost = host.split(":")[0].toLowerCase();
-            String[] parts = cleanHost.split("\\.");
-            if (cleanHost.endsWith(".localhost")) {
-                if (parts.length > 1) {
-                    String subdomain = parts[0];
-                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                        tenantId = subdomain;
+            if (!cleanHost.matches("^[0-9\\.]+$")) {
+                String[] parts = cleanHost.split("\\.");
+                if (cleanHost.endsWith(".localhost")) {
+                    if (parts.length > 1) {
+                        String subdomain = parts[0];
+                        if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                            tenantId = subdomain;
+                        }
                     }
-                }
-            } else {
-                if (parts.length > 2) {
-                    String subdomain = parts[0];
-                    if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                        tenantId = subdomain;
+                } else {
+                    if (parts.length > 2) {
+                        String subdomain = parts[0];
+                        if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
+                            tenantId = subdomain;
+                        }
                     }
                 }
             }

@@ -36,4 +36,7 @@ public class UserEntity {
     private Set<Role> roles;
 
     private boolean active;
+
+    @Column(name = "tenant_id")
+    private String tenantId;
 }

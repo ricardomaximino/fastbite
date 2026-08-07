@@ -33,6 +33,7 @@ public class UserServiceJpaImpl implements UserService {
         entity.setFullName(userDto.fullName());
         entity.setRoles(userDto.roles() != null ? new java.util.HashSet<>(userDto.roles()) : new java.util.HashSet<>());
         entity.setActive(userDto.active());
+        entity.setTenantId(userDto.tenantId());
 
         userRepository.save(entity);
     }
@@ -49,6 +50,7 @@ public class UserServiceJpaImpl implements UserService {
                 entity.getPassword(),
                 entity.getFullName(),
                 entity.getRoles(),
-                entity.isActive());
+                entity.isActive(),
+                entity.getTenantId());
     }
 }
