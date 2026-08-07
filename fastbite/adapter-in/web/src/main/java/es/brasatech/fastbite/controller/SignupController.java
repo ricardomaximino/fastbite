@@ -29,11 +29,29 @@ public class SignupController {
             @RequestParam String username,
             @RequestParam String password,
             @RequestParam String fullName,
+            jakarta.servlet.http.HttpServletRequest request,
             Model model) {
         try {
             String encodedPassword = passwordEncoder.encode(password);
             tenantSignupService.registerTenant(tenantId, username, encodedPassword, fullName);
+            
+            String serverName = request.getServerName();
+            int serverPort = request.getServerPort();
+            String scheme = request.getScheme();
+            String domain = serverName;
+            if (domain.startsWith("www.")) {
+                domain = domain.substring(4);
+            }
+            
+            String subdomainUrl;
+            if (serverPort == 80 || serverPort == 443) {
+                subdomainUrl = scheme + "://" + tenantId + "." + domain + "/login";
+            } else {
+                subdomainUrl = scheme + "://" + tenantId + "." + domain + ":" + serverPort + "/login";
+            }
+            
             model.addAttribute("registeredTenantId", tenantId);
+            model.addAttribute("subdomainUrl", subdomainUrl);
             model.addAttribute("success", "Restaurant " + tenantId + " has been successfully registered and provisioned! You can now log in.");
             return "fastfood/signup";
         } catch (IllegalArgumentException e) {
