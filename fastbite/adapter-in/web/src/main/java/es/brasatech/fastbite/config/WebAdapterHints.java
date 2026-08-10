@@ -32,6 +32,9 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         hints.resources().registerPattern("static/**");
         hints.resources().registerPattern("templates/**");
+        hints.resources().registerPattern("data-jpa.sql");
+        hints.resources().registerPattern("schema.sql");
+        hints.resources().registerPattern("kebab_demo.zip");
         hints.resources().registerResourceBundle("i18n/messages");
 
         // Serialization hints for session-stored objects
@@ -99,6 +102,7 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(CustomizationOptionDto.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(Group.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(ProductDto.class), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.TenantBackupRestoreAdapter$TenantBackupData"), MemberCategory.values());
 
         // Discount classes reflection hints
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRule.class), MemberCategory.values());
