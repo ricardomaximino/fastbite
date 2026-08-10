@@ -1,4 +1,6 @@
+mvn clean install && cd webapplication && mvn -Pnative native:compile -Dspring-boot.run.profiles=jpa && cd .. && docker build -f docker/Dockerfile --tag ricardomaximino/fastbite-native . && docker push ricardomaximino/fastbite-native:latest
 # FastBite - Developer Onboarding Guide
+# FastBite
 
 FastBite is a high-performance fast-food ordering system featuring a multi-persistence architecture (JPA/H2/PostgreSQL and MongoDB) and database-level internationalization. It is fully optimized for GraalVM Native Image deployments.
 

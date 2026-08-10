@@ -88,6 +88,13 @@
                 <configuration>
                     <skip>false</skip>
                     <mainClass>es.brasatech.fastbite.Application</mainClass>
+                    <metadataRepository>
+                        <enabled>false</enabled>
+                    </metadataRepository>
+                    <buildArgs>
+                        <buildArg>-H:DeadlockWatchdogInterval=0</buildArg>
+                        <buildArg>-H:+AddAllCharsets</buildArg>
+                    </buildArgs>
                 </configuration>
             </plugin>
 
