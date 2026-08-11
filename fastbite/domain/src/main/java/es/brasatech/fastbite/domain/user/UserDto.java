@@ -12,5 +12,5 @@ public record UserDto(
                 String fullName,
                 Set<Role> roles,
                 boolean active,
-                String tenantId) {
+                String tenantId) implements java.io.Serializable {
 }

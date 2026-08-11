@@ -19,6 +19,7 @@ import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableI18n;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.domain.user.Customer;
+import es.brasatech.fastbite.domain.user.UserDto;
 import es.brasatech.fastbite.dto.counter.CounterOrderRequest;
 import es.brasatech.fastbite.dto.menu.*;
 import es.brasatech.fastbite.dto.office.BackOfficeDto;
@@ -38,13 +39,25 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.resources().registerResourceBundle("i18n/messages");
 
         // Serialization hints for session-stored objects
-        hints.reflection().registerJavaSerialization(java.math.BigDecimal.class);
-        hints.reflection().registerJavaSerialization(java.math.BigInteger.class);
-        hints.reflection().registerJavaSerialization(java.util.ArrayList.class);
-        hints.reflection().registerJavaSerialization(java.util.HashMap.class);
-        hints.reflection().registerJavaSerialization(java.util.Collections.emptyList().getClass());
-        hints.reflection().registerJavaSerialization(CartItem.class);
-        hints.reflection().registerJavaSerialization(ProductCustomizer.class);
+        hints.serialization().registerType(java.math.BigDecimal.class);
+        hints.serialization().registerType(java.math.BigInteger.class);
+        hints.serialization().registerType(java.util.ArrayList.class);
+        hints.serialization().registerType(java.util.HashMap.class);
+        hints.serialization().registerType(java.util.HashSet.class);
+        hints.serialization().registerType(TypeReference.of("java.util.Collections$UnmodifiableSet"));
+        hints.serialization().registerType(TypeReference.of("java.util.Collections$UnmodifiableRandomAccessList"));
+        hints.serialization().registerType(TypeReference.of("java.util.Collections$UnmodifiableList"));
+        hints.serialization().registerType(TypeReference.of(java.util.Collections.emptyList().getClass()));
+        hints.serialization().registerType(CartItem.class);
+        hints.serialization().registerType(ProductCustomizer.class);
+        
+        // Spring Security serialization
+        hints.serialization().registerType(TypeReference.of("org.springframework.security.core.context.SecurityContextImpl"));
+        hints.serialization().registerType(TypeReference.of("org.springframework.security.authentication.UsernamePasswordAuthenticationToken"));
+        hints.serialization().registerType(TypeReference.of("org.springframework.security.core.userdetails.User"));
+        hints.serialization().registerType(TypeReference.of("org.springframework.security.core.authority.SimpleGrantedAuthority"));
+        hints.serialization().registerType(es.brasatech.fastbite.domain.user.Role.class);
+        hints.serialization().registerType(UserDto.class);
 
         // Reflection hints for DTOs and Domain objects used in Thymeleaf/SpEL
         hints.reflection().registerType(TypeReference.of(java.math.BigDecimal.class), MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS);
@@ -103,6 +116,8 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(Group.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(ProductDto.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.TenantBackupRestoreAdapter$TenantBackupData"), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of(UserDto.class), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.user.Role.class), MemberCategory.values());
 
         // Discount classes reflection hints
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRule.class), MemberCategory.values());
