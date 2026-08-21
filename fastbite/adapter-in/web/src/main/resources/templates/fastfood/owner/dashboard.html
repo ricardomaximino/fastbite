@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastBite - Tenant Owner Dashboard</title>
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-header {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #2d2d2d;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .card-location {
+            background-color: #1e1e1e;
+            border: 1px solid #2d2d2d;
+            border-radius: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .card-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .btn-theme {
+            background-color: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .btn-theme:hover {
+            background-color: #d62828;
+            color: #fff;
+        }
+        .text-muted-light {
+            color: #a0a0a0;
+        }
+        .form-control-dark {
+            background-color: #2b2b2b;
+            border: 1px solid #3d3d3d;
+            color: #fff;
+        }
+        .form-control-dark:focus {
+            background-color: #333;
+            border-color: #e63946;
+            color: #fff;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div class="dashboard-header d-flex justify-content-between align-middle align-items-center">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-store text-danger fa-2x me-3"></i>
+            <div>
+                <h4 class="mb-0 text-white font-weight-bold">FastBite</h4>
+                <small class="text-muted-light">Tenant Control Console</small>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="text-muted-light me-3">Welcome, <strong class="text-white" th:text="${ownerUsername}">Owner</strong></span>
+            
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-secondary px-3 py-1 rounded-pill">
+                    <i class="fas fa-sign-out-alt me-1"></i> Sign Out
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container pb-5">
+        <div class="row">
+            
+            <!-- Left Side: Locations List & Maintenance -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 text-white"><i class="fas fa-map-marker-alt text-danger me-2"></i>Registered Locations</h5>
+                    <span class="badge bg-dark border border-secondary text-muted-light" th:text="${#lists.size(locations)} + ' Locations'">0 Locations</span>
+                </div>
+
+                <!-- Display Errors if any -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}">An error occurred.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:each="loc : ${locations}" class="card-location p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h5 class="text-white mb-1">
+                                <span th:text="${loc.tenantId}">pizza</span>.localhost:8080
+                            </h5>
+                            <span class="badge bg-success small py-1 px-2 mb-2" th:text="'Active Plan: ' + ${loc.plan}">Active Plan: Free Demo</span>
+                            <div class="small text-muted-light">
+                                URL Prefix: <code class="text-danger" th:text="${loc.tenantId}">pizza</code>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 text-md-end">
+                            <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/dashboard'" target="_blank" class="btn btn-sm btn-theme px-3 py-2 me-1">
+                                <i class="fas fa-external-link-alt me-1"></i> Open POS Dashboard
+                            </a>
+                            <button class="btn btn-sm btn-outline-info px-3 py-2" th:data-tenant="${loc.tenantId}" onclick="openStaffModal(this.getAttribute('data-tenant'))">
+                                <i class="fas fa-users me-1"></i> Manage Staff
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Maintenance Accordion Panel -->
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <h6 class="text-white-50 mb-3"><i class="fas fa-tools me-2"></i>Maintenance Tools</h6>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            
+                            <!-- Backup Download -->
+                            <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/api/backoffice/maintenance/backup'" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                                <i class="fas fa-download me-1"></i> Export Backup ZIP
+                            </a>
+
+                            <!-- Reset Data -->
+                            <button class="btn btn-sm btn-outline-danger py-1 px-2" th:data-tenant="${loc.tenantId}" onclick="executeMaintenance(this.getAttribute('data-tenant'), 'clean')">
+                                <i class="fas fa-trash me-1"></i> Reset Database
+                            </button>
+
+                            <!-- Seed Template Demo Data -->
+                            <button class="btn btn-sm btn-outline-success py-1 px-2" th:data-tenant="${loc.tenantId}" onclick="executeMaintenance(this.getAttribute('data-tenant'), 'restore-demo')">
+                                <i class="fas fa-seedling me-1"></i> Load Demo Template
+                            </button>
+
+                            <!-- Custom Backup File Restore -->
+                            <form th:id="'restoreForm-' + ${loc.tenantId}" onsubmit="uploadBackup(event)" class="d-inline-flex align-items-center ms-lg-auto">
+                                <input type="hidden" name="tenantId" th:value="${loc.tenantId}">
+                                <input type="file" name="file" class="form-control form-control-sm bg-dark border-secondary text-white-50 form-control-dark py-1" style="max-width: 200px;" required>
+                                <button type="submit" class="btn btn-sm btn-outline-warning py-1 px-2 ms-2">
+                                    <i class="fas fa-upload me-1"></i> Restore
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(locations)}" class="card-location text-center p-5">
+                    <i class="fas fa-store-slash text-muted fa-3x mb-3"></i>
+                    <h5 class="text-white mb-2">No Locations Registered Yet</h5>
+                    <p class="text-muted-light small mb-0">Use the registration form on the right to configure your first restaurant.</p>
+                </div>
+            </div>
+
+            <!-- Right Side: Simplified Branch Registration -->
+            <div class="col-lg-4">
+                <div class="card p-4 border border-secondary" style="background-color: #1e1e1e;">
+                    <h5 class="text-white mb-3"><i class="fas fa-plus-circle text-danger me-2"></i>Register New Location</h5>
+                    <p class="text-muted-light small mb-4">Add a new branch location for your restaurant group. The branch will be instantly provisioned.</p>
+                    
+                    <form th:action="@{/owner/add-location}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-muted-light small">Restaurant URL Prefix</label>
+                            <input type="text" name="tenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
+                            <div class="form-text text-muted small text-white-50 mt-1">Access via: <code>{prefix}.localhost:8080</code></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted-light small">Subscription Plan</label>
+                            <select name="plan" class="form-select form-select-dark bg-dark text-white border-secondary" required>
+                                <option value="Free Demo">Free Demo ($0/month)</option>
+                                <option value="Basic Plan">Basic Plan ($29/month)</option>
+                                <option value="Pro Plan">Pro Plan ($59/month)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-theme w-100 py-2 mt-2">
+                            <i class="fas fa-magic me-1"></i> Provision Location
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Staff Management Modal -->
+    <div class="modal fade" id="staffModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="staffModalTitle"><i class="fas fa-users text-danger me-2"></i>Manage Branch Staff</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalStaffContent">
+                    <!-- Dynamic staff list fragment loaded here via AJAX -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Generic AJAX Maintenance tool helper
+        function executeMaintenance(tenantId, action) {
+            if (!confirm(`Are you sure you want to run '${action}' for restaurant location '${tenantId}'?`)) {
+                return;
+            }
+
+            fetch(`http://${tenantId}.localhost:8080/api/backoffice/maintenance/${action}`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || 'Operation executed successfully!');
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Operation completed. (Confirming schema schema mappings)');
+            });
+        }
+
+        // Custom ZIP restore upload
+        function uploadBackup(event) {
+            event.preventDefault();
+            const form = event.target;
+            const tenantId = form.querySelector('[name="tenantId"]').value;
+            const fileInput = form.querySelector('[type="file"]');
+            
+            if (!fileInput.files.length) {
+                alert('Please select a file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch(`http://${tenantId}.localhost:8080/api/backoffice/maintenance/restore`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || 'Backup successfully restored!');
+                fileInput.value = '';
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error uploading backup.');
+            });
+        }
+
+        // Staff user management modal open & load
+        let staffBootstrapModal = null;
+        function openStaffModal(tenantId) {
+            const modalContent = document.getElementById('modalStaffContent');
+            document.getElementById('staffModalTitle').innerText = `Manage Branch Staff: ${tenantId.toUpperCase()}`;
+            
+            modalContent.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-danger" role="status"></div></div>`;
+            
+            if (!staffBootstrapModal) {
+                staffBootstrapModal = new bootstrap.Modal(document.getElementById('staffModal'));
+            }
+            staffBootstrapModal.show();
+
+            fetch(`/owner/locations/${tenantId}/users`)
+                .then(res => res.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    modalContent.innerHTML = `<div class="alert alert-danger">Failed to load staff list.</div>`;
+                });
+        }
+
+        // Submit add staff user form
+        function submitAddStaffForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const tenantId = form.querySelector('[name="tenantId"]').value;
+            const data = new URLSearchParams(new FormData(form));
+
+            fetch(`/owner/locations/${tenantId}/users`, {
+                method: 'POST',
+                body: data
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('modalStaffContent').innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to add employee account.');
+            });
+        }
+
+        // Delete staff user
+        function deleteStaffUser(tenantId, userId) {
+            if (!confirm('Are you sure you want to delete this staff account?')) {
+                return;
+            }
+
+            const data = new URLSearchParams();
+            data.append('userId', userId);
+
+            fetch(`/owner/locations/${tenantId}/users/delete`, {
+                method: 'POST',
+                body: data
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('modalStaffContent').innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete staff account.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS user_roles (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS tenant_locations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    owner_username VARCHAR(255) NOT NULL,
+    tenant_id VARCHAR(255) NOT NULL UNIQUE
+);
+
 -- Products
 CREATE TABLE IF NOT EXISTS products (
     id VARCHAR(36) NOT NULL PRIMARY KEY,

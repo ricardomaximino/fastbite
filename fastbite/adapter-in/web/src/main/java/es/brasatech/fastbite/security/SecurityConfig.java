@@ -24,13 +24,16 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
                         .requestMatchers("/login", "/error", "/*/login").permitAll()
 
-                        // Dashboard access (all staff roles)
-                        .requestMatchers("/dashboard/**", "/counter/**", "/api/order/**", "/api/counter/**",
-                                "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/counter/**")
-                        .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER")
+                        // Owner Console access (strictly Tenant Owners)
+                        .requestMatchers("/owner/**").hasRole("OWNER")
 
-                        // Maintenance access (strictly Admin only)
-                        .requestMatchers("/*/api/backoffice/maintenance/**").hasRole("ADMIN")
+                        // Dashboard access (all staff roles + Owner)
+                        .requestMatchers("/dashboard", "/dashboard/**", "/counter/**", "/api/order/**", "/api/counter/**",
+                                "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/counter/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER", "OWNER")
+
+                        // Maintenance access (strictly Admin or Owner)
+                        .requestMatchers("/*/api/backoffice/maintenance/**").hasAnyRole("ADMIN", "OWNER")
 
                         // BackOffice access (admin and manager only)
                         .requestMatchers("/backoffice/**", "/api/backoffice/**", "/api/backoffice/orders/reassign-table",
@@ -146,6 +149,8 @@ public class SecurityConfig {
 
             if (hasSubdomain) {
                 setDefaultTargetUrl("/menu");
+            } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"))) {
+                setDefaultTargetUrl("/owner/console");
             } else if (tenantId != null) {
                 setDefaultTargetUrl("/" + tenantId + "/menu");
             } else {
@@ -212,5 +217,14 @@ public class SecurityConfig {
                 super.onAuthenticationFailure(request, response, exception);
             }
         }
+    }
+
+    @Bean
+    public org.springframework.session.web.http.CookieSerializer cookieSerializer() {
+        org.springframework.session.web.http.DefaultCookieSerializer serializer = new org.springframework.session.web.http.DefaultCookieSerializer();
+        serializer.setCookieName("JSESSIONID");
+        // Allows wildcard session cookie sharing (e.g. *.localhost or *.yourdomain.com)
+        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.\\w+)$|^.+?\\.(localhost)$");
+        return serializer;
     }
 }

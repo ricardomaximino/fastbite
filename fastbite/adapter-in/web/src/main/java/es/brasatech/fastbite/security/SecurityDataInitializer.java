@@ -18,9 +18,34 @@ public class SecurityDataInitializer implements CommandLineRunner {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final es.brasatech.fastbite.application.tenant.TenantLocationService tenantLocationService;
 
     @Override
     public void run(String... args) {
+        // Initialize kebabowner in PUBLIC schema and associate it with kebab location
+        try {
+            es.brasatech.fastbite.domain.tenant.TenantContext.clear(); // Ensure we are in PUBLIC
+            if (userService.findByUsername("kebabowner").isEmpty()) {
+                log.info("Creating default SaaS Tenant Owner: kebabowner...");
+                UserDto owner = new UserDto(
+                        null,
+                        "kebabowner",
+                        passwordEncoder.encode("password"),
+                        "Kebab Owner",
+                        new java.util.HashSet<>(Set.of(Role.OWNER, Role.ADMIN)),
+                        true,
+                        "kebab"
+                );
+                userService.save(owner);
+                
+                // Associate location
+                if (tenantLocationService.getLocation("kebab").isEmpty()) {
+                    tenantLocationService.registerLocation("kebabowner", "kebab", "Free Demo");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to seed default kebabowner: " + e.getMessage(), e);
+        }
 
         // Initialize kebab tenant users
         try {

@@ -16,10 +16,12 @@ public class TenantSignupService {
 
     private final TenantProvisionerPort tenantProvisionerPort;
     private final UserService userService;
+    private final TenantLocationService tenantLocationService;
 
-    public TenantSignupService(TenantProvisionerPort tenantProvisionerPort, UserService userService) {
+    public TenantSignupService(TenantProvisionerPort tenantProvisionerPort, UserService userService, TenantLocationService tenantLocationService) {
         this.tenantProvisionerPort = tenantProvisionerPort;
         this.userService = userService;
+        this.tenantLocationService = tenantLocationService;
     }
 
     public void registerTenant(String tenantId, String username, String encodedPassword, String fullName) {
@@ -44,7 +46,7 @@ public class TenantSignupService {
                     username,
                     encodedPassword,
                     fullName,
-                    Set.of(Role.OWNER),
+                    Set.of(Role.OWNER, Role.ADMIN),
                     true,
                     tenantId
             );
@@ -54,24 +56,31 @@ public class TenantSignupService {
             LOGGER.severe("Failed to create SaaS Tenant Owner in master schema: " + e.getMessage());
         }
 
-        // 3. Swapping context to save the operational admin user under the new tenant schema
+        // 3. Register location association in tenant_locations registry
         try {
-            TenantContext.setCurrentTenant(tenantId);
-
-            UserDto adminUser = new UserDto(
-                    null,
-                    "admin",
-                    encodedPassword, // Keep same password for easy onboarding
-                    fullName,
-                    Set.of(Role.ADMIN),
-                    true,
-                    tenantId
-            );
-
-            userService.save(adminUser);
-            LOGGER.info("Operational admin user 'admin' created for tenant: " + tenantId);
-        } finally {
-            TenantContext.clear();
+            tenantLocationService.registerLocation(username, tenantId, "Free Demo");
+            LOGGER.info("Successfully registered location '" + tenantId + "' for owner '" + username + "'");
+        } catch (Exception e) {
+            LOGGER.severe("Failed to register location mapping: " + e.getMessage());
         }
+    }
+
+    public void registerAdditionalLocation(String tenantId, String ownerUsername, String plan) {
+        if (tenantId == null || !tenantId.matches("^[a-zA-Z0-9]+$")) {
+            throw new IllegalArgumentException("Invalid tenant identifier. Only alphanumeric characters are allowed.");
+        }
+
+        if ("default".equalsIgnoreCase(tenantId) || "admin".equalsIgnoreCase(tenantId)) {
+            throw new IllegalArgumentException("Reserved tenant identifier.");
+        }
+
+        LOGGER.info("Starting registration of additional location '" + tenantId + "' for owner: " + ownerUsername + " with plan: " + plan);
+
+        // 1. Provision database schema and initial tables
+        tenantProvisionerPort.provisionTenant(tenantId);
+
+        // 2. Register location association in tenant_locations registry
+        tenantLocationService.registerLocation(ownerUsername, tenantId, plan);
+        LOGGER.info("Successfully registered additional location '" + tenantId + "' for owner '" + ownerUsername + "'");
     }
 }

@@ -335,8 +335,20 @@
                 <ul class="navbar-nav align-items-center gap-3">
                     <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
                     <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/login"><i class="fas fa-sign-in-alt me-1"></i> Sign In</a></li>
-                    <li class="nav-item"><a class="btn-signup" href="/signup">Sign Up Free</a></li>
+                    <li class="nav-item" th:if="${ownerUsername == null}"><a class="nav-link" href="/login"><i class="fas fa-sign-in-alt me-1"></i> Sign In</a></li>
+                    <li class="nav-item" th:if="${ownerUsername == null}"><a class="btn-signup" href="/signup">Sign Up Free</a></li>
+                    
+                    <li class="nav-item" th:if="${ownerUsername != null}">
+                        <span class="nav-link">Hello, <strong th:text="${ownerUsername}">Owner</strong></span>
+                    </li>
+                    <li class="nav-item" th:if="${ownerUsername != null}">
+                        <a class="btn-signup" href="/owner/console">Owner Console</a>
+                    </li>
+                    <li class="nav-item" th:if="${ownerUsername != null}">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill">Sign Out</button>
+                        </form>
+                    </li>
                 </ul>
             </div>
         </div>

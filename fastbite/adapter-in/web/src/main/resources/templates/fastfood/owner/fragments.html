@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- Staff Management Modal Fragment -->
+    <div th:fragment="staff-list" id="staffContainer">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}">Success message.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">Error message.</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row">
+            <!-- Left Side: List of Staff -->
+            <div class="col-md-7">
+                <h6 class="text-white-50 border-bottom border-secondary pb-2">Active Staff Accounts</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover table-sm align-middle small text-white">
+                        <thead>
+                            <tr class="text-muted-light">
+                                <th>Full Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}" th:if="${user.roles.iterator().next().name() != 'OWNER'}">
+                                <td th:text="${user.fullName}">John Doe</td>
+                                <td th:text="${user.username}">johndoe</td>
+                                <td>
+                                    <span class="badge bg-secondary text-uppercase" th:text="${user.roles.iterator().next().name()}">CASHIER</span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger border-0 p-1"
+                                            th:data-tenant="${tenantId}" th:data-user="${user.id}"
+                                            onclick="deleteStaffUser(this.getAttribute('data-tenant'), this.getAttribute('data-user'))">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.size(users) <= 1}">
+                                <td colspan="4" class="text-center text-muted py-3">No operational staff accounts registered yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Side: Add Staff Form -->
+            <div class="col-md-5">
+                <h6 class="text-white-50 border-bottom border-secondary pb-2">Add New Employee</h6>
+                <form th:id="'addStaffForm-' + ${tenantId}" onsubmit="submitAddStaffForm(event)" class="small">
+                    <input type="hidden" name="tenantId" th:value="${tenantId}">
+                    
+                    <div class="mb-2">
+                        <label class="form-label text-muted-light mb-1">Full Name</label>
+                        <input type="text" name="fullName" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Employee Name" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label text-muted-light mb-1">Username</label>
+                        <input type="text" name="username" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Username" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label text-muted-light mb-1">Password</label>
+                        <input type="password" name="password" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Password" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted-light mb-1">Role / Job Title</label>
+                        <select name="role" class="form-select form-select-sm bg-dark border-secondary text-white" required>
+                            <option th:each="r : ${roles}" th:if="${r.name() != 'OWNER'}" th:value="${r.name()}" th:text="${r.name()}">COOK</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-sm btn-danger w-100 py-1">
+                        <i class="fas fa-user-plus me-1"></i> Add Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

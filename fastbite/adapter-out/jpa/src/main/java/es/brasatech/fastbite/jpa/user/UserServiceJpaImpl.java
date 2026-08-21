@@ -43,6 +43,19 @@ public class UserServiceJpaImpl implements UserService {
         return userRepository.count() > 0;
     }
 
+    @Override
+    public java.util.List<UserDto> findAll() {
+        return userRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void delete(String id) {
+        userRepository.deleteById(id);
+    }
+
     private UserDto toDto(UserEntity entity) {
         return new UserDto(
                 entity.getId(),

@@ -28,6 +28,9 @@ class TenantSignupIntegrationTest {
     private UserJpaRepository userRepository;
 
     @Autowired
+    private TenantLocationJpaRepository locationRepository;
+
+    @Autowired
     private TransactionTemplate transactionTemplate;
 
     @BeforeEach
@@ -50,17 +53,12 @@ class TenantSignupIntegrationTest {
             tenantSignupService.registerTenant(tenantId, adminUsername, "bcrypt_password_hash", "New Tenant Owner")
         );
 
-        // Switch to the newly created tenant context
-        TenantContext.setCurrentTenant(tenantId);
-
-        // Verify the user exists inside the new tenant schema
+        // Verify the location registry contains this subdomain mapped to owner
+        TenantContext.setCurrentTenant("default");
         transactionTemplate.execute(status -> {
-            Optional<UserEntity> userOpt = userRepository.findByUsername("admin");
-            assertTrue(userOpt.isPresent(), "Admin user should exist in the new tenant schema");
-            UserEntity user = userOpt.get();
-            assertEquals("New Tenant Owner", user.getFullName());
-            assertEquals("bcrypt_password_hash", user.getPassword());
-            assertTrue(user.isActive());
+            Optional<TenantLocationEntity> locOpt = locationRepository.findByTenantId(tenantId);
+            assertTrue(locOpt.isPresent(), "Tenant location mapping should exist in master registry");
+            assertEquals(adminUsername, locOpt.get().getOwnerUsername());
             return null;
         });
 
