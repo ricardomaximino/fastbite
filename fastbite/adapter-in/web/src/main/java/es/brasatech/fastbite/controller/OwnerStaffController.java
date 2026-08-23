@@ -1,8 +1,6 @@
 package es.brasatech.fastbite.controller;
 
-import es.brasatech.fastbite.application.office.UserService;
-import es.brasatech.fastbite.application.tenant.TenantLocationService;
-import es.brasatech.fastbite.domain.tenant.TenantContext;
+import es.brasatech.fastbite.application.tenant.OwnerStaffService;
 import es.brasatech.fastbite.domain.user.Role;
 import es.brasatech.fastbite.domain.user.UserDto;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/owner/locations/{tenantId}/users")
@@ -22,33 +19,21 @@ import java.util.Set;
 @Slf4j
 public class OwnerStaffController {
 
-    private final UserService userService;
-    private final TenantLocationService tenantLocationService;
+    private final OwnerStaffService ownerStaffService;
     private final PasswordEncoder passwordEncoder;
-
-    private void checkOwnership(Principal principal, String tenantId) {
-        if (principal == null || !tenantLocationService.isOwnerOf(principal.getName(), tenantId)) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not own this location.");
-        }
-    }
 
     @GetMapping
     public String listUsers(
             @PathVariable String tenantId,
             Principal principal,
             Model model) {
-        checkOwnership(principal, tenantId);
-
-        try {
-            TenantContext.setCurrentTenant(tenantId);
-            List<UserDto> users = userService.findAll();
-            model.addAttribute("users", users);
-            model.addAttribute("tenantId", tenantId);
-            model.addAttribute("roles", Role.values());
-            return "fastfood/owner/fragments :: staff-list";
-        } finally {
-            TenantContext.clear();
-        }
+        
+        String ownerUsername = principal != null ? principal.getName() : null;
+        List<UserDto> users = ownerStaffService.listStaff(ownerUsername, tenantId);
+        model.addAttribute("users", users);
+        model.addAttribute("tenantId", tenantId);
+        model.addAttribute("roles", Role.values());
+        return "fastfood/owner/fragments :: staff-list";
     }
 
     @PostMapping
@@ -60,42 +45,25 @@ public class OwnerStaffController {
             @RequestParam Role role,
             Principal principal,
             Model model) {
-        checkOwnership(principal, tenantId);
 
+        String ownerUsername = principal != null ? principal.getName() : null;
         try {
-            TenantContext.setCurrentTenant(tenantId);
-            
-            UserDto newUser = new UserDto(
-                    null,
-                    username,
-                    passwordEncoder.encode(password),
-                    fullName,
-                    Set.of(role),
-                    true,
-                    tenantId
-            );
-            userService.save(newUser);
-            
-            // Reload list
-            List<UserDto> users = userService.findAll();
+            String encodedPassword = passwordEncoder.encode(password);
+            List<UserDto> users = ownerStaffService.createStaff(ownerUsername, tenantId, username, fullName, encodedPassword, role);
             model.addAttribute("users", users);
             model.addAttribute("tenantId", tenantId);
             model.addAttribute("roles", Role.values());
             model.addAttribute("success", "User '" + username + "' created successfully!");
-            return "fastfood/owner/fragments :: staff-list";
         } catch (Exception e) {
             log.error("Failed to create staff user for tenant " + tenantId, e);
             model.addAttribute("error", e.getMessage());
             
-            TenantContext.setCurrentTenant(tenantId);
-            List<UserDto> users = userService.findAll();
+            List<UserDto> users = ownerStaffService.listStaff(ownerUsername, tenantId);
             model.addAttribute("users", users);
             model.addAttribute("tenantId", tenantId);
             model.addAttribute("roles", Role.values());
-            return "fastfood/owner/fragments :: staff-list";
-        } finally {
-            TenantContext.clear();
         }
+        return "fastfood/owner/fragments :: staff-list";
     }
 
     @PostMapping("/delete")
@@ -104,21 +72,13 @@ public class OwnerStaffController {
             @RequestParam String userId,
             Principal principal,
             Model model) {
-        checkOwnership(principal, tenantId);
 
-        try {
-            TenantContext.setCurrentTenant(tenantId);
-            userService.delete(userId);
-            
-            // Reload list
-            List<UserDto> users = userService.findAll();
-            model.addAttribute("users", users);
-            model.addAttribute("tenantId", tenantId);
-            model.addAttribute("roles", Role.values());
-            model.addAttribute("success", "User deleted successfully!");
-            return "fastfood/owner/fragments :: staff-list";
-        } finally {
-            TenantContext.clear();
-        }
+        String ownerUsername = principal != null ? principal.getName() : null;
+        List<UserDto> users = ownerStaffService.deleteStaff(ownerUsername, tenantId, userId);
+        model.addAttribute("users", users);
+        model.addAttribute("tenantId", tenantId);
+        model.addAttribute("roles", Role.values());
+        model.addAttribute("success", "User deleted successfully!");
+        return "fastfood/owner/fragments :: staff-list";
     }
 }
