@@ -103,7 +103,8 @@
                             </h5>
                             <span class="badge bg-success small py-1 px-2 mb-2" th:text="'Active Plan: ' + ${loc.plan}">Active Plan: Free Demo</span>
                             <div class="small text-muted-light">
-                                URL Prefix: <code class="text-danger" th:text="${loc.tenantId}">pizza</code>
+                                Menu URL: 
+                                <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.tenantId} + '.localhost:8080/menu'">kebab.localhost:8080/menu</a>
                             </div>
                             <div class="mt-2 small text-muted-light d-flex align-items-center flex-wrap gap-2">
                                 <span>Custom Domain:</span>
@@ -112,6 +113,10 @@
                                     <input type="text" name="customDomain" th:value="${loc.customDomain}" placeholder="orders.mykebab.com" class="form-control form-control-sm bg-dark border-secondary text-white py-0 px-2" style="max-width: 250px;">
                                     <button type="submit" class="btn btn-sm btn-outline-light py-0 px-2 ms-2">Save</button>
                                 </form>
+                                <span th:if="${loc.customDomain != null and !loc.customDomain.isEmpty()}">
+                                    &nbsp;|&nbsp;
+                                    <a th:href="'http://' + ${loc.customDomain} + '/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain} + '/menu'">mykebab.com/menu</a>
+                                </span>
                             </div>
                         </div>
                         
