@@ -115,7 +115,7 @@
                                 </form>
                                 <span th:if="${loc.customDomain != null and !loc.customDomain.isEmpty()}">
                                     &nbsp;|&nbsp;
-                                    <a th:href="'http://' + ${loc.customDomain} + '/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain} + '/menu'">mykebab.com/menu</a>
+                                    <a th:href="'http://' + ${loc.customDomain}" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain}">mykebab.com</a>
                                 </span>
                             </div>
                         </div>

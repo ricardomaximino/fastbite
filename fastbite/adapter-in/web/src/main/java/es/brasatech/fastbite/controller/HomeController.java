@@ -11,6 +11,10 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Principal principal, Model model) {
+        String currentTenant = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
+        if (currentTenant != null) {
+            return "redirect:/menu";
+        }
         if (principal != null) {
             model.addAttribute("ownerUsername", principal.getName());
         }
