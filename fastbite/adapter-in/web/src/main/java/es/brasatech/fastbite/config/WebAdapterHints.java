@@ -119,6 +119,9 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(UserDto.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.user.Role.class), MemberCategory.values());
 
+        // Tenant Location reflection hints
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.tenant.TenantLocation.class), MemberCategory.values());
+
         // Discount classes reflection hints
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRule.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRuleI18n.class), MemberCategory.values());
