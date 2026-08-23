@@ -119,3 +119,13 @@ mvn clean test
    *   **BackOffice (Demo)**: `http://kebab.localhost:8080/backoffice`
    *   **POS Counter (Demo)**: `http://kebab.localhost:8080/counter`
    *   **Cashier/Orders Dashboard (Demo)**: `http://kebab.localhost:8080/dashboard`
+
+
+## Cheat Sheet
+
+Run all the steps before run the native pipeline
+
+```bash
+# Run all unit and integration tests
+mvn clean install && cd webapplication && mvn -Pnative native:compile -Dspring-boot.run.profiles=jpa -DskipTests=true && cd .. && docker build -f docker/Dockerfile --tag ricardomaximino/fastbite-native . && docker push ricardomaximino/fastbite-native:latest
+```
