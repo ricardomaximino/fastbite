@@ -28,6 +28,11 @@ public class OwnerStaffController {
             Principal principal,
             Model model) {
         
+        log.info("Request to listUsers for tenantId: {}. Principal: {}", tenantId, principal);
+        if (principal instanceof org.springframework.security.core.Authentication auth) {
+            log.info("User authorities: {}", auth.getAuthorities());
+        }
+        
         String ownerUsername = principal != null ? principal.getName() : null;
         List<UserDto> users = ownerStaffService.listStaff(ownerUsername, tenantId);
         model.addAttribute("users", users);

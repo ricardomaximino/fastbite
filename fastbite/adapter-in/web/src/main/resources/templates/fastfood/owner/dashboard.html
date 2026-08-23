@@ -217,7 +217,10 @@
     </div>
 
     <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
+    <script th:inline="javascript">
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+
         // Generic AJAX Maintenance tool helper
         function executeMaintenance(tenantId, action) {
             if (!confirm(`Are you sure you want to run '${action}' for restaurant location '${tenantId}'?`)) {
@@ -225,7 +228,10 @@
             }
 
             fetch(`http://${tenantId}.localhost:8080/api/backoffice/maintenance/${action}`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
             })
             .then(res => res.json())
             .then(data => {
@@ -300,6 +306,10 @@
 
             fetch(`/owner/locations/${tenantId}/users`, {
                 method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
                 body: data
             })
             .then(res => res.text())
@@ -323,6 +333,10 @@
 
             fetch(`/owner/locations/${tenantId}/users/delete`, {
                 method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
                 body: data
             })
             .then(res => res.text())
