@@ -23,12 +23,44 @@ public class TenantLocationService {
         return tenantLocationPort.findByTenantId(tenantId);
     }
 
+    public Optional<TenantLocation> getLocationByCustomDomain(String customDomain) {
+        if (customDomain == null || customDomain.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return tenantLocationPort.findByCustomDomain(customDomain.trim().toLowerCase());
+    }
+
     public void registerLocation(String ownerUsername, String tenantId, String plan) {
         if (tenantLocationPort.findByTenantId(tenantId).isPresent()) {
             throw new IllegalArgumentException("Tenant location prefix '" + tenantId + "' is already registered.");
         }
-        TenantLocation location = new TenantLocation(null, ownerUsername, tenantId, plan);
+        TenantLocation location = new TenantLocation(null, ownerUsername, tenantId, plan, null);
         tenantLocationPort.save(location);
+    }
+
+    public void bindCustomDomain(String ownerUsername, String tenantId, String customDomain) {
+        TenantLocation location = tenantLocationPort.findByTenantId(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant location prefix '" + tenantId + "' not found."));
+        if (!location.ownerUsername().equalsIgnoreCase(ownerUsername)) {
+            throw new IllegalArgumentException("You do not own this location.");
+        }
+        
+        if (customDomain != null && !customDomain.trim().isEmpty()) {
+            String domainLower = customDomain.trim().toLowerCase();
+            Optional<TenantLocation> existing = tenantLocationPort.findByCustomDomain(domainLower);
+            if (existing.isPresent() && !existing.get().tenantId().equals(tenantId)) {
+                throw new IllegalArgumentException("Custom domain '" + customDomain + "' is already mapped to another location.");
+            }
+        }
+        
+        TenantLocation updated = new TenantLocation(
+                location.id(),
+                location.ownerUsername(),
+                location.tenantId(),
+                location.plan(),
+                (customDomain == null || customDomain.trim().isEmpty()) ? null : customDomain.trim().toLowerCase()
+        );
+        tenantLocationPort.save(updated);
     }
 
     public boolean isOwnerOf(String ownerUsername, String tenantId) {

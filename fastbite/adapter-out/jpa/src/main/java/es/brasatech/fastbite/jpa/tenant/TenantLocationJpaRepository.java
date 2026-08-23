@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface TenantLocationJpaRepository extends JpaRepository<TenantLocationEntity, String> {
     List<TenantLocationEntity> findByOwnerUsername(String ownerUsername);
     Optional<TenantLocationEntity> findByTenantId(String tenantId);
+    Optional<TenantLocationEntity> findByCustomDomain(String customDomain);
 }

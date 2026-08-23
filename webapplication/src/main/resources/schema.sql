@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS tenant_locations (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     owner_username VARCHAR(255) NOT NULL,
     tenant_id VARCHAR(255) NOT NULL UNIQUE,
-    plan VARCHAR(255) NOT NULL DEFAULT 'Free Demo'
+    plan VARCHAR(255) NOT NULL DEFAULT 'Free Demo',
+    custom_domain VARCHAR(255) UNIQUE
 );
 
 -- Products

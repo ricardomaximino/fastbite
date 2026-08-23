@@ -4,5 +4,6 @@ public record TenantLocation(
     String id,
     String ownerUsername,
     String tenantId,
-    String plan
+    String plan,
+    String customDomain
 ) {}

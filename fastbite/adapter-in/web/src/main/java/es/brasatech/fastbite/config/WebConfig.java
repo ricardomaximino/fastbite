@@ -18,6 +18,8 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    private final TenantRoutingResolver tenantResolver;
+
     @Value("${image.upload.directory}")
     private String uploadDirectory;
 
@@ -37,12 +39,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
-        registry.addInterceptor(new TenantInterceptor());
+        registry.addInterceptor(new TenantInterceptor(tenantResolver));
     }
 
     @org.springframework.context.annotation.Bean
     public TenantContextFilter tenantContextFilter() {
-        return new TenantContextFilter();
+        return new TenantContextFilter(tenantResolver);
     }
 
     @org.springframework.context.annotation.Bean

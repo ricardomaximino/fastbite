@@ -28,12 +28,19 @@ public class TenantLocationRepositoryAdapter implements TenantLocationPort {
     }
 
     @Override
+    public Optional<TenantLocation> findByCustomDomain(String customDomain) {
+        return repository.findByCustomDomain(customDomain)
+                .map(this::toDomain);
+    }
+
+    @Override
     public void save(TenantLocation location) {
         TenantLocationEntity entity = repository.findByTenantId(location.tenantId())
                 .orElse(new TenantLocationEntity());
         entity.setOwnerUsername(location.ownerUsername());
         entity.setTenantId(location.tenantId());
         entity.setPlan(location.plan());
+        entity.setCustomDomain(location.customDomain());
         repository.save(entity);
     }
 
@@ -44,6 +51,6 @@ public class TenantLocationRepositoryAdapter implements TenantLocationPort {
     }
 
     private TenantLocation toDomain(TenantLocationEntity entity) {
-        return new TenantLocation(entity.getId(), entity.getOwnerUsername(), entity.getTenantId(), entity.getPlan());
+        return new TenantLocation(entity.getId(), entity.getOwnerUsername(), entity.getTenantId(), entity.getPlan(), entity.getCustomDomain());
     }
 }

@@ -26,4 +26,7 @@ public class TenantLocationEntity {
 
     @Column(name = "plan", nullable = false)
     private String plan;
+
+    @Column(name = "custom_domain", unique = true)
+    private String customDomain;
 }

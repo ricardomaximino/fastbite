@@ -12,6 +12,12 @@ import java.util.Map;
 @Slf4j
 public class TenantInterceptor implements HandlerInterceptor {
 
+    private final TenantRoutingResolver tenantResolver;
+
+    public TenantInterceptor(TenantRoutingResolver tenantResolver) {
+        this.tenantResolver = tenantResolver;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String tenantId = null;
@@ -31,76 +37,53 @@ public class TenantInterceptor implements HandlerInterceptor {
             }
         }
 
-        // 2. Only resolve subdomains, parameters, or referer if not reserved
+        // 2. Only resolve subdomain from Host if not a reserved platform path
         if (!isReservedPath) {
-            // Resolve tenant from Host header (subdomain)
             if (tenantId == null) {
                 String host = request.getHeader("Host");
-                if (host != null) {
-                    String cleanHost = host.split(":")[0].toLowerCase();
-                    if (!cleanHost.matches("^[0-9\\.]+$")) {
-                        String[] parts = cleanHost.split("\\.");
-                        if (cleanHost.endsWith(".localhost")) {
-                            if (parts.length > 1) {
-                                String subdomain = parts[0];
-                                if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                                    tenantId = subdomain;
-                                }
-                            }
-                        } else {
-                            if (parts.length > 2) {
-                                String subdomain = parts[0];
-                                if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                                    tenantId = subdomain;
-                                }
+                tenantId = tenantResolver.resolveTenantId(host);
+            }
+        }
+
+        // 3. Fallbacks (parameter, attribute, path variables, referer) are resolved even for API/reserved requests
+        if (tenantId == null) {
+            tenantId = request.getParameter("tenantId");
+        }
+
+        // Try extracting from request attribute first
+        if (tenantId == null) {
+            tenantId = (String) request.getAttribute("tenantId");
+        }
+
+        // Try extracting from URI template variables first (e.g. if mapped with /t/{tenantId}/**)
+        if (tenantId == null) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+            if (pathVariables != null && pathVariables.containsKey("tenantId")) {
+                tenantId = pathVariables.get("tenantId");
+            }
+        }
+
+        // Fallback 2: parse Referer header for AJAX requests
+        if (tenantId == null) {
+            String referer = request.getHeader("Referer");
+            if (referer != null) {
+                try {
+                    java.net.URI refererUri = new java.net.URI(referer);
+                    String refererPath = refererUri.getPath();
+                    if (refererPath != null && refererPath.startsWith("/")) {
+                        String[] segmentsRef = refererPath.split("/");
+                        if (segmentsRef.length > 1) {
+                            String firstSegment = segmentsRef[1];
+                            if (!isReserved(firstSegment)) {
+                                tenantId = firstSegment;
                             }
                         }
                     }
+                } catch (Exception e) {
+                    // Ignore malformed referer
                 }
             }
-
-            if (tenantId == null) {
-                tenantId = request.getParameter("tenantId");
-            }
-
-            // Try extracting from request attribute first
-            if (tenantId == null) {
-                tenantId = (String) request.getAttribute("tenantId");
-            }
-
-            // Try extracting from URI template variables first (e.g. if mapped with /t/{tenantId}/**)
-            if (tenantId == null) {
-                @SuppressWarnings("unchecked")
-                Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                if (pathVariables != null && pathVariables.containsKey("tenantId")) {
-                    tenantId = pathVariables.get("tenantId");
-                }
-            }
-
-            // Fallback 2: parse Referer header for AJAX requests
-            if (tenantId == null) {
-                String referer = request.getHeader("Referer");
-                if (referer != null) {
-                    try {
-                        java.net.URI refererUri = new java.net.URI(referer);
-                        String refererPath = refererUri.getPath();
-                        if (refererPath != null && refererPath.startsWith("/")) {
-                            String[] segmentsRef = refererPath.split("/");
-                            if (segmentsRef.length > 1) {
-                                String firstSegment = segmentsRef[1];
-                                if (!isReserved(firstSegment)) {
-                                    tenantId = firstSegment;
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        // Ignore malformed referer
-                    }
-                }
-            }
-        } else {
-            // Force null for platform reserved paths
-            tenantId = null;
         }
 
         if (tenantId != null) {

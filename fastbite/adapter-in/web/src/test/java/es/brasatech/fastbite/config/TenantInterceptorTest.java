@@ -17,12 +17,28 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class TenantInterceptorTest {
 
     private TenantInterceptor interceptor;
+    private TenantRoutingResolver tenantResolver;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
 
     @BeforeEach
     void setUp() {
-        interceptor = new TenantInterceptor();
+        tenantResolver = org.mockito.Mockito.mock(TenantRoutingResolver.class);
+        org.mockito.Mockito.when(tenantResolver.resolveTenantId(org.mockito.Mockito.any()))
+            .thenAnswer(invocation -> {
+                String host = invocation.getArgument(0);
+                if (host == null) return null;
+                String cleanHost = host.split(":")[0].toLowerCase();
+                if (cleanHost.endsWith(".localhost")) {
+                    String[] parts = cleanHost.split("\\.");
+                    if (parts.length > 1) {
+                        return parts[0];
+                    }
+                }
+                return null;
+            });
+            
+        interceptor = new TenantInterceptor(tenantResolver);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         TenantContext.clear();

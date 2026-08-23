@@ -21,6 +21,7 @@ public class OwnerConsoleController {
 
     private final TenantLocationService tenantLocationService;
     private final TenantSignupService tenantSignupService;
+    private final es.brasatech.fastbite.config.TenantRoutingResolver tenantResolver;
 
     @GetMapping("/owner/console")
     public String getOwnerDashboard(Principal principal, Model model) {
@@ -72,5 +73,42 @@ public class OwnerConsoleController {
             log.info("Deleted location mapping for: {} by owner: {}", tenantId, ownerUsername);
         }
         return "redirect:/owner/console";
+    }
+
+    @PostMapping("/owner/bind-domain")
+    public String bindDomain(
+            @RequestParam String tenantId,
+            @RequestParam(required = false) String customDomain,
+            Principal principal,
+            Model model) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        String ownerUsername = principal.getName();
+        try {
+            // Evict old cache key
+            tenantLocationService.getLocation(tenantId).ifPresent(loc -> {
+                if (loc.customDomain() != null) {
+                    tenantResolver.evictCache(loc.customDomain());
+                }
+            });
+            
+            // Bind domain
+            tenantLocationService.bindCustomDomain(ownerUsername, tenantId, customDomain);
+            
+            // Evict new cache key just in case
+            if (customDomain != null) {
+                tenantResolver.evictCache(customDomain);
+            }
+            
+            return "redirect:/owner/console";
+        } catch (Exception e) {
+            log.error("Failed to bind custom domain: " + customDomain, e);
+            model.addAttribute("error", e.getMessage());
+            List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
+            model.addAttribute("ownerUsername", ownerUsername);
+            model.addAttribute("locations", locations);
+            return "fastfood/owner/dashboard";
+        }
     }
 }

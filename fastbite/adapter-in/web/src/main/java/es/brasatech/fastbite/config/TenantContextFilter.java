@@ -8,6 +8,12 @@ import java.io.IOException;
 
 public class TenantContextFilter implements Filter {
 
+    private final TenantRoutingResolver tenantResolver;
+
+    public TenantContextFilter(TenantRoutingResolver tenantResolver) {
+        this.tenantResolver = tenantResolver;
+    }
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -29,62 +35,39 @@ public class TenantContextFilter implements Filter {
             }
         }
 
-        // 2. Only resolve from Host, Parameter, or Referer if not a reserved platform path
+        // 2. Only resolve subdomain from Host if not a reserved platform path
         if (!isReservedPath) {
             if (tenantId == null) {
-                // Resolve tenant from Host header (subdomain)
                 String host = httpRequest.getHeader("Host");
-                if (host != null) {
-                    String cleanHost = host.split(":")[0].toLowerCase();
-                    if (!cleanHost.matches("^[0-9\\.]+$")) {
-                        String[] parts = cleanHost.split("\\.");
-                        if (cleanHost.endsWith(".localhost")) {
-                            if (parts.length > 1) {
-                                String subdomain = parts[0];
-                                if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                                    tenantId = subdomain;
-                                }
-                            }
-                        } else {
-                            if (parts.length > 2) {
-                                String subdomain = parts[0];
-                                if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                                    tenantId = subdomain;
-                                }
+                tenantId = tenantResolver.resolveTenantId(host);
+            }
+        }
+
+        // 3. Fallbacks (parameter, referer) are resolved even for API/reserved requests
+        if (tenantId == null) {
+            tenantId = httpRequest.getParameter("tenantId");
+        }
+
+        // Fallback: Resolve tenant from Referer header (e.g. AJAX requests or /login POST)
+        if (tenantId == null) {
+            String referer = httpRequest.getHeader("Referer");
+            if (referer != null) {
+                try {
+                    java.net.URI refererUri = new java.net.URI(referer);
+                    String refererPath = refererUri.getPath();
+                    if (refererPath != null && refererPath.startsWith("/")) {
+                        String[] segmentsRef = refererPath.split("/");
+                        if (segmentsRef.length > 1) {
+                            String firstSegment = segmentsRef[1];
+                            if (!TenantInterceptor.isReserved(firstSegment)) {
+                                tenantId = firstSegment;
                             }
                         }
                     }
+                } catch (Exception e) {
+                    // Ignore malformed referer
                 }
             }
-
-            if (tenantId == null) {
-                tenantId = httpRequest.getParameter("tenantId");
-            }
-
-            // Fallback: Resolve tenant from Referer header (e.g. AJAX requests or /login POST)
-            if (tenantId == null) {
-                String referer = httpRequest.getHeader("Referer");
-                if (referer != null) {
-                    try {
-                        java.net.URI refererUri = new java.net.URI(referer);
-                        String refererPath = refererUri.getPath();
-                        if (refererPath != null && refererPath.startsWith("/")) {
-                            String[] segmentsRef = refererPath.split("/");
-                            if (segmentsRef.length > 1) {
-                                String firstSegment = segmentsRef[1];
-                                if (!TenantInterceptor.isReserved(firstSegment)) {
-                                    tenantId = firstSegment;
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        // Ignore malformed referer
-                    }
-                }
-            }
-        } else {
-            // Force null for platform reserved paths
-            tenantId = null;
         }
 
         if (tenantId != null) {
