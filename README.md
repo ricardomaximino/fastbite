@@ -1,15 +1,14 @@
-mvn clean install && cd webapplication && mvn -Pnative native:compile -Dspring-boot.run.profiles=jpa && cd .. && docker build -f docker/Dockerfile --tag ricardomaximino/fastbite-native . && docker push ricardomaximino/fastbite-native:latest
 # FastBite - Developer Onboarding Guide
-# FastBite
 
-FastBite is a high-performance fast-food ordering system featuring a multi-persistence architecture (JPA/H2/PostgreSQL and MongoDB) and database-level internationalization. It is fully optimized for GraalVM Native Image deployments.
+FastBite is a high-performance fast-food ordering system featuring a schema-per-tenant database architecture (JPA/H2/PostgreSQL), dynamic database-level internationalization, multi-tenant subdomain routing, and multi-location management with single sign-on (SSO). It is fully optimized for GraalVM Native Image deployments.
 
 ---
 
 ## 🎯 FastBite Application Goal
 The main goal of **FastBite** is to provide a highly scalable, multi-tenant Point-of-Sale (POS) and guest-interactive menu system built on a clean **Hexagonal Architecture**. 
-* **Zero Configuration Startup**: A developer can run `mvn clean install` and start the server, and the application instantly boots with the pre-seeded **`kebab`** demo tenant loaded automatically into the `PUBLIC` schema.
-* **Subdomain Hostname Routing**: Multi-tenancy is handled via subdomains (e.g. `kebab.localhost` or `pizza.localhost`). No tenant ID path prefixes are needed.
+* **Zero Configuration Startup**: A developer can run `mvn clean install` and start the server, and the application instantly boots with the pre-seeded **`kebab`** demo tenant loaded automatically.
+* **Subdomain Hostname Routing**: Multi-tenancy is handled via subdomains (e.g., `kebab.localhost:8080` or `pizza.localhost:8080`). No tenant ID path prefixes are needed.
+* **Single Sign-On (SSO)**: Platform Tenant Owners can log in at the root domain (`localhost:8080`) and seamlessly navigate between all their branch subdomains (e.g., `pizza.localhost:8080`, `burger.localhost:8080`) using wildcard session cookies.
 
 ---
 
@@ -29,7 +28,7 @@ FastBite is a multi-module Maven project. Follow these steps to import and run t
 
 ### 1. Import the Project
 1. Open IntelliJ IDEA.
-2. Select **Open** and select the root directory containing the parent `pom.xml`.
+2. Choose **Open** and select the root directory containing the parent `pom.xml`.
 3. Choose **Open as Project**. Let IntelliJ import the Maven dependencies.
 
 ### 2. Configure the JDK
@@ -43,17 +42,13 @@ To start the application within IntelliJ, configure a Spring Boot or Application
 1. Click on **Run** -> **Edit Configurations...**
 2. Click the **+** (Add New Configuration) and choose **Spring Boot** (or **Application** if the Spring Boot plugin is not installed).
 3. Set the following details:
-   *   **Name**: `FastBite [JPA - Default]` or `FastBite [MongoDB]`
+   *   **Name**: `FastBite [JPA - Default]`
    *   **Main class**: `es.brasatech.fastbite.Application`
    *   **Use classpath of module**: `webapplication`
 4. Set the active profile using **VM Options** (under Modify Options if not visible):
    *   **For JPA (Default, using local H2 database)**:
        ```bash
        -Dspring.profiles.active=jpa
-       ```
-   *   **For MongoDB (Requires MongoDB running)**:
-       ```bash
-       -Dspring.profiles.active=mongodb
        ```
 5. Click **Apply** and then **OK**.
 
@@ -116,50 +111,11 @@ mvn clean test
 ```
 
 ### Key Verification Checks:
-1. **Maven Build**: Verify that all modules (`domain`, `application`, `adapter-in`, `adapter-out`, `webapplication`) compile successfully.
+1. **Maven Build**: Verify that all modules compile successfully.
 2. **Accessing the UI**: After starting the application, verify it is running by visiting:
    *   **SaaS Landing Page**: `http://localhost:8080/`
+   *   **Owner Console**: `http://localhost:8080/owner/console` (Log in with `kebabowner/password` or register a new account)
    *   **Customer Menu (Demo)**: `http://kebab.localhost:8080/menu`
    *   **BackOffice (Demo)**: `http://kebab.localhost:8080/backoffice`
    *   **POS Counter (Demo)**: `http://kebab.localhost:8080/counter`
    *   **Cashier/Orders Dashboard (Demo)**: `http://kebab.localhost:8080/dashboard`
-
----
-
-## 🏷️ Phase 6: Dynamic Promos & Discounts
-
-FastBite features a robust rule-based promotional and discount engine that supports:
-
-*   **Discount Scopes**:
-    *   `ORDER`: Applies to individual orders.
-    *   `TABLE`: Gathers active orders currently bound to a table to compute eligibility thresholds and applies a proportional, scaled-down discount to each customer's order.
-*   **Discount Types**:
-    *   `PERCENTAGE`: Subtracts a percentage of the eligible subtotal.
-    *   `FIXED_AMOUNT`: Subtracts a flat currency amount.
-*   **Application Modes**:
-    *   `AUTOMATIC`: Applied automatically when subtotal requirements are met (no coupon code needed).
-    *   `MANUAL`: Requires the customer to enter a specific coupon code during checkout.
-*   **Internationalization (i18n)**: Translation rules are supported for all discount titles/names, allowing back-office operators to input localized promotional texts for their target languages.
-
----
-
-## 🌐 Subdomain Configuration Guide (Production Deployment)
-
-To configure production subdomains for your SaaS deployment using **Google Cloud Run (scaling to zero)** and **GoDaddy**:
-
-### 1. DNS Wildcard Setup (GoDaddy)
-1. Log in to your **GoDaddy Control Panel** and go to **DNS Management** for your domain (e.g., `fastbite.com`).
-2. Add a new record:
-   * **Type**: `CNAME`
-   * **Name**: `*` (Wildcard representing all subdomains)
-   * **Value**: Point this to your Google Cloud Run custom domain URL (or Load Balancer CNAME).
-   * **TTL**: `1 Hour` (or Default).
-
-### 2. Custom Wildcard Domain Mapping (Google Cloud Run)
-- If your Cloud Run region supports wildcard domains natively:
-  1. Go to the **Cloud Run Console** -> **Manage Custom Domains**.
-  2. Map `*.yourdomain.com` directly to your service.
-- If your region does not support direct wildcards:
-  1. Create a **Serverless Network Endpoint Group (NEG)** pointing to your Cloud Run service.
-  2. Set up a **Global HTTPS Load Balancer** with an SSL certificate.
-  3. Map your frontend to the Load Balancer IP, and point GoDaddy's CNAME wildcard (`*`) and root domain A records directly to this IP address.
