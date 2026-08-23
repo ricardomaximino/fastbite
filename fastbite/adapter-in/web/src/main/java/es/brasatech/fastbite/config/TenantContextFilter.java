@@ -49,7 +49,13 @@ public class TenantContextFilter implements Filter {
         }
 
         // Fallback: Resolve tenant from Referer header (e.g. AJAX requests or /login POST)
-        if (tenantId == null) {
+        boolean skipReferer = isReservedPath && (
+            path.startsWith("/login") || 
+            path.startsWith("/signup") || 
+            path.startsWith("/logout") || 
+            path.equals("/")
+        );
+        if (tenantId == null && !skipReferer) {
             String referer = httpRequest.getHeader("Referer");
             if (referer != null) {
                 try {

@@ -65,7 +65,13 @@ public class TenantInterceptor implements HandlerInterceptor {
         }
 
         // Fallback 2: parse Referer header for AJAX requests
-        if (tenantId == null) {
+        boolean skipReferer = isReservedPath && (
+            path.startsWith("/login") || 
+            path.startsWith("/signup") || 
+            path.startsWith("/logout") || 
+            path.equals("/")
+        );
+        if (tenantId == null && !skipReferer) {
             String referer = request.getHeader("Referer");
             if (referer != null) {
                 try {
@@ -102,6 +108,7 @@ public class TenantInterceptor implements HandlerInterceptor {
         }
         return segment.equals("signup") ||
                segment.equals("login") ||
+               segment.equals("dashboard") ||
                segment.equals("css") ||
                segment.equals("js") ||
                segment.equals("images") ||

@@ -39,7 +39,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
-        registry.addInterceptor(new TenantInterceptor(tenantResolver));
+        registry.addInterceptor(new TenantInterceptor(tenantResolver))
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/error", "/user-images/**");
     }
 
     @org.springframework.context.annotation.Bean

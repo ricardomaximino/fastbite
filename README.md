@@ -83,7 +83,7 @@ To compile the application to a standalone native binary, use the `native` Maven
 
 ```bash
 # Clean and compile the application to native binary
-mvn clean package -Pnative -pl webapplication -am
+mvn native:compile -pl webapplication -Pnative -DskipTests=true
 ```
 
 This compiles a native executable in the target directory of the `webapplication` module:

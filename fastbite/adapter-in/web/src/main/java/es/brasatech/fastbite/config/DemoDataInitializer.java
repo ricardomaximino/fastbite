@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 
 @Component
 @Slf4j
+@org.springframework.core.annotation.Order(1)
 public class DemoDataInitializer implements CommandLineRunner {
 
     private final TenantBackupRestorePort tenantBackupRestorePort;

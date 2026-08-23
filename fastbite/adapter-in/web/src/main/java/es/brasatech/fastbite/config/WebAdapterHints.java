@@ -56,6 +56,8 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.serialization().registerType(TypeReference.of("org.springframework.security.authentication.UsernamePasswordAuthenticationToken"));
         hints.serialization().registerType(TypeReference.of("org.springframework.security.core.userdetails.User"));
         hints.serialization().registerType(TypeReference.of("org.springframework.security.core.authority.SimpleGrantedAuthority"));
+        hints.serialization().registerType(TypeReference.of("org.springframework.security.authentication.FactorGrantedAuthority"));
+        hints.serialization().registerType(java.time.Instant.class);
         hints.serialization().registerType(es.brasatech.fastbite.domain.user.Role.class);
         hints.serialization().registerType(UserDto.class);
 

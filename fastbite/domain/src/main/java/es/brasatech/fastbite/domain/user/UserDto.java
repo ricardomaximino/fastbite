@@ -13,4 +13,15 @@ public record UserDto(
                 Set<Role> roles,
                 boolean active,
                 String tenantId) implements java.io.Serializable {
+
+    public boolean isOwner() {
+        return roles != null && roles.contains(Role.OWNER);
+    }
+
+    public String getPrimaryRoleName() {
+        if (roles == null || roles.isEmpty()) {
+            return "";
+        }
+        return roles.iterator().next().name();
+    }
 }

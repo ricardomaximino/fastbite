@@ -28,11 +28,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="user : ${users}" th:if="${user.roles.iterator().next().name() != 'OWNER'}">
+                            <tr th:each="user : ${users}" th:if="${!user.isOwner}">
                                 <td th:text="${user.fullName}">John Doe</td>
                                 <td th:text="${user.username}">johndoe</td>
                                 <td>
-                                    <span class="badge bg-secondary text-uppercase" th:text="${user.roles.iterator().next().name()}">CASHIER</span>
+                                    <span class="badge bg-secondary text-uppercase" th:text="${user.getPrimaryRoleName}">CASHIER</span>
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-outline-danger border-0 p-1"

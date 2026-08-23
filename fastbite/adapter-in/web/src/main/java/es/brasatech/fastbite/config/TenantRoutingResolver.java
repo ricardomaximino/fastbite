@@ -41,18 +41,20 @@ public class TenantRoutingResolver {
 
         // 3. Custom Domain - Cache check first
         if (domainCache.containsKey(cleanHost)) {
-            return domainCache.get(cleanHost);
+            String cached = domainCache.get(cleanHost);
+            return cached.isEmpty() ? null : cached;
         }
 
         // 4. Custom Domain - Database lookup fallback
         try {
             log.info("Resolving custom domain from database: {}", cleanHost);
-            return tenantLocationService.getLocationByCustomDomain(cleanHost)
-                    .map(loc -> {
-                        domainCache.put(cleanHost, loc.tenantId());
-                        return loc.tenantId();
-                    })
+            String tenantId = tenantLocationService.getLocationByCustomDomain(cleanHost)
+                    .map(loc -> loc.tenantId())
                     .orElse(null);
+            
+            // Cache the result (using empty string to represent null/no tenant)
+            domainCache.put(cleanHost, tenantId != null ? tenantId : "");
+            return tenantId;
         } catch (Exception e) {
             log.error("Failed to resolve tenant by custom domain: " + cleanHost, e);
             return null;

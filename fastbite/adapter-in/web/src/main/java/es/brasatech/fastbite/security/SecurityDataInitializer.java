@@ -14,6 +14,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@org.springframework.core.annotation.Order(2)
 public class SecurityDataInitializer implements CommandLineRunner {
 
     private final UserService userService;
@@ -50,8 +51,8 @@ public class SecurityDataInitializer implements CommandLineRunner {
         // Initialize kebab tenant users
         try {
             es.brasatech.fastbite.domain.tenant.TenantContext.setCurrentTenant("kebab");
-            if (!userService.existsAny()) {
-                log.info("No users found in default tenant. Creating default staff users...");
+            if (userService.findByUsername("admin").isEmpty()) {
+                log.info("No admin user found in default tenant. Creating default staff users...");
                 createUser("admin", "Admin User", "password", Role.ADMIN);
                 createUser("manager", "Store Manager", "password", Role.MANAGER);
                 createUser("cashier", "Cashier Staff", "password", Role.CASHIER);
