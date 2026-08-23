@@ -104,7 +104,7 @@
                             <span class="badge bg-success small py-1 px-2 mb-2" th:text="'Active Plan: ' + ${loc.plan}">Active Plan: Free Demo</span>
                             <div class="small text-muted-light">
                                 Menu URL: 
-                                <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.tenantId} + '.localhost:8080/menu'">kebab.localhost:8080/menu</a>
+                                <a th:href="${protocol} + '://' + ${loc.tenantId} + '.localhost:8080/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.tenantId} + '.localhost:8080/menu'">kebab.localhost:8080/menu</a>
                             </div>
                             <div class="mt-2 small text-muted-light d-flex align-items-center flex-wrap gap-2">
                                 <span>Custom Domain:</span>
@@ -115,13 +115,13 @@
                                 </form>
                                 <span th:if="${loc.customDomain != null and !loc.customDomain.isEmpty()}">
                                     &nbsp;|&nbsp;
-                                    <a th:href="'http://' + ${loc.customDomain}" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain}">mykebab.com</a>
+                                    <a th:href="${protocol} + '://' + ${loc.customDomain}" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain}">mykebab.com</a>
                                 </span>
                             </div>
                         </div>
                         
                         <div class="col-md-6 text-md-end">
-                            <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/dashboard'" target="_blank" class="btn btn-sm btn-theme px-3 py-2 me-1">
+                            <a th:href="${protocol} + '://' + ${loc.tenantId} + '.localhost:8080/dashboard'" target="_blank" class="btn btn-sm btn-theme px-3 py-2 me-1">
                                 <i class="fas fa-external-link-alt me-1"></i> Open POS Dashboard
                             </a>
                             <button class="btn btn-sm btn-outline-info px-3 py-2" th:data-tenant="${loc.tenantId}" onclick="openStaffModal(this.getAttribute('data-tenant'))">

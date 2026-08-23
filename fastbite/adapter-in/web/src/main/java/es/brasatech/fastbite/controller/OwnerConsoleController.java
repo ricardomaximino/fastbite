@@ -5,6 +5,7 @@ import es.brasatech.fastbite.application.tenant.TenantSignupService;
 import es.brasatech.fastbite.domain.tenant.TenantLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,9 @@ public class OwnerConsoleController {
     private final TenantSignupService tenantSignupService;
     private final es.brasatech.fastbite.config.TenantRoutingResolver tenantResolver;
 
+    @Value("${fastbite.protocol:http}")
+    private String protocol;
+
     @GetMapping("/owner/console")
     public String getOwnerDashboard(Principal principal, Model model) {
         if (principal == null) {
@@ -33,6 +37,7 @@ public class OwnerConsoleController {
         
         model.addAttribute("ownerUsername", ownerUsername);
         model.addAttribute("locations", locations);
+        model.addAttribute("protocol", protocol);
         return "fastfood/owner/console";
     }
 
@@ -56,6 +61,7 @@ public class OwnerConsoleController {
             List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
             model.addAttribute("ownerUsername", ownerUsername);
             model.addAttribute("locations", locations);
+            model.addAttribute("protocol", protocol);
             return "fastfood/owner/console";
         }
     }
@@ -108,6 +114,7 @@ public class OwnerConsoleController {
             List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
             model.addAttribute("ownerUsername", ownerUsername);
             model.addAttribute("locations", locations);
+            model.addAttribute("protocol", protocol);
             return "fastfood/owner/console";
         }
     }
