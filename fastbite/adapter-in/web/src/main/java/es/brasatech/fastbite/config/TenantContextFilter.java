@@ -35,13 +35,12 @@ public class TenantContextFilter implements Filter {
             }
         }
 
-        // 2. Only resolve subdomain from Host if not a reserved platform path
-        if (!isReservedPath) {
-            if (tenantId == null) {
-                String host = httpRequest.getHeader("Host");
-                tenantId = tenantResolver.resolveTenantId(host);
-            }
+        // 2. Resolve subdomain from Host if tenantId was not found in path
+        if (tenantId == null) {
+            String host = httpRequest.getHeader("Host");
+            tenantId = tenantResolver.resolveTenantId(host);
         }
+
 
         // 3. Fallbacks (parameter, referer) are resolved even for API/reserved requests
         if (tenantId == null) {
@@ -78,6 +77,7 @@ public class TenantContextFilter implements Filter {
 
         if (tenantId != null) {
             TenantContext.setCurrentTenant(tenantId);
+            httpRequest.setAttribute("tenantId", tenantId);
             
             // SSO Auto-Authorization: If owner is logged in and owns this tenant, grant them ADMIN role temporarily
             try {
@@ -98,7 +98,9 @@ public class TenantContextFilter implements Filter {
                                 
                                 if (locationService.isOwnerOf(auth.getName(), tenantId)) {
                                     java.util.List<org.springframework.security.core.GrantedAuthority> updatedAuthorities = new java.util.ArrayList<>(auth.getAuthorities());
-                                    updatedAuthorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
+                                    if (updatedAuthorities.stream().noneMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()))) {
+                                        updatedAuthorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
+                                    }
                                     
                                     org.springframework.security.authentication.UsernamePasswordAuthenticationToken ssoAuth = 
                                         new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
@@ -107,6 +109,8 @@ public class TenantContextFilter implements Filter {
                                             updatedAuthorities
                                         );
                                     org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(ssoAuth);
+                                    securityContext.setAuthentication(ssoAuth);
+                                    session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
                                 }
                             }
                         }

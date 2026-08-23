@@ -112,4 +112,17 @@ class TenantInterceptorTest {
         assert result;
         assertEquals("tenant-ref-val", TenantContext.getCurrentTenant());
     }
+
+    @Test
+    void testExtractTenantFromSubdomainHostWithReservedPath() throws Exception {
+        request.setRequestURI("/menu");
+        request.setContextPath("");
+        request.addHeader("Host", "kebab.localhost:8080");
+
+        boolean result = interceptor.preHandle(request, response, new Object());
+
+        assert result;
+        assertEquals("kebab", TenantContext.getCurrentTenant());
+    }
 }
+

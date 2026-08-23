@@ -224,7 +224,8 @@ public class SecurityConfig {
         org.springframework.session.web.http.DefaultCookieSerializer serializer = new org.springframework.session.web.http.DefaultCookieSerializer();
         serializer.setCookieName("JSESSIONID");
         // Allows wildcard session cookie sharing (e.g. *.localhost or *.yourdomain.com)
-        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.\\w+)$|^.+?\\.(localhost)$");
+        serializer.setDomainNamePattern("^(?:.+?\\.)?(\\w+\\.\\w+)$");
         return serializer;
     }
 }
+

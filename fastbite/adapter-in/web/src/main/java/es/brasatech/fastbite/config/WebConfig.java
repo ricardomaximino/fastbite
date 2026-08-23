@@ -53,7 +53,9 @@ public class WebConfig implements WebMvcConfigurer {
         org.springframework.boot.web.servlet.FilterRegistrationBean<TenantContextFilter> registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
         registration.setFilter(filter);
         registration.addUrlPatterns("/*");
-        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        // Must run after SessionRepositoryFilter (Integer.MIN_VALUE + 50) to access Spring Session,
+        // but before Spring Security filter chain (-100) to allow SSO auto-authorization.
+        registration.setOrder(org.springframework.session.web.http.SessionRepositoryFilter.DEFAULT_ORDER + 10);
         return registration;
     }
 

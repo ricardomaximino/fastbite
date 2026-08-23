@@ -37,13 +37,12 @@ public class TenantInterceptor implements HandlerInterceptor {
             }
         }
 
-        // 2. Only resolve subdomain from Host if not a reserved platform path
-        if (!isReservedPath) {
-            if (tenantId == null) {
-                String host = request.getHeader("Host");
-                tenantId = tenantResolver.resolveTenantId(host);
-            }
+        // 2. Resolve subdomain from Host if tenantId was not found in path
+        if (tenantId == null) {
+            String host = request.getHeader("Host");
+            tenantId = tenantResolver.resolveTenantId(host);
         }
+
 
         // 3. Fallbacks (parameter, attribute, path variables, referer) are resolved even for API/reserved requests
         if (tenantId == null) {
