@@ -33,7 +33,7 @@ public class OwnerConsoleController {
         
         model.addAttribute("ownerUsername", ownerUsername);
         model.addAttribute("locations", locations);
-        return "fastfood/owner/dashboard";
+        return "fastfood/owner/console";
     }
 
     @PostMapping("/owner/add-location")
@@ -56,7 +56,7 @@ public class OwnerConsoleController {
             List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
             model.addAttribute("ownerUsername", ownerUsername);
             model.addAttribute("locations", locations);
-            return "fastfood/owner/dashboard";
+            return "fastfood/owner/console";
         }
     }
 
@@ -108,7 +108,7 @@ public class OwnerConsoleController {
             List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
             model.addAttribute("ownerUsername", ownerUsername);
             model.addAttribute("locations", locations);
-            return "fastfood/owner/dashboard";
+            return "fastfood/owner/console";
         }
     }
 }
