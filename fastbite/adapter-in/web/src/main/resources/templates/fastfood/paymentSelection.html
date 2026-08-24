@@ -85,6 +85,36 @@
                             </div>
                         </div>
 
+                        <!-- Bill Splitting Options (F-21) -->
+                        <div class="card mb-4 border-0 bg-light rounded-4 p-3 shadow-sm">
+                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-users-slash me-2 text-primary"></i>Split Bill Option</h6>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-6">
+                                    <select id="splitBillMode" class="form-select border-secondary rounded-pill" onchange="updateBillSplit()">
+                                        <option value="full" selected>Pay Full Bill (1 Person)</option>
+                                        <option value="equal2">Equal Split (2 Guests)</option>
+                                        <option value="equal3">Equal Split (3 Guests)</option>
+                                        <option value="equal4">Equal Split (4 Guests)</option>
+                                        <option value="equal5">Equal Split (5 Guests)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <span id="splitShareDisplay" class="badge bg-primary fs-6 px-3 py-2 rounded-pill">Your Share: $<span id="shareAmount" th:text="${#numbers.formatDecimal(order.total, 1, 2)}">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1-Tap Tipping Presets (F-21) -->
+                        <div class="card mb-4 border-0 bg-light rounded-4 p-3 shadow-sm">
+                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-heart me-2 text-danger"></i>Add Waiter Tip</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill tip-chip active" onclick="selectTip(0, this)">No Tip</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(10, this)">10% ($<span id="tip10">0.00</span>)</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(15, this)">15% ($<span id="tip15">0.00</span>)</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(20, this)">20% ($<span id="tip20">0.00</span>)</button>
+                            </div>
+                        </div>
+
                         <!-- Order Summary -->
                         <div class="order-summary mb-4">
                             <h5 class="mb-3"><i class="fas fa-receipt me-2"></i><span
@@ -104,10 +134,14 @@
                                 <span th:text="#{label.tax} + ' (' + ${order.tax} + '%):'">Tax (10%):</span>
                                 <span th:text="${#numbers.formatDecimal(order.taxAmount, 1, 2)}">$0.60</span>
                             </div>
+                            <div id="tipRow" class="d-flex justify-content-between mb-2" style="display: none;">
+                                <span>Tip (<span id="selectedTipPercent">0</span>%):</span>
+                                <span class="text-danger fw-bold">$<span id="tipAmountDisplay">0.00</span></span>
+                            </div>
                             <hr>
                             <div class="d-flex justify-content-between fw-bold fs-5">
                                 <span th:text="#{label.total} + ':'">Total:</span>
-                                <span th:text="${#numbers.formatDecimal(order.total, 1, 2)}">$6.59</span>
+                                <span>$<span id="displayGrandTotal" th:text="${#numbers.formatDecimal(order.total, 1, 2)}">6.59</span></span>
                             </div>
                         </div>
 
@@ -225,6 +259,60 @@
         function goBack() {
             window.history.back();
         }
+
+        // Tipping & Split Bill JS Logic (F-21)
+        let baseSubtotal = parseFloat('[[${order.total != null ? order.total : 0}]]') || 0;
+        let currentTipPercent = 0;
+
+        function updateTotals() {
+            let tipAmount = (baseSubtotal * currentTipPercent) / 100;
+            let grandTotal = baseSubtotal + tipAmount;
+
+            const t10 = document.getElementById('tip10');
+            const t15 = document.getElementById('tip15');
+            const t20 = document.getElementById('tip20');
+            if (t10) t10.innerText = ((baseSubtotal * 10) / 100).toFixed(2);
+            if (t15) t15.innerText = ((baseSubtotal * 15) / 100).toFixed(2);
+            if (t20) t20.innerText = ((baseSubtotal * 20) / 100).toFixed(2);
+
+            const tipDisplay = document.getElementById('tipAmountDisplay');
+            const tipPercentDisplay = document.getElementById('selectedTipPercent');
+            const tipRow = document.getElementById('tipRow');
+            const grandTotalDisplay = document.getElementById('displayGrandTotal');
+
+            if (tipDisplay) tipDisplay.innerText = tipAmount.toFixed(2);
+            if (tipPercentDisplay) tipPercentDisplay.innerText = currentTipPercent;
+            if (tipRow) tipRow.style.display = currentTipPercent > 0 ? 'flex' : 'none';
+            if (grandTotalDisplay) grandTotalDisplay.innerText = grandTotal.toFixed(2);
+
+            updateBillSplit(grandTotal);
+        }
+
+        function selectTip(percent, btnEl) {
+            document.querySelectorAll('.tip-chip').forEach(btn => btn.classList.remove('active', 'btn-danger'));
+            document.querySelectorAll('.tip-chip').forEach(btn => btn.classList.add('btn-outline-danger'));
+            btnEl.classList.remove('btn-outline-danger');
+            btnEl.classList.add('active', 'btn-danger');
+            currentTipPercent = percent;
+            updateTotals();
+        }
+
+        function updateBillSplit(totalAmount) {
+            let total = totalAmount || (baseSubtotal + (baseSubtotal * currentTipPercent) / 100);
+            let selectEl = document.getElementById('splitBillMode');
+            let mode = selectEl ? selectEl.value : 'full';
+            let guests = 1;
+            if (mode.startsWith('equal')) {
+                guests = parseInt(mode.replace('equal', ''), 10) || 1;
+            }
+            let share = total / guests;
+            const shareAmountEl = document.getElementById('shareAmount');
+            if (shareAmountEl) shareAmountEl.innerText = share.toFixed(2);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTotals();
+        });
     </script>
 </body>
 

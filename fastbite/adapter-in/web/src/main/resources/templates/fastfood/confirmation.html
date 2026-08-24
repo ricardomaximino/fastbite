@@ -50,6 +50,30 @@
                                 style="font-size: 8rem;">100</h1>
                         </div>
 
+                        <!-- Live 4-Stage Visual Order Progress Bar (F-21) -->
+                        <div class="card mb-4 border-0 bg-light rounded-4 p-4 shadow-sm text-start">
+                            <h6 class="fw-bold mb-3 text-dark text-center"><i class="fas fa-signal me-2 text-danger"></i>Live Kitchen Status Tracker</h6>
+                            
+                            <div class="progress mb-3" style="height: 12px; border-radius: 10px;">
+                                <div id="liveOrderProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%;"></div>
+                            </div>
+
+                            <div class="row text-center small fw-bold text-muted">
+                                <div class="col-3" id="stage1Col">
+                                    <i class="fas fa-inbox text-success fa-2x mb-1 d-block"></i> Received
+                                </div>
+                                <div class="col-3 opacity-50" id="stage2Col">
+                                    <i class="fas fa-fire-burner text-warning fa-2x mb-1 d-block"></i> Cooking
+                                </div>
+                                <div class="col-3 opacity-50" id="stage3Col">
+                                    <i class="fas fa-bell text-info fa-2x mb-1 d-block"></i> Ready
+                                </div>
+                                <div class="col-3 opacity-50" id="stage4Col">
+                                    <i class="fas fa-check-double text-success fa-2x mb-1 d-block"></i> Complete
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="bg-light p-3 rounded-4 mb-4 border">
                             <p class="mb-0 text-muted">
                                 <i class="fas fa-info-circle me-2"></i>
@@ -73,6 +97,66 @@
         // Restore theme preference
         const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
         document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Live Order Progress Tracker JS (F-21)
+        function startOrderProgressPolling() {
+            const orderNum = document.getElementById('orderNumber')?.innerText?.trim();
+            if (!orderNum) return;
+
+            setInterval(() => {
+                fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(orders => {
+                    const myOrder = orders.find(o => o.orderNumber == orderNum);
+                    if (myOrder) {
+                        updateProgressTracker(myOrder.status);
+                    }
+                })
+                .catch(err => console.error('Polling order progress error:', err));
+            }, 5000);
+        }
+
+        function updateProgressTracker(status) {
+            const bar = document.getElementById('liveOrderProgressBar');
+            const s1 = document.getElementById('stage1Col');
+            const s2 = document.getElementById('stage2Col');
+            const s3 = document.getElementById('stage3Col');
+            const s4 = document.getElementById('stage4Col');
+
+            if (!bar) return;
+
+            if (s1) s1.classList.add('opacity-50');
+            if (s2) s2.classList.add('opacity-50');
+            if (s3) s3.classList.add('opacity-50');
+            if (s4) s4.classList.add('opacity-50');
+
+            if (status === 'CREATED' || status === 'ACCEPTED') {
+                bar.style.width = '25%';
+                if (s1) s1.classList.remove('opacity-50');
+            } else if (status === 'PROCESSING') {
+                bar.style.width = '50%';
+                if (s1) s1.classList.remove('opacity-50');
+                if (s2) s2.classList.remove('opacity-50');
+            } else if (status === 'DONE' || status === 'DELIVERED') {
+                bar.style.width = '75%';
+                if (s1) s1.classList.remove('opacity-50');
+                if (s2) s2.classList.remove('opacity-50');
+                if (s3) s3.classList.remove('opacity-50');
+            } else if (status === 'COMPLETE') {
+                bar.style.width = '100%';
+                if (s1) s1.classList.remove('opacity-50');
+                if (s2) s2.classList.remove('opacity-50');
+                if (s3) s3.classList.remove('opacity-50');
+                if (s4) s4.classList.remove('opacity-50');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startOrderProgressPolling();
+        });
     </script>
 </body>
 
