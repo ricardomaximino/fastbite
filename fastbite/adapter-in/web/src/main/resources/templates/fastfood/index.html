@@ -406,6 +406,146 @@
         </div>
     </section>
 
+    <!-- Interactive Product Showcase & Sandbox Section (F-20) -->
+    <section id="demo-showcase" class="py-5 bg-white border-top border-bottom">
+        <div class="container py-4">
+            <div class="section-header text-center mb-5">
+                <span class="badge bg-danger mb-2 px-3 py-2 text-uppercase fw-bold"><i class="fas fa-play me-1"></i> Interactive Platform Showcase</span>
+                <h2 class="section-title fw-800">Experience FastBite in Action</h2>
+                <p class="text-muted fs-5">Switch between guest QR ordering, kitchen display, cashier POS, and manager backoffice controls.</p>
+            </div>
+
+            <!-- Showcase Nav Tabs -->
+            <ul class="nav nav-pills justify-content-center mb-4 gap-2" id="showcaseTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill px-4 fw-bold" id="guest-tab" data-bs-toggle="tab" data-bs-target="#guest-pane" type="button" role="tab">
+                        <i class="fas fa-mobile-alt me-2"></i>Guest QR Menu
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4 fw-bold" id="kds-tab" data-bs-toggle="tab" data-bs-target="#kds-pane" type="button" role="tab">
+                        <i class="fas fa-fire-burner me-2"></i>Kitchen KDS
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4 fw-bold" id="pos-tab" data-bs-toggle="tab" data-bs-target="#pos-pane" type="button" role="tab">
+                        <i class="fas fa-cash-register me-2"></i>Cashier Counter
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4 fw-bold" id="backoffice-tab" data-bs-toggle="tab" data-bs-target="#backoffice-pane" type="button" role="tab">
+                        <i class="fas fa-sliders me-2"></i>BackOffice Catalog
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Showcase Tab Content Panes -->
+            <div class="tab-content card border-0 shadow-lg overflow-hidden" id="showcaseTabContent" style="background-color: #1e1e1e; border-radius: 20px;">
+                
+                <!-- Guest QR Menu Pane -->
+                <div class="tab-pane fade show active p-4 text-white" id="guest-pane" role="tabpanel">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h3 class="fw-bold text-white mb-3"><i class="fas fa-qrcode text-danger me-2"></i>Instant QR Mobile Ordering</h3>
+                            <p class="text-muted-light mb-4">Guests scan table QR codes to browse categories, customize ingredients, place orders, and pay instantly without downloading an app.</p>
+                            <ul class="list-unstyled text-muted-light mb-4">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Dynamic ingredient modifiers (No Onions, Extra Cheese)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Real-time 86 out-of-stock badge synchronization</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Table-bound cryptographically signed security</li>
+                            </ul>
+                            <a href="/kebab/menu" target="_blank" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">
+                                Launch Guest Menu Demo <i class="fas fa-external-link-alt ms-2"></i>
+                            </a>
+                        </div>
+                        <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                            <div class="p-4 bg-dark rounded-4 border border-secondary shadow-sm">
+                                <i class="fas fa-mobile-screen-button fa-6x text-danger mb-3"></i>
+                                <h5 class="text-white">Live Customer QR Ordering</h5>
+                                <span class="badge bg-success">Active Demo Endpoint: kebab.localhost:8080/menu</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitchen KDS Pane -->
+                <div class="tab-pane fade p-4 text-white" id="kds-pane" role="tabpanel">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h3 class="fw-bold text-white mb-3"><i class="fas fa-stopwatch text-warning me-2"></i>Color-Coded KDS Ticket Urgency</h3>
+                            <p class="text-muted-light mb-4">Kitchen staff process orders cleanly with auto-calculating ticket urgency badges (Blue default, Yellow warning, Red overdue SLA alerts).</p>
+                            <ul class="list-unstyled text-muted-light mb-4">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Configurable yellow/red time boundaries</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> One-tap status updates (Accept $\rightarrow$ Cook $\rightarrow$ Done)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> WebSocket STOMP real-time sync across stations</li>
+                            </ul>
+                            <a href="/kebab/dashboard" target="_blank" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold">
+                                Launch Kitchen KDS Demo <i class="fas fa-external-link-alt ms-2"></i>
+                            </a>
+                        </div>
+                        <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                            <div class="p-4 bg-dark rounded-4 border border-secondary shadow-sm">
+                                <i class="fas fa-fire-burner fa-6x text-warning mb-3"></i>
+                                <h5 class="text-white">Kitchen Display System</h5>
+                                <span class="badge bg-warning text-dark">Active Demo Endpoint: kebab.localhost:8080/dashboard</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cashier Counter Pane -->
+                <div class="tab-pane fade p-4 text-white" id="pos-pane" role="tabpanel">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h3 class="fw-bold text-white mb-3"><i class="fas fa-cash-register text-info me-2"></i>Fast POS Counter Station</h3>
+                            <p class="text-muted-light mb-4">Cashiers take walk-up orders, manage table assignments, process cash/card transactions, and instantly trigger kitchen tickets.</p>
+                            <ul class="list-unstyled text-muted-light mb-4">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Speed dial quick-add favorites bar</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Table re-assignment & split payment prep</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> One-click product 86 availability toggle</li>
+                            </ul>
+                            <a href="/kebab/counter" target="_blank" class="btn btn-info rounded-pill px-4 py-2 fw-bold text-white">
+                                Launch Cashier POS Demo <i class="fas fa-external-link-alt ms-2"></i>
+                            </a>
+                        </div>
+                        <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                            <div class="p-4 bg-dark rounded-4 border border-secondary shadow-sm">
+                                <i class="fas fa-desktop fa-6x text-info mb-3"></i>
+                                <h5 class="text-white">Cashier Counter Station</h5>
+                                <span class="badge bg-info">Active Demo Endpoint: kebab.localhost:8080/counter</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BackOffice Pane -->
+                <div class="tab-pane fade p-4 text-white" id="backoffice-pane" role="tabpanel">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <h3 class="fw-bold text-white mb-3"><i class="fas fa-sliders text-success me-2"></i>Manager Catalog & Entitlements</h3>
+                            <p class="text-muted-light mb-4">Manage products, custom modifiers, discounts, table mappings, and tenant feature entitlements per subscription plan.</p>
+                            <ul class="list-unstyled text-muted-light mb-4">
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Plan Entitlement Gating (Free, Basic, Pro)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Database reset & demo restore tools</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Multi-language catalog translation manager</li>
+                            </ul>
+                            <a href="/kebab/backoffice" target="_blank" class="btn btn-success rounded-pill px-4 py-2 fw-bold">
+                                Launch Manager BackOffice Demo <i class="fas fa-external-link-alt ms-2"></i>
+                            </a>
+                        </div>
+                        <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                            <div class="p-4 bg-dark rounded-4 border border-secondary shadow-sm">
+                                <i class="fas fa-screwdriver-wrench fa-6x text-success mb-3"></i>
+                                <h5 class="text-white">Manager BackOffice</h5>
+                                <span class="badge bg-success">Active Demo Endpoint: kebab.localhost:8080/backoffice</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <!-- Pricing Section -->
     <section id="pricing" class="pricing">
         <div class="container">

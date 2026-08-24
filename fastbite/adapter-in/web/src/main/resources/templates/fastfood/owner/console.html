@@ -177,34 +177,129 @@
                 </div>
             </div>
 
-            <!-- Right Side: Simplified Branch Registration -->
+            <!-- Right Side: 4-Step Interactive Onboarding Wizard (F-20) -->
             <div class="col-lg-4">
                 <div class="card p-4 border border-secondary" style="background-color: #1e1e1e;">
-                    <h5 class="text-white mb-3"><i class="fas fa-plus-circle text-danger me-2"></i>Register New Location</h5>
-                    <p class="text-muted-light small mb-4">Add a new branch location for your restaurant group. The branch will be instantly provisioned.</p>
-                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white mb-0"><i class="fas fa-magic text-danger me-2"></i>Onboarding Wizard</h5>
+                        <span class="badge bg-danger" id="wizardStepBadge">Step 1 of 4</span>
+                    </div>
+
+                    <!-- Wizard Stepper Indicator -->
+                    <div class="progress mb-4" style="height: 6px; background-color: #2b2b2b;">
+                        <div id="wizardProgressBar" class="progress-bar bg-danger" role="progressbar" style="width: 25%;"></div>
+                    </div>
+
                     <form th:action="@{/owner/add-location}" method="post" id="addLocationForm">
-                        <div class="mb-3">
-                            <label class="form-label text-muted-light small">Restaurant URL Prefix</label>
-                            <input type="text" name="tenantId" id="newTenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
-                            <div class="form-text text-muted small text-white-50 mt-1">Access via: <code>{prefix}.localhost:8080</code></div>
+                        
+                        <!-- Step 1: Restaurant Brand & Subdomain -->
+                        <div id="wizardStep1" class="wizard-step">
+                            <h6 class="text-white mb-2"><i class="fas fa-store me-2 text-warning"></i>1. Brand & Subdomain</h6>
+                            <p class="text-muted-light small mb-3">Choose a unique URL prefix for your restaurant location.</p>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted-light small">Restaurant URL Prefix</label>
+                                <input type="text" name="tenantId" id="newTenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
+                                <div class="form-text text-muted small text-white-50 mt-1">URL: <code><span id="tenantUrlPreview">prefix</span>.localhost:8080</code></div>
+                            </div>
+
+                            <button type="button" class="btn btn-theme w-100 py-2 mt-3" onclick="nextWizardStep(2)">
+                                Next: Restaurant Concept <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label text-muted-light small">Subscription Plan</label>
-                            <select name="plan" id="newPlan" class="form-select form-select-dark bg-dark text-white border-secondary" required>
-                                <option value="Free Demo">Free Demo ($0/month)</option>
-                                <option value="Basic Plan">Basic Plan ($29/month)</option>
-                                <option value="Pro Plan">Pro Plan ($59/month)</option>
-                            </select>
+                        <!-- Step 2: Business Concept Selection -->
+                        <div id="wizardStep2" class="wizard-step" style="display: none;">
+                            <h6 class="text-white mb-2"><i class="fas fa-utensils me-2 text-warning"></i>2. Restaurant Concept</h6>
+                            <p class="text-muted-light small mb-3">Select your business model to pre-configure ordering rules.</p>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="card p-2 text-center bg-dark border-secondary concept-card active-concept" onclick="selectConcept('fastfood', this)">
+                                        <i class="fas fa-hamburger text-danger fa-2x mb-1"></i>
+                                        <div class="small text-white font-weight-bold">Fast Food</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card p-2 text-center bg-dark border-secondary concept-card" onclick="selectConcept('pizza', this)">
+                                        <i class="fas fa-pizza-slice text-warning fa-2x mb-1"></i>
+                                        <div class="small text-white font-weight-bold">Pizzeria</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card p-2 text-center bg-dark border-secondary concept-card" onclick="selectConcept('cafe', this)">
+                                        <i class="fas fa-coffee text-info fa-2x mb-1"></i>
+                                        <div class="small text-white font-weight-bold">Cafe & Bakery</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card p-2 text-center bg-dark border-secondary concept-card" onclick="selectConcept('diner', this)">
+                                        <i class="fas fa-wine-glass text-success fa-2x mb-1"></i>
+                                        <div class="small text-white font-weight-bold">Diner & Bistro</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="concept" id="selectedConcept" value="fastfood">
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-secondary w-50" onclick="nextWizardStep(1)">Back</button>
+                                <button type="button" class="btn btn-theme w-50" onclick="nextWizardStep(3)">Next: Catalog</button>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-theme w-100 py-2 mt-2">
-                            <i class="fas fa-magic me-1"></i> Direct Provision Location
-                        </button>
-                        <button type="button" onclick="payViaStripe()" class="btn btn-outline-primary w-100 py-2 mt-2">
-                            <i class="fab fa-stripe me-1"></i> Pay Subscription with Stripe
-                        </button>
+                        <!-- Step 3: Starter Menu Setup -->
+                        <div id="wizardStep3" class="wizard-step" style="display: none;">
+                            <h6 class="text-white mb-2"><i class="fas fa-list me-2 text-warning"></i>3. Starter Catalog</h6>
+                            <p class="text-muted-light small mb-3">Choose initial menu template data for your location.</p>
+
+                            <div class="form-check mb-2 bg-dark p-2 rounded border border-secondary">
+                                <input class="form-check-input ms-1 me-2" type="radio" name="template" id="templateDemo" value="kebab" checked>
+                                <label class="form-check-label text-white small" for="templateDemo">
+                                    <strong>FastBite Kebab & Burgers</strong> (Full Menu)
+                                </label>
+                            </div>
+                            <div class="form-check mb-2 bg-dark p-2 rounded border border-secondary">
+                                <input class="form-check-input ms-1 me-2" type="radio" name="template" id="templatePizza" value="pizza">
+                                <label class="form-check-label text-white small" for="templatePizza">
+                                    <strong>Artisanal Pizza & Drinks</strong> Template
+                                </label>
+                            </div>
+                            <div class="form-check mb-3 bg-dark p-2 rounded border border-secondary">
+                                <input class="form-check-input ms-1 me-2" type="radio" name="template" id="templateBlank" value="blank">
+                                <label class="form-check-label text-white small" for="templateBlank">
+                                    <strong>Blank Catalog</strong> (Manual Entry)
+                                </label>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-secondary w-50" onclick="nextWizardStep(2)">Back</button>
+                                <button type="button" class="btn btn-theme w-50" onclick="nextWizardStep(4)">Next: Plan</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Plan & Provisioning CTA -->
+                        <div id="wizardStep4" class="wizard-step" style="display: none;">
+                            <h6 class="text-white mb-2"><i class="fas fa-rocket me-2 text-warning"></i>4. Subscription & Launch</h6>
+                            <p class="text-muted-light small mb-3">Select your plan to provision your restaurant schema.</p>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted-light small">Subscription Tier</label>
+                                <select name="plan" id="newPlan" class="form-select form-select-dark bg-dark text-white border-secondary" required>
+                                    <option value="Free Demo">Free Demo ($0/month)</option>
+                                    <option value="Basic Plan">Basic Plan ($29/month)</option>
+                                    <option value="Pro Plan">Pro Plan ($59/month)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-theme w-100 py-2 mt-2">
+                                <i class="fas fa-magic me-1"></i> Provision Location Now
+                            </button>
+                            <button type="button" onclick="payViaStripe()" class="btn btn-outline-primary w-100 py-2 mt-2">
+                                <i class="fab fa-stripe me-1"></i> Pay Subscription with Stripe
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 mt-2" onclick="nextWizardStep(3)">Back to Step 3</button>
+                        </div>
+
                     </form>
                 </div>
             </div>
@@ -393,6 +488,37 @@
                 alert('Failed to delete staff account.');
             });
         }
+
+        // Onboarding Stepper Wizard JS (F-20)
+        function nextWizardStep(step) {
+            if (step === 2) {
+                const tenantId = document.getElementById('newTenantId').value.trim();
+                if (!tenantId) {
+                    alert('Please enter a valid restaurant URL prefix.');
+                    return;
+                }
+            }
+            document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+            document.getElementById('wizardStep' + step).style.display = 'block';
+            document.getElementById('wizardStepBadge').innerText = `Step ${step} of 4`;
+            document.getElementById('wizardProgressBar').style.width = `${step * 25}%`;
+        }
+
+        function selectConcept(concept, cardEl) {
+            document.querySelectorAll('.concept-card').forEach(el => el.classList.remove('active-concept', 'border-danger'));
+            cardEl.classList.add('active-concept', 'border-danger');
+            document.getElementById('selectedConcept').value = concept;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tenantInput = document.getElementById('newTenantId');
+            if (tenantInput) {
+                tenantInput.addEventListener('input', (e) => {
+                    const preview = document.getElementById('tenantUrlPreview');
+                    if (preview) preview.innerText = e.target.value.trim() || 'prefix';
+                });
+            }
+        });
     </script>
 </body>
 </html>
