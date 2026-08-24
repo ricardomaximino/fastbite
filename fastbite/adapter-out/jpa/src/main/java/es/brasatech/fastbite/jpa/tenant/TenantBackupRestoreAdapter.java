@@ -161,7 +161,8 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                 ZipEntry entry;
                 byte[] buffer = new byte[4096];
                 while ((entry = zis.getNextEntry()) != null) {
-                    if ("data.json".equals(entry.getName())) {
+                    String entryName = entry.getName().replace("\\", "/");
+                    if ("data.json".equalsIgnoreCase(entryName) || entryName.endsWith("/data.json")) {
                         // Jackson reads data.json
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         int len;
@@ -169,8 +170,8 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                             baos.write(buffer, 0, len);
                         }
                         backupData = objectMapper.readValue(baos.toByteArray(), TenantBackupData.class);
-                    } else if (entry.getName().startsWith("media/") && !entry.isDirectory()) {
-                        String relativeFileName = entry.getName().substring("media/".length());
+                    } else if (entryName.startsWith("media/") && !entry.isDirectory()) {
+                        String relativeFileName = entryName.substring("media/".length());
                         Path targetFile = tenantMediaPath.resolve(relativeFileName);
                         Files.createDirectories(targetFile.getParent());
                         try (OutputStream fos = Files.newOutputStream(targetFile)) {
