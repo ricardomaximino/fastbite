@@ -1561,3 +1561,46 @@ async function triggerRestoreDemo() {
     }
 }
 
+async function saveKdsTimerSettings(event) {
+    event.preventDefault();
+    const yellow = document.getElementById('yellowTimerInput').value;
+    const red = document.getElementById('redTimerInput').value;
+
+    try {
+        const response = await fetch('/api/backoffice/kds-config?yellowTimerMinutes=' + yellow + '&redTimerMinutes=' + red, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+        if (response.ok) {
+            showToast('KDS Urgency Timer settings saved successfully!');
+        } else {
+            showToast('Failed to save KDS Timer settings', 'error');
+        }
+    } catch (err) {
+        console.error('Error saving KDS timer settings:', err);
+        showToast('Error saving KDS Timer settings', 'error');
+    }
+}
+
+async function toggleProductStock86(productId) {
+    try {
+        const response = await fetch(`/api/backoffice/products/${productId}/toggle-86`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+        if (response.ok) {
+            await loadData();
+            showToast('Product stock 86 availability toggled!');
+        } else {
+            showToast('Failed to toggle product stock', 'error');
+        }
+    } catch (err) {
+        console.error('Error toggling product stock:', err);
+        showToast('Error toggling product stock', 'error');
+    }
+}
+

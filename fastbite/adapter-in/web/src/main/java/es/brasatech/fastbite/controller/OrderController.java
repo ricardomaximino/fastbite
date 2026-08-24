@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import es.brasatech.fastbite.application.kds.KdsConfigService;
+
 @Controller
 @RequiredArgsConstructor
 public class OrderController {
@@ -26,6 +28,7 @@ public class OrderController {
     private final SequenceNumberServiceImpl sequenceNumberService;
     private final OrderService orderService;
     private final TableService tableService;
+    private final KdsConfigService kdsConfigService;
 
     public record CreateOrderRequest(
         List<CartItem> items,
@@ -116,7 +119,10 @@ public class OrderController {
     }
 
     @GetMapping({"/{tenantId}/dashboard", "/dashboard"})
-    public String dashboard(HttpSession session, Model model) {
+    public String dashboard(@PathVariable(required = false) String tenantId, HttpSession session, Model model) {
+        String activeTenant = (tenantId != null) ? tenantId : "kebab";
+        var kdsConfig = kdsConfigService.getKdsConfig(activeTenant);
+        model.addAttribute("kdsConfig", kdsConfig);
         return "fastfood/dashboard";
     }
 }

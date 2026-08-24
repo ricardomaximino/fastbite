@@ -81,4 +81,29 @@ public class ProductController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    /**
+     * Toggle product 86 / active stock status
+     */
+    @PostMapping("/{id}/toggle-86")
+    @ResponseBody
+    public ResponseEntity<BackOfficeDto<ProductDto>> toggleProductStock(@PathVariable String id) {
+        return productService.findById(id)
+                .map(product -> {
+                    ProductDto updated = new ProductDto(
+                            product.id(),
+                            product.name(),
+                            product.price(),
+                            product.description(),
+                            product.image(),
+                            product.customizations(),
+                            !product.active()
+                    );
+                    return productService.update(id, updated);
+                })
+                .flatMap(opt -> opt)
+                .map(product -> BackOfficeDto.of(product.id(), product))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -137,6 +137,28 @@ function renderManagerDashboard() {
     }
 }
 
+function getKdsTimerBadgeClass(order) {
+    const configEl = document.getElementById('kds-timer-config');
+    const yellow = configEl ? parseInt(configEl.dataset.yellowMinutes || '0', 10) : 0;
+    const red = configEl ? parseInt(configEl.dataset.redMinutes || '0', 10) : 0;
+
+    // When threshold is 0, timer styling is deactivated and defaults to Blue (bg-primary)
+    if (!yellow || yellow <= 0) {
+        return 'bg-primary';
+    }
+
+    const date = new Date(order.createdAt || order.updatedAt);
+    const elapsedMinutes = Math.floor((new Date() - date) / 60000);
+
+    if (red > 0 && elapsedMinutes >= red) {
+        return 'bg-danger text-white';
+    }
+    if (yellow > 0 && elapsedMinutes >= yellow) {
+        return 'bg-warning text-dark';
+    }
+    return 'bg-primary';
+}
+
 // Create order card
 function createOrderCard(order, role) {
     const timeAgo = getTimeAgo(order.updatedAt);
@@ -145,6 +167,7 @@ function createOrderCard(order, role) {
     ).join('');
 
     const actions = getActionsForRole(order, role);
+    const timerBadgeClass = getKdsTimerBadgeClass(order);
 
     return `
         <div class="cart-item mb-2">
@@ -153,7 +176,7 @@ function createOrderCard(order, role) {
                     <h6 class="mb-1 fw-bold">${i18n.labelOrder}${order.orderNumber}</h6>
                     <small class="text-muted">${timeAgo}</small>
                 </div>
-                <span class="badge ${getStatusBadgeClass(order.status)}">${i18n['status' + (order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase())] || order.status}</span>
+                <span class="badge ${timerBadgeClass}">${i18n['status' + (order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase())] || order.status}</span>
             </div>
             <div class="mb-2">${items}</div>
             <div class="d-flex justify-content-between align-items-center mb-2">

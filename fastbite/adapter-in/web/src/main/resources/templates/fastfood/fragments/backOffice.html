@@ -120,6 +120,10 @@
                 </div>
             </div>
             <div class="btn-group">
+                <button th:class="|btn btn-sm ${product['active'] ? 'btn-outline-warning' : 'btn-warning'}|" th:data-id="${product['id']}"
+                    onclick="toggleProductStock86(this.dataset.id)" title="Toggle 86 / Out of Stock">
+                    <i class="fas fa-ban me-1"></i> 86
+                </button>
                 <button class="btn btn-sm btn-outline-primary" th:data-id="${product['id']}"
                     onclick="editProduct(this.dataset.id)">
                     <i class="fas fa-edit"></i>

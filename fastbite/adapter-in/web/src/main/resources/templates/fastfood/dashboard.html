@@ -15,6 +15,7 @@
 <body>
     <!-- Navigation -->
     <div th:replace="~{fastfood/fragments/navbar :: navbar(activeTab='dashboard')}"></div>
+    <div id="kds-timer-config" style="display:none;" th:data-yellow-minutes="${kdsConfig != null ? kdsConfig.yellowTimerMinutes : 0}" th:data-red-minutes="${kdsConfig != null ? kdsConfig.redTimerMinutes : 0}"></div>
 
     <!-- Main Content -->
     <div class="container-fluid mt-4 mb-5">

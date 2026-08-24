@@ -1,25 +1,60 @@
 package es.brasatech.fastbite.controller;
 
+import es.brasatech.fastbite.application.kds.KdsConfigService;
+import es.brasatech.fastbite.application.tenant.PlanEntitlementService;
+import es.brasatech.fastbite.application.tenant.TenantLocationService;
+import es.brasatech.fastbite.domain.kds.KdsConfig;
+import es.brasatech.fastbite.domain.tenant.PlanFeature;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
 public class BackOfficeController {
 
+    private final PlanEntitlementService planEntitlementService;
+    private final KdsConfigService kdsConfigService;
+    private final TenantLocationService tenantLocationService;
+
     /**
      * Render the BackOffice page
      */
     @GetMapping({"/{tenantId}/backoffice", "/backoffice"})
-    public String backOffice() {
+    public String backOffice(@PathVariable(required = false) String tenantId, Model model) {
+        String activeTenant = (tenantId != null) ? tenantId : "kebab";
+        String plan = tenantLocationService.getLocation(activeTenant)
+                .map(loc -> loc.plan())
+                .orElse("Basic Plan");
+
+        Set<PlanFeature> enabledFeatures = planEntitlementService.getEnabledFeatures(plan);
+        KdsConfig kdsConfig = kdsConfigService.getKdsConfig(activeTenant);
+
+        model.addAttribute("activeTenant", activeTenant);
+        model.addAttribute("tenantPlan", plan);
+        model.addAttribute("enabledFeatures", enabledFeatures);
+        model.addAttribute("kdsConfig", kdsConfig);
         return "fastfood/backOffice";
+    }
+
+    @GetMapping("/api/backoffice/kds-config")
+    @ResponseBody
+    public KdsConfig getKdsConfig(@RequestParam(required = false) String tenantId) {
+        return kdsConfigService.getKdsConfig(tenantId);
+    }
+
+    @PostMapping("/api/backoffice/kds-config")
+    @ResponseBody
+    public KdsConfig updateKdsConfig(
+            @RequestParam(required = false) String tenantId,
+            @RequestParam int yellowTimerMinutes,
+            @RequestParam int redTimerMinutes) {
+        return kdsConfigService.updateKdsConfig(tenantId, yellowTimerMinutes, redTimerMinutes);
     }
 
     @PostMapping("/api/backoffice/fragments/groups-list")
