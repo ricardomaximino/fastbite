@@ -36,3 +36,11 @@ build/
 
 ### H2 DB ###
 *.db
+
+### AIs ###
+.claude
+.agent
+.agents
+CLAUDE.md
+AGENTS.md
+AGENT.md
