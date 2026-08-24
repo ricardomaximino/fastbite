@@ -2,10 +2,10 @@
 // Application state
 let cart = [];
 let currentCustomization = {};
-const apiSaveCartUrl = '/api/create-order';
-const cartUrl = '/api/calculate-cart';
-const confirmationUrl = '/api/calculate-confirmation';
-const orderConfirmationUrl = '/order-confirmation'
+function getApiSaveCartUrl() { return getTenantPrefix() + '/api/create-order'; }
+function getCartUrl() { return getTenantPrefix() + '/api/calculate-cart'; }
+function getConfirmationUrl() { return getTenantPrefix() + '/api/calculate-confirmation'; }
+function getOrderConfirmationUrl() { return getTenantPrefix() + '/order-confirmation'; }
 
 function getTenantPrefix() {
     const path = window.location.pathname;
@@ -466,28 +466,31 @@ function applyCoupon() {
 }
 
 function loadCartData() {
-    const url = activeCouponCode ? `${cartUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : cartUrl;
+    const baseUrl = getCartUrl();
+    const url = activeCouponCode ? `${baseUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : baseUrl;
     loadFragments(url)
         .then(html => {
             cartSection.innerHTML = html;
             disableNonCustomizableEditButtons();
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error loading cart data:', error));
 }
 
 function proceedToCheckout() {
-    const url = activeCouponCode ? `${confirmationUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : confirmationUrl;
+    const baseUrl = getConfirmationUrl();
+    const url = activeCouponCode ? `${baseUrl}?couponCode=${encodeURIComponent(activeCouponCode)}` : baseUrl;
     loadFragments(url).then(html => {
         const confirmationSection = document.getElementById('confirmationSection');
         confirmationSection.innerHTML = html;
         document.getElementById('cartSection').style.display = 'none';
         confirmationSection.style.display = 'block';
         updateStep(3);
-    }).catch(error => console.error('Error:', error));
+    }).catch(error => console.error('Error proceeding to checkout:', error));
 }
 
 function loadFragments(url, payload = cart) {
-    return fetch(url, {
+    const fullUrl = (url.startsWith('/') && !url.startsWith(getTenantPrefix())) ? getTenantPrefix() + url : url;
+    return fetch(fullUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -531,16 +534,21 @@ function backToCart() {
 
 // Submit order
 function submitOrder() {
-    const customerName = document.getElementById('customerName').value.trim();
-    const tableNumber = document.getElementById('tableNumber').value.trim();
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const customerNameInput = document.getElementById('customerName');
+    const tableNumberInput = document.getElementById('tableNumber');
+    const customerName = customerNameInput ? customerNameInput.value.trim() : '';
+    const tableNumber = tableNumberInput ? tableNumberInput.value.trim() : '';
+    const paymentMethodEl = document.querySelector('input[name="paymentMethod"]:checked');
+    const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'store';
 
     if (!customerName) {
-        alert("Please enter your name.");
+        showToast("Por favor, introduce tu nombre.");
+        if (customerNameInput) customerNameInput.focus();
         return;
     }
     if (!tableNumber) {
-        alert("Please enter your table number.");
+        showToast("Por favor, introduce tu número de mesa.");
+        if (tableNumberInput) tableNumberInput.focus();
         return;
     }
 
@@ -553,10 +561,12 @@ function submitOrder() {
 
     // Show loading state
     const submitBtn = document.getElementById('submitOrderBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Procesando...';
+    }
 
-    fetch(apiSaveCartUrl, {
+    fetch(getApiSaveCartUrl(), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -570,18 +580,23 @@ function submitOrder() {
             if (paymentMethod === 'online') {
                 window.location.assign(getTenantPrefix() + '/select-payment');
             } else {
-                window.location.assign(getTenantPrefix() + orderConfirmationUrl);
+                window.location.assign(getOrderConfirmationUrl());
             }
         } else {
-            alert("Error creating order: " + (data.message || "Unknown error"));
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+            showToast("Error al crear el pedido: " + (data.message || "Error desconocido"));
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+        console.error('Error submitting order:', error);
+        showToast("Error de conexión al enviar el pedido.");
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Confirmar y enviar';
+        }
     });
 }
 

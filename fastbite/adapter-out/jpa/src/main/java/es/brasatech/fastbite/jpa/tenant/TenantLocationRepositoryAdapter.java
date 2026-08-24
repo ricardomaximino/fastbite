@@ -41,6 +41,7 @@ public class TenantLocationRepositoryAdapter implements TenantLocationPort {
         entity.setTenantId(location.tenantId());
         entity.setPlan(location.plan());
         entity.setCustomDomain(location.customDomain());
+        entity.setStripeAccountId(location.stripeAccountId());
         repository.save(entity);
     }
 
@@ -51,6 +52,6 @@ public class TenantLocationRepositoryAdapter implements TenantLocationPort {
     }
 
     private TenantLocation toDomain(TenantLocationEntity entity) {
-        return new TenantLocation(entity.getId(), entity.getOwnerUsername(), entity.getTenantId(), entity.getPlan(), entity.getCustomDomain());
+        return new TenantLocation(entity.getId(), entity.getOwnerUsername(), entity.getTenantId(), entity.getPlan(), entity.getCustomDomain(), entity.getStripeAccountId());
     }
 }

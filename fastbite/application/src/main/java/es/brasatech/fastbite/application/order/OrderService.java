@@ -90,6 +90,13 @@ public interface OrderService {
         publishEvent(new OrderStatusChangedEvent(newOrder));
     }
 
+    default void markOrderPaid(String id) {
+        var order = findById(id).orElseThrow(() -> new RuntimeException("Not Found: " + id));
+        var paidOrder = order.setPaymentStatus(OrderPaymentStatus.PAID);
+        update(id, paidOrder);
+        publishEvent(new es.brasatech.fastbite.domain.event.OrderPaymentStatusChangedEvent(paidOrder));
+    }
+
     default List<Order> getAllOrder() {
         return findAll();
     }

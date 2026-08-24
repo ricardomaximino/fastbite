@@ -118,6 +118,14 @@
                                     <a th:href="${protocol} + '://' + ${loc.customDomain}" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.customDomain}">mykebab.com</a>
                                 </span>
                             </div>
+                            <div class="mt-2 small text-muted-light d-flex align-items-center flex-wrap gap-2">
+                                <span>Stripe Connect Account:</span>
+                                <form th:action="@{/owner/update-stripe-account}" method="post" class="d-inline-flex align-items-center">
+                                    <input type="hidden" name="tenantId" th:value="${loc.tenantId}">
+                                    <input type="text" name="stripeAccountId" th:value="${loc.stripeAccountId}" placeholder="acct_123456789" class="form-control form-control-sm bg-dark border-secondary text-white py-0 px-2" style="max-width: 220px;">
+                                    <button type="submit" class="btn btn-sm btn-outline-light py-0 px-2 ms-2">Save</button>
+                                </form>
+                            </div>
                         </div>
                         
                         <div class="col-md-6 text-md-end">
@@ -175,16 +183,16 @@
                     <h5 class="text-white mb-3"><i class="fas fa-plus-circle text-danger me-2"></i>Register New Location</h5>
                     <p class="text-muted-light small mb-4">Add a new branch location for your restaurant group. The branch will be instantly provisioned.</p>
                     
-                    <form th:action="@{/owner/add-location}" method="post">
+                    <form th:action="@{/owner/add-location}" method="post" id="addLocationForm">
                         <div class="mb-3">
                             <label class="form-label text-muted-light small">Restaurant URL Prefix</label>
-                            <input type="text" name="tenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
+                            <input type="text" name="tenantId" id="newTenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
                             <div class="form-text text-muted small text-white-50 mt-1">Access via: <code>{prefix}.localhost:8080</code></div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label text-muted-light small">Subscription Plan</label>
-                            <select name="plan" class="form-select form-select-dark bg-dark text-white border-secondary" required>
+                            <select name="plan" id="newPlan" class="form-select form-select-dark bg-dark text-white border-secondary" required>
                                 <option value="Free Demo">Free Demo ($0/month)</option>
                                 <option value="Basic Plan">Basic Plan ($29/month)</option>
                                 <option value="Pro Plan">Pro Plan ($59/month)</option>
@@ -192,7 +200,10 @@
                         </div>
 
                         <button type="submit" class="btn btn-theme w-100 py-2 mt-2">
-                            <i class="fas fa-magic me-1"></i> Provision Location
+                            <i class="fas fa-magic me-1"></i> Direct Provision Location
+                        </button>
+                        <button type="button" onclick="payViaStripe()" class="btn btn-outline-primary w-100 py-2 mt-2">
+                            <i class="fab fa-stripe me-1"></i> Pay Subscription with Stripe
                         </button>
                     </form>
                 </div>
@@ -225,6 +236,35 @@
     <script th:inline="javascript">
         const csrfToken = /*[[${_csrf.token}]]*/ '';
         const csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+
+        function payViaStripe() {
+            const tenantId = document.getElementById('newTenantId').value.trim();
+            const plan = document.getElementById('newPlan').value;
+            if (!tenantId) {
+                alert('Please enter a restaurant URL prefix');
+                return;
+            }
+            fetch('/owner/create-location-checkout-session', {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ tenantId: tenantId, plan: plan })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    alert(data.error || 'Failed to create Stripe Checkout session');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error creating Stripe Checkout session');
+            });
+        }
 
         // Generic AJAX Maintenance tool helper
         function executeMaintenance(tenantId, action) {

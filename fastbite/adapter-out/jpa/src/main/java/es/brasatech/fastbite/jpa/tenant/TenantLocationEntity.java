@@ -29,4 +29,7 @@ public class TenantLocationEntity {
 
     @Column(name = "custom_domain", unique = true)
     private String customDomain;
+
+    @Column(name = "stripe_account_id")
+    private String stripeAccountId;
 }

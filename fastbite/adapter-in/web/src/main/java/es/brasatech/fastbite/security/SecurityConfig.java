@@ -18,9 +18,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
                         .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation",
-                                "/api/create-order", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe").permitAll()
+                                "/api/create-order", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe", "/api/stripe/**").permitAll()
                         .requestMatchers("/*/menu/**", "/*/api/calculate-cart", "/*/api/calculate-confirmation",
-                                "/*/api/create-order", "/*/order-confirmation/**", "/*/select-payment").permitAll()
+                                "/*/api/create-order", "/*/order-confirmation/**", "/*/select-payment", "/*/api/stripe/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
                         .requestMatchers("/login", "/error", "/*/login").permitAll()
 
@@ -69,7 +69,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .permitAll())
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/webhooks/stripe")
+                        .ignoringRequestMatchers("/api/webhooks/stripe", "/api/stripe/**")
                 )
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())

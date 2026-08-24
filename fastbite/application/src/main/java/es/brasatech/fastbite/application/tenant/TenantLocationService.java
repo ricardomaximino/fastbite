@@ -58,7 +58,25 @@ public class TenantLocationService {
                 location.ownerUsername(),
                 location.tenantId(),
                 location.plan(),
-                (customDomain == null || customDomain.trim().isEmpty()) ? null : customDomain.trim().toLowerCase()
+                (customDomain == null || customDomain.trim().isEmpty()) ? null : customDomain.trim().toLowerCase(),
+                location.stripeAccountId()
+        );
+        tenantLocationPort.save(updated);
+    }
+
+    public void updateStripeAccountId(String ownerUsername, String tenantId, String stripeAccountId) {
+        TenantLocation location = tenantLocationPort.findByTenantId(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant location prefix '" + tenantId + "' not found."));
+        if (!location.ownerUsername().equalsIgnoreCase(ownerUsername)) {
+            throw new IllegalArgumentException("You do not own this location.");
+        }
+        TenantLocation updated = new TenantLocation(
+                location.id(),
+                location.ownerUsername(),
+                location.tenantId(),
+                location.plan(),
+                location.customDomain(),
+                (stripeAccountId == null || stripeAccountId.trim().isEmpty()) ? null : stripeAccountId.trim()
         );
         tenantLocationPort.save(updated);
     }

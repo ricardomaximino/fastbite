@@ -114,3 +114,9 @@ fastbite:
   table:
     # Secret key used for cryptographic table signature generation
     secret: "SuperSecretKeyForTableOrderingSignatures!!!"
+
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY_SANDBOX:}
+  webhook:
+    secret: ${STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX:}

@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS tenant_locations (
     owner_username VARCHAR(255) NOT NULL,
     tenant_id VARCHAR(255) NOT NULL UNIQUE,
     plan VARCHAR(255) NOT NULL DEFAULT 'Free Demo',
-    custom_domain VARCHAR(255) UNIQUE
+    custom_domain VARCHAR(255) UNIQUE,
+    stripe_account_id VARCHAR(255)
 );
 
 -- Products

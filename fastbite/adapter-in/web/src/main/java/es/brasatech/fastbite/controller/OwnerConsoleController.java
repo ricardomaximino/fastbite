@@ -118,4 +118,28 @@ public class OwnerConsoleController {
             return "fastfood/owner/console";
         }
     }
+
+    @PostMapping("/owner/update-stripe-account")
+    public String updateStripeAccount(
+            @RequestParam String tenantId,
+            @RequestParam(required = false) String stripeAccountId,
+            Principal principal,
+            Model model) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        String ownerUsername = principal.getName();
+        try {
+            tenantLocationService.updateStripeAccountId(ownerUsername, tenantId, stripeAccountId);
+            return "redirect:/owner/console";
+        } catch (Exception e) {
+            log.error("Failed to update Stripe account ID for location: " + tenantId, e);
+            model.addAttribute("error", e.getMessage());
+            List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
+            model.addAttribute("ownerUsername", ownerUsername);
+            model.addAttribute("locations", locations);
+            model.addAttribute("protocol", protocol);
+            return "fastfood/owner/console";
+        }
+    }
 }

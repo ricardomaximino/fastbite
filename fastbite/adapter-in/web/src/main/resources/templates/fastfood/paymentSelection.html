@@ -168,31 +168,44 @@
             e.preventDefault();
 
             const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-
-            // Show loading state
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             const processingText = '[[#{button.processing}]]';
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (processingText || 'Processing...');
             submitBtn.disabled = true;
 
-            // Simulate payment processing
-            setTimeout(() => {
-                // Here you would integrate with your payment provider
-                console.log('Processing payment with:', selectedMethod);
+            if (selectedMethod === 'stripe-checkout') {
+                const tenantPrefix = getTenantPrefix();
+                const tenantId = tenantPrefix ? tenantPrefix.replace('/', '') : '';
 
-                // For demo purposes
-                const redirectingMsg = '[[#{message.redirecting}]]';
-                alert((redirectingMsg || 'Redirecting to payment processor...') + '\n' + selectedMethod);
-
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-
-                // In production, redirect to the payment processor
-                // window.location.href = '/payment-process?method=' + selectedMethod;
-                window.location.assign(getTenantPrefix() + '/order-confirmation');
-            }, 1500);
+                fetch('/api/stripe/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tenantId: tenantId,
+                        orderId: '[[${order.id != null ? order.id : ""}]]',
+                        amount: '[[${order.total != null ? order.total : 0}]]'
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.checkoutUrl) {
+                        window.location.href = data.checkoutUrl;
+                    } else {
+                        alert(data.error || 'Failed to initiate Stripe Checkout');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error('Stripe Checkout Error:', err);
+                    window.location.assign(getTenantPrefix() + '/order-confirmation');
+                });
+            } else {
+                setTimeout(() => {
+                    window.location.assign(getTenantPrefix() + '/order-confirmation');
+                }, 800);
+            }
         });
 
         function getTenantPrefix() {
