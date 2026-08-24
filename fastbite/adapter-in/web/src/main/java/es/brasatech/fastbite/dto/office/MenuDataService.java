@@ -139,7 +139,6 @@ public class MenuDataService {
      */
     private Map<String, Product> convertProducts(List<ProductDto> productDtos) {
         return productDtos.stream()
-                .filter(ProductDto::active)  // Only active products
                 .collect(Collectors.toMap(
                         ProductDto::id,
                         productDto -> {
@@ -154,7 +153,8 @@ public class MenuDataService {
                                     productDto.price(),
                                     productDto.description(),
                                     productDto.image(),
-                                    customizations
+                                    customizations,
+                                    productDto.active()
                             );
                         }
                 ));
