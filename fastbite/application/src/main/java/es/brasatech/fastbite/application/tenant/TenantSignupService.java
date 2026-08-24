@@ -38,22 +38,32 @@ public class TenantSignupService {
         // 1. Provision database schema and initial tables
         tenantProvisionerPort.provisionTenant(tenantId);
 
-        // 2. Save the SaaS Tenant Owner in the master schema (PUBLIC)
+        // 2. Save the SaaS Tenant Owner in the master schema (PUBLIC) and tenant schema
+        UserDto ownerUser = new UserDto(
+                null,
+                username,
+                encodedPassword,
+                fullName,
+                Set.of(Role.OWNER, Role.ADMIN),
+                true,
+                tenantId
+        );
         try {
             TenantContext.clear(); // Maps to PUBLIC
-            UserDto ownerUser = new UserDto(
-                    null,
-                    username,
-                    encodedPassword,
-                    fullName,
-                    Set.of(Role.OWNER, Role.ADMIN),
-                    true,
-                    tenantId
-            );
             userService.save(ownerUser);
             LOGGER.info("SaaS Tenant Owner user '" + username + "' created in master schema for tenant: " + tenantId);
         } catch (Exception e) {
             LOGGER.severe("Failed to create SaaS Tenant Owner in master schema: " + e.getMessage());
+        }
+
+        try {
+            TenantContext.setCurrentTenant(tenantId);
+            userService.save(ownerUser);
+            LOGGER.info("SaaS Tenant Owner user '" + username + "' created in tenant schema: " + tenantId);
+        } catch (Exception e) {
+            LOGGER.severe("Failed to create user in tenant schema: " + e.getMessage());
+        } finally {
+            TenantContext.clear();
         }
 
         // 3. Register location association in tenant_locations registry

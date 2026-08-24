@@ -1,6 +1,7 @@
 package es.brasatech.fastbite.security;
 
 import es.brasatech.fastbite.application.office.UserService;
+import es.brasatech.fastbite.domain.tenant.TenantContext;
 import es.brasatech.fastbite.domain.user.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         log.info("loadUserByUsername called for username: {}", username);
         try {
             Optional<UserDto> userOpt = userService.findByUsername(username);
+            if (userOpt.isEmpty()) {
+                String currentTenant = TenantContext.getCurrentTenant();
+                if (currentTenant != null) {
+                    try {
+                        TenantContext.clear();
+                        userOpt = userService.findByUsername(username);
+                    } finally {
+                        TenantContext.setCurrentTenant(currentTenant);
+                    }
+                }
+            }
             log.info("User lookup result: {}", userOpt.isPresent());
             if (userOpt.isPresent()) {
                 log.info("User found. Roles: {}", userOpt.get().roles());
