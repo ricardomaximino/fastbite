@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.Statement;
 
 @Component
 @RequiredArgsConstructor
@@ -22,13 +21,10 @@ public class TenantProvisionerAdapter implements TenantProvisionerPort {
 
     @Override
     public void provisionTenant(String tenantId) {
-        String schemaName = "tenant_" + tenantId;
+        String schemaName = "tenant_" + tenantId.toLowerCase();
         log.info("Provisioning database schema for tenant: {}", schemaName);
         try (Connection connection = dataSource.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
-                statement.execute("SET SCHEMA " + schemaName);
-            }
+            TenantSchemaUtils.createAndSwitchSchema(connection, schemaName);
 
             Resource schemaResource = resourceLoader.getResource("classpath:schema.sql");
             if (schemaResource.exists()) {

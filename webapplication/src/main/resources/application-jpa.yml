@@ -1,11 +1,11 @@
 # Profile: JPA (H2/PostgreSQL/MySQL)
 # Uses JPA with relational database
 # Default: H2 file-based database (./data/fast_bite.db)
-DB_URL: jdbc:h2:file:./data/fast_bite.db
-DB_USER: sa
-DB_PASSWORD:
-DB_DRIVER: org.h2.Driver
-HIBERNATE_DIALECT: org.hibernate.dialect.H2Dialect
+#DB_URL: jdbc:h2:file:./data/fast_bite.db
+#DB_USER: sa
+#DB_PASSWORD:
+#DB_DRIVER: org.h2.Driver
+#HIBERNATE_DIALECT: org.hibernate.dialect.H2Dialect
 
 # For PostgreSQL, use these environment variables:
 #DB_URL: jdbc:postgresql://localhost:5432/fast_bite
@@ -33,7 +33,7 @@ spring:
       mode: always
       continue-on-error: true
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
     hibernate:
       ddl-auto: ${DDL_AUTO:update}
     show-sql: false
@@ -43,7 +43,7 @@ spring:
       jakarta.persistence.jdbc.user: ${DB_USER:sa}
       jakarta.persistence.jdbc.password: ${DB_PASSWORD:}
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
         format_sql: true
         temp:
           use_jdbc_metadata_defaults: false

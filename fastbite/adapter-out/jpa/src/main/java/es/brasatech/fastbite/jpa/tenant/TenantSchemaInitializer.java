@@ -63,13 +63,11 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
     }
 
     public void initializeSchema(String tenantId) {
-        String schemaName = "default".equalsIgnoreCase(tenantId) || "kebab".equalsIgnoreCase(tenantId) ? "PUBLIC" : "tenant_" + tenantId;
-        log.info("Initializing schema for tenant: {}", schemaName);
         try (Connection connection = dataSource.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
-                statement.execute("SET SCHEMA " + schemaName);
-            }
+            String schemaName = TenantSchemaUtils.resolveSchemaName(connection, tenantId);
+            log.info("Initializing schema for tenant: {}", schemaName);
+
+            TenantSchemaUtils.createAndSwitchSchema(connection, schemaName);
 
             Resource schemaResource = resourceLoader.getResource("classpath:schema.sql");
             if (schemaResource.exists()) {
@@ -102,7 +100,7 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
                 log.info("Initial data already exists for tenant: {}, skipping data-jpa.sql", schemaName);
             }
         } catch (Exception e) {
-            log.error("Failed to initialize schema for tenant: " + schemaName, e);
+            log.error("Failed to initialize schema for tenant: " + tenantId, e);
         }
     }
 }
