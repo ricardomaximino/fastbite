@@ -2,11 +2,8 @@ package es.brasatech.fastbite.config;
 
 import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.customization.CustomizationDto;
-import es.brasatech.fastbite.domain.customization.CustomizationI18n;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
-import es.brasatech.fastbite.domain.customization.CustomizationOptionI18n;
 import es.brasatech.fastbite.domain.group.Group;
-import es.brasatech.fastbite.domain.group.GroupI18n;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
@@ -14,9 +11,7 @@ import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.payment.PaymentConfig;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.domain.product.ProductDto;
-import es.brasatech.fastbite.domain.product.ProductI18n;
 import es.brasatech.fastbite.domain.table.Table;
-import es.brasatech.fastbite.domain.table.TableI18n;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.domain.user.Customer;
 import es.brasatech.fastbite.domain.user.UserDto;
@@ -104,13 +99,10 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(Table.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(PaymentConfig.class), MemberCategory.values());
 
-        // I18n DTOs for BackOffice
-        hints.reflection().registerType(TypeReference.of(GroupI18n.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(ProductI18n.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(CustomizationI18n.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(CustomizationOptionI18n.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(TableI18n.class), MemberCategory.values());
+        // Translation editor
         hints.reflection().registerType(TypeReference.of(I18nField.class), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.TranslatableText.class), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.TranslatableType.class), MemberCategory.values());
         
         // Missing Domain DTOs
         hints.reflection().registerType(TypeReference.of(CustomizationDto.class), MemberCategory.values());
@@ -126,7 +118,6 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
 
         // Discount classes reflection hints
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRule.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountRuleI18n.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountScope.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.discount.DiscountType.class), MemberCategory.values());
     }

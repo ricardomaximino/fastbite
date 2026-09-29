@@ -7,7 +7,6 @@ import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
-import es.brasatech.fastbite.domain.product.ProductCustomizerI18n;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
@@ -139,11 +138,6 @@ public class OrderServiceJpaImpl implements OrderService {
                     orderIds);
             tableService.update(tableId, updatedTable);
         });
-    }
-
-    @Override
-    public Optional<ProductCustomizerI18n> findI18nById(String id) {
-        return Optional.empty();
     }
 
     @Override

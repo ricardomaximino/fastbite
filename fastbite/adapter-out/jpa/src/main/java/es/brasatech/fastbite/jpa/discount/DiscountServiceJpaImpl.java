@@ -1,15 +1,12 @@
 package es.brasatech.fastbite.jpa.discount;
 
 import es.brasatech.fastbite.application.discount.DiscountService;
-import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.domain.discount.DiscountRule;
-import es.brasatech.fastbite.domain.discount.DiscountRuleI18n;
 import es.brasatech.fastbite.domain.discount.DiscountScope;
 import es.brasatech.fastbite.domain.discount.DiscountType;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
-import es.brasatech.fastbite.jpa.i18n.Translations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -26,7 +23,6 @@ import java.util.*;
 public class DiscountServiceJpaImpl implements DiscountService {
 
     private final DiscountRuleJpaRepository repository;
-    private final I18nConfig i18nConfig;
     private final OrderService orderService;
 
     @Override
@@ -78,41 +74,6 @@ public class DiscountServiceJpaImpl implements DiscountService {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Optional<DiscountRuleI18n> findI18nById(String id) {
-        return repository.findById(id).map(entity -> {
-            return new DiscountRuleI18n(
-                entity.getId(),
-                Translations.toI18nField(entity.getTranslations(), "name", i18nConfig.getDefaultLanguage(), entity.getName()),
-                entity.getScope(),
-                entity.getType(),
-                entity.getValue(),
-                entity.getMinSubtotal(),
-                entity.getCouponCode(),
-                entity.isActive(),
-                entity.isAccumulative(),
-                entity.isApplyOnCounter()
-            );
-        });
-    }
-
-    @Override
-    public void updateI18n(String id, DiscountRuleI18n i18n) {
-        repository.findById(id).ifPresent(entity -> {
-            String defaultLang = i18nConfig.getDefaultLanguage();
-            entity.setName(i18n.name().getDefault(defaultLang));
-            entity.setScope(i18n.scope());
-            entity.setType(i18n.type());
-            entity.setValue(i18n.value());
-            entity.setMinSubtotal(i18n.minSubtotal());
-            entity.setCouponCode(i18n.couponCode());
-            entity.setActive(i18n.active());
-            entity.setAccumulative(i18n.accumulative());
-            entity.setApplyOnCounter(i18n.applyOnCounter());
-            entity.setTranslations(Translations.of(defaultLang, Map.of("name", i18n.name())));
-        });
     }
 
     @Override

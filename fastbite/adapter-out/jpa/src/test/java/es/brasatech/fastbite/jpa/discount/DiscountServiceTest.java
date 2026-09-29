@@ -29,7 +29,7 @@ class DiscountServiceTest {
     void setUp() {
         repository = Mockito.mock(DiscountRuleJpaRepository.class);
         orderService = Mockito.mock(OrderService.class);
-        discountService = new DiscountServiceJpaImpl(repository, null, orderService);
+        discountService = new DiscountServiceJpaImpl(repository, orderService);
     }
 
     @Test

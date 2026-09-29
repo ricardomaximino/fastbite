@@ -1,7 +1,6 @@
 package es.brasatech.fastbite.application.discount;
 
 import es.brasatech.fastbite.domain.discount.DiscountRule;
-import es.brasatech.fastbite.domain.discount.DiscountRuleI18n;
 import es.brasatech.fastbite.domain.order.CartItem;
 
 import java.math.BigDecimal;
@@ -18,10 +17,6 @@ public interface DiscountService {
     Optional<DiscountRule> update(String id, DiscountRule rule);
 
     boolean delete(String id);
-
-    Optional<DiscountRuleI18n> findI18nById(String id);
-
-    void updateI18n(String id, DiscountRuleI18n i18n);
 
     /**
      * Calculates the total discount reduction based on cart items, coupon validation,

@@ -2,22 +2,25 @@ package es.brasatech.fastbite.jpa.tenant;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.domain.I18nField;
+import es.brasatech.fastbite.domain.TranslatableText;
+import es.brasatech.fastbite.domain.TranslatableType;
 import es.brasatech.fastbite.domain.customization.CustomizationDto;
-import es.brasatech.fastbite.domain.customization.CustomizationI18n;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
-import es.brasatech.fastbite.domain.customization.CustomizationOptionI18n;
 import es.brasatech.fastbite.domain.product.ProductDto;
-import es.brasatech.fastbite.domain.product.ProductI18n;
 import es.brasatech.fastbite.domain.tenant.TenantContext;
 import es.brasatech.fastbite.jpa.customization.CustomizationJpaRepository;
 import es.brasatech.fastbite.jpa.customization.CustomizationServiceJpaImpl;
+import es.brasatech.fastbite.jpa.discount.DiscountRuleJpaRepository;
 import es.brasatech.fastbite.jpa.group.GroupJpaRepository;
 import es.brasatech.fastbite.jpa.product.ProductJpaRepository;
+import es.brasatech.fastbite.jpa.i18n.TranslationServiceJpaImpl;
 import es.brasatech.fastbite.jpa.product.ProductServiceJpaImpl;
+import es.brasatech.fastbite.jpa.table.TableJpaRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -30,6 +33,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -53,6 +57,10 @@ class TranslationStorageIntegrationTest {
     @Autowired
     private GroupJpaRepository groupRepository;
     @Autowired
+    private TableJpaRepository tableRepository;
+    @Autowired
+    private DiscountRuleJpaRepository discountRepository;
+    @Autowired
     private TransactionTemplate tx;
     @Autowired
     private DataSource dataSource;
@@ -62,6 +70,18 @@ class TranslationStorageIntegrationTest {
     @AfterEach
     void tearDown() {
         TenantContext.clear();
+        LocaleContextHolder.resetLocaleContext();
+    }
+
+    private TranslationServiceJpaImpl translations() {
+        return new TranslationServiceJpaImpl(groupRepository, productRepository, customizationRepository,
+                tableRepository, discountRepository, i18nConfig);
+    }
+
+    /** Reads as a guest browsing in the given language would. */
+    private <T> T inLanguage(String language, String tenant, Supplier<T> work) {
+        LocaleContextHolder.setLocale(Locale.of(language));
+        return inTenant(tenant, work);
     }
 
     private <T> T inTenant(String tenant, Supplier<T> work) {
@@ -80,21 +100,24 @@ class TranslationStorageIntegrationTest {
 
         String id = inTenant("i18nproducts", () -> service.create(
                 new ProductDto(null, "Kebab", BigDecimal.TEN, "Beef kebab", "/k.webp", Set.of(), true)).id());
-        inTenant("i18nproducts", () -> service.updateI18n(id, new ProductI18n(id, i18n("Kebab", "Kebab de ternera"),
-                BigDecimal.TEN, i18n("Beef kebab", "Kebab de ternera con salsa"), "/k.webp", Set.of(), true)));
+        inTenant("i18nproducts", () -> translations().saveTexts(TranslatableType.PRODUCT, id, Map.of(
+                "name", i18n("Kebab", "Kebab de ternera"),
+                "description", i18n("Beef kebab", "Kebab de ternera con salsa"))));
 
-        assertThat(inTenant("i18nproducts", () -> service.findByIdInLocale(id, "es")).orElseThrow().name())
+        assertThat(inLanguage("es", "i18nproducts", () -> service.findById(id)).orElseThrow().name())
                 .isEqualTo("Kebab de ternera");
-        assertThat(inTenant("i18nproducts", () -> service.findByIdInLocale(id, "pt")).orElseThrow().name())
+        assertThat(inLanguage("pt", "i18nproducts", () -> service.findById(id)).orElseThrow().name())
                 .as("missing language falls back to the default").isEqualTo("Kebab");
 
         // A plain back-office edit changes the default-language texts only
         inTenant("i18nproducts", () -> service.update(id,
                 new ProductDto(id, "Kebab XL", BigDecimal.valueOf(12), "Big beef kebab", "/k.webp", Set.of(), true)));
 
-        ProductI18n stored = inTenant("i18nproducts", () -> service.findI18nById(id)).orElseThrow();
-        assertThat(stored.name().getAll()).isEqualTo(Map.of("en", "Kebab XL", "es", "Kebab de ternera"));
-        assertThat(stored.description().get("es", "en")).isEqualTo("Kebab de ternera con salsa");
+        List<TranslatableText> stored = inTenant("i18nproducts",
+                () -> translations().findTexts(TranslatableType.PRODUCT, id)).orElseThrow();
+        assertThat(stored).extracting(TranslatableText::key).containsExactly("name", "description");
+        assertThat(stored.get(0).value().getAll()).isEqualTo(Map.of("en", "Kebab XL", "es", "Kebab de ternera"));
+        assertThat(stored.get(1).value().get("es", "en")).isEqualTo("Kebab de ternera con salsa");
     }
 
     @Test
@@ -106,19 +129,41 @@ class TranslationStorageIntegrationTest {
                 new CustomizationOptionDto(null, "Spicy", BigDecimal.ZERO, false, 0));
 
         String id = inTenant("i18noptions", () -> service.create(new CustomizationDto(null, "Sauce", "radio", options, 0)).id());
-        inTenant("i18noptions", () -> service.updateI18n(id, new CustomizationI18n(id, i18n("Sauce", "Salsa"), "radio", List.of(
-                new CustomizationOptionI18n(id + "-opt-0", i18n("Garlic", "Ajo"), BigDecimal.ZERO, true, 0),
-                new CustomizationOptionI18n(id + "-opt-1", i18n("Spicy", "Picante"), BigDecimal.ZERO, false, 0)), 0)));
+        List<TranslatableText> texts = inTenant("i18noptions",
+                () -> translations().findTexts(TranslatableType.CUSTOMIZATION, id)).orElseThrow();
+        assertThat(texts).extracting(TranslatableText::key)
+                .containsExactly("name", "option_" + id + "-opt-0", "option_" + id + "-opt-1");
+        inTenant("i18noptions", () -> translations().saveTexts(TranslatableType.CUSTOMIZATION, id, Map.of(
+                "name", i18n("Sauce", "Salsa"),
+                "option_" + id + "-opt-0", i18n("Garlic", "Ajo"),
+                "option_" + id + "-opt-1", i18n("Spicy", "Picante"))));
 
         // Plain edit: options are recreated, e.g. with a new price
         inTenant("i18noptions", () -> service.update(id, new CustomizationDto(id, "Sauce", "radio", List.of(
                 new CustomizationOptionDto(id + "-opt-0", "Garlic", BigDecimal.ONE, true, 0),
                 new CustomizationOptionDto(id + "-opt-1", "Spicy", BigDecimal.ONE, false, 0)), 0)));
 
-        CustomizationDto spanish = inTenant("i18noptions", () -> service.findByIdInLocale(id, "es")).orElseThrow();
+        CustomizationDto spanish = inLanguage("es", "i18noptions", () -> service.findById(id)).orElseThrow();
         assertThat(spanish.name()).isEqualTo("Salsa");
         assertThat(spanish.options()).extracting(CustomizationOptionDto::name).containsExactly("Ajo", "Picante");
         assertThat(spanish.options()).allSatisfy(option -> assertThat(option.price()).isEqualByComparingTo(BigDecimal.ONE));
+    }
+
+    @Test
+    void savingSomeTextsKeepsTheOthersAndUnknownItemsAreReported() {
+        provisioner.provisionTenant("i18npartial");
+        var service = new ProductServiceJpaImpl(productRepository, i18nConfig);
+        String id = inTenant("i18npartial", () -> service.create(
+                new ProductDto(null, "Kebab", BigDecimal.TEN, "Beef kebab", "/k.webp", Set.of(), true)).id());
+
+        inTenant("i18npartial", () -> translations().saveTexts(TranslatableType.PRODUCT, id,
+                Map.of("name", i18n("Kebab", "Kebab ES"))));
+
+        assertThat(inLanguage("es", "i18npartial", () -> service.findById(id)).orElseThrow().description())
+                .isEqualTo("Beef kebab");
+        assertThat(inTenant("i18npartial", () -> translations().findTexts(TranslatableType.GROUP, "missing"))).isEmpty();
+        assertThat(inTenant("i18npartial", () -> translations().saveTexts(TranslatableType.TABLE, "missing", Map.of())))
+                .isFalse();
     }
 
     @Test

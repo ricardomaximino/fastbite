@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  */
 @Entity(name = "Customizations")
 @Table(name = "customizations")
-public class CustomizationEntity {
+public class CustomizationEntity implements Translatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -120,10 +121,12 @@ public class CustomizationEntity {
         this.usageCount = usageCount;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

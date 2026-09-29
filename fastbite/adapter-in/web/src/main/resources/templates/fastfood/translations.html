@@ -17,18 +17,11 @@
             <div>
                 <h2><i class="fas fa-language me-2"></i>Manage Translations</h2>
                 <p class="text-muted mb-0">
-                    <span th:if="${entityType == 'group'}">Group: <span
-                            th:text="${group.name().getDefault(defaultLanguage)}"></span></span>
-                    <span th:if="${entityType == 'product'}">Product: <span
-                            th:text="${product.name().getDefault(defaultLanguage)}"></span></span>
-                    <span th:if="${entityType == 'customization'}">Customization: <span
-                            th:text="${customization.name().getDefault(defaultLanguage)}"></span></span>
-                    <span th:if="${entityType == 'table'}">Table: <span
-                            th:text="${table.name().getDefault(defaultLanguage)}"></span></span>
+                    <span th:text="${typeLabel}">Product</span>: <span th:text="${title}"></span>
                 </p>
             </div>
             <div>
-                <a th:href="${tenantId != null ? '/' + tenantId + '/backoffice' : '/backoffice'}" class="btn btn-secondary">
+                <a th:href="${backOfficeUrl}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Back to BackOffice
                 </a>
             </div>
@@ -60,9 +53,9 @@
             </small>
         </div>
 
-        <!-- Translation Grid for Groups -->
-        <div th:if="${entityType == 'group'}" class="translation-grid">
-            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/groups/' + entityId : '/backoffice/translations/groups/' + entityId}" method="post">
+        <!-- Translation Grid: one row per text, one column per language -->
+        <div class="translation-grid">
+            <form th:action="${formAction}" method="post">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -73,183 +66,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Name Field -->
-                        <tr>
-                            <td class="field-label">Name</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'name_' + ${locale}"
-                                    th:value="${group.name().getAll().get(locale)}"
-                                    class="form-control translation-input"
-                                    th:placeholder="'Enter name in ' + ${locale}">
-                            </td>
-                        </tr>
-                        <!-- Description Field -->
-                        <tr>
-                            <td class="field-label">Description</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <textarea th:name="'description_' + ${locale}"
-                                    th:text="${group.description().getAll().get(locale)}"
-                                    class="form-control translation-input" rows="2"
-                                    th:placeholder="'Enter description in ' + ${locale}">
-                        </textarea>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Save Translations
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Translation Grid for Products -->
-        <div th:if="${entityType == 'product'}" class="translation-grid">
-            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/products/' + entityId : '/backoffice/translations/products/' + entityId}" method="post">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="field-label">Field</th>
-                            <th th:each="locale : ${availableLocales}" th:text="${locale}"
-                                th:class="${locale == defaultLanguage} ? 'locale-header default-locale' : 'locale-header'">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Name Field -->
-                        <tr>
-                            <td class="field-label">Name</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'name_' + ${locale}"
-                                    th:value="${product.name().getAll().get(locale)}"
-                                    class="form-control translation-input"
-                                    th:placeholder="'Enter name in ' + ${locale}">
-                            </td>
-                        </tr>
-                        <!-- Description Field -->
-                        <tr>
-                            <td class="field-label">Description</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <textarea th:name="'description_' + ${locale}"
-                                    th:text="${product.description().getAll().get(locale)}"
-                                    class="form-control translation-input" rows="2"
-                                    th:placeholder="'Enter description in ' + ${locale}">
-                        </textarea>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Save Translations
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Translation Grid for Customizations -->
-        <div th:if="${entityType == 'customization'}" class="translation-grid">
-            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/customizations/' + entityId : '/backoffice/translations/customizations/' + entityId}" method="post">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="field-label">Field</th>
-                            <th th:each="locale : ${availableLocales}" th:text="${locale}"
-                                th:class="${locale == defaultLanguage} ? 'locale-header default-locale' : 'locale-header'">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Customization Name Field -->
-                        <tr>
-                            <td class="field-label">Name</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'name_' + ${locale}"
-                                    th:value="${customization.name().getAll().get(locale)}"
-                                    class="form-control translation-input"
-                                    th:placeholder="'Enter name in ' + ${locale}">
-                            </td>
-                        </tr>
-                        <!-- Options -->
-                        <tr th:each="option, iterStat : ${customization.options()}">
+                        <tr th:each="text, iterStat : ${texts}">
                             <td class="field-label">
-                                Option <span th:text="${iterStat.index + 1}"></span>:
-                                <span th:text="${option.name().getDefault(defaultLanguage)}"></span>
-                                <br>
-                                <small class="text-muted" th:text="'ID: ' + ${option.id()}"></small>
+                                <th:block th:switch="${text.kind()}">
+                                    <span th:case="'description'">Description</span>
+                                    <span th:case="'option'">
+                                        Option <span th:text="${iterStat.index}"></span>:
+                                        <span th:text="${text.value().get(defaultLanguage, defaultLanguage)}"></span>
+                                        <br>
+                                        <small class="text-muted" th:text="'ID: ' + ${text.key().substring(7)}"></small>
+                                    </span>
+                                    <span th:case="*">Name</span>
+                                </th:block>
                             </td>
                             <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'option_' + ${option.id()} + '_' + ${locale}"
-                                    th:value="${option.name().getAll().get(locale)}"
+                                <textarea th:if="${text.kind() == 'description'}" th:name="${text.key()} + '_' + ${locale}"
+                                    th:text="${text.value().getAll().get(locale)}"
+                                    class="form-control translation-input" rows="2"
+                                    th:placeholder="'Enter description in ' + ${locale}"></textarea>
+                                <input th:unless="${text.kind() == 'description'}" type="text"
+                                    th:name="${text.key()} + '_' + ${locale}"
+                                    th:value="${text.value().getAll().get(locale)}"
                                     class="form-control translation-input"
-                                    th:placeholder="'Enter option name in ' + ${locale}">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Save Translations
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Translation Grid for Tables -->
-        <div th:if="${entityType == 'table'}" class="translation-grid">
-            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/tables/' + entityId : '/backoffice/translations/tables/' + entityId}" method="post">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="field-label">Field</th>
-                            <th th:each="locale : ${availableLocales}" th:text="${locale}"
-                                th:class="${locale == defaultLanguage} ? 'locale-header default-locale' : 'locale-header'">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Name Field -->
-                        <tr>
-                            <td class="field-label">Table Name</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'name_' + ${locale}"
-                                    th:value="${table.name().getAll().get(locale)}"
-                                    class="form-control translation-input"
-                                    th:placeholder="'Enter table name in ' + ${locale}">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Save Translations
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Translation Grid for Discounts -->
-        <div th:if="${entityType == 'discount'}" class="translation-grid">
-            <form th:action="${tenantId != null ? '/' + tenantId + '/backoffice/translations/discounts/' + entityId : '/backoffice/translations/discounts/' + entityId}" method="post">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="field-label">Field</th>
-                            <th th:each="locale : ${availableLocales}" th:text="${locale}"
-                                th:class="${locale == defaultLanguage} ? 'locale-header default-locale' : 'locale-header'">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Name Field -->
-                        <tr>
-                            <td class="field-label">Discount Name</td>
-                            <td th:each="locale : ${availableLocales}">
-                                <input type="text" th:name="'name_' + ${locale}"
-                                    th:value="${discount.name().getAll().get(locale)}"
-                                    class="form-control translation-input"
-                                    th:placeholder="'Enter discount name in ' + ${locale}">
+                                    th:placeholder="'Enter ' + (${text.kind() == 'option'} ? 'option name' : 'name') + ' in ' + ${locale}">
                             </td>
                         </tr>
                     </tbody>

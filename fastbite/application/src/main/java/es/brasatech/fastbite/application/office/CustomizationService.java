@@ -1,7 +1,6 @@
 package es.brasatech.fastbite.application.office;
 
 import es.brasatech.fastbite.domain.customization.CustomizationDto;
-import es.brasatech.fastbite.domain.customization.CustomizationI18n;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,26 +41,4 @@ public interface CustomizationService {
      * Clear all customizations (for testing)
      */
     void clear();
-
-    // ===== I18n Methods =====
-
-    /**
-     * Get customization with i18n data (all translations)
-     */
-    Optional<CustomizationI18n> findI18nById(String id);
-
-    /**
-     * Update customization translations
-     */
-    Optional<CustomizationI18n> updateI18n(String id, CustomizationI18n customizationI18n);
-
-    /**
-     * Get customization in specific locale with fallback to default
-     */
-    Optional<CustomizationDto> findByIdInLocale(String id, String locale);
-
-    /**
-     * Get all customizations in specific locale with fallback to default
-     */
-    List<CustomizationDto> findAllInLocale(String locale);
 }

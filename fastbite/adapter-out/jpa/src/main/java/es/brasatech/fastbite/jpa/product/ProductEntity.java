@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.Map;
  */
 @Entity(name = "Product")
 @Table(name = "products")
-public class ProductEntity {
+public class ProductEntity implements Translatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -116,10 +117,12 @@ public class ProductEntity {
         this.active = active;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

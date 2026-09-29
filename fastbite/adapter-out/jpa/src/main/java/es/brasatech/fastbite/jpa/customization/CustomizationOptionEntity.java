@@ -3,6 +3,7 @@ package es.brasatech.fastbite.jpa.customization;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.Map;
         @Index(name = "idx_option_customization", columnList = "customization_id"),
         @Index(name = "idx_option_order", columnList = "customization_id, option_index")
 })
-public class CustomizationOptionEntity {
+public class CustomizationOptionEntity implements Translatable {
 
     @Id
     private String id; // Format: "customizationId-opt-index"
@@ -117,10 +118,12 @@ public class CustomizationOptionEntity {
         this.optionIndex = optionIndex;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

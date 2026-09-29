@@ -5,13 +5,14 @@ import es.brasatech.fastbite.domain.discount.DiscountType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity(name = "DiscountRule")
 @Table(name = "discount_rules")
-public class DiscountRuleEntity {
+public class DiscountRuleEntity implements Translatable {
 
     @Id
     private String id;
@@ -130,10 +131,12 @@ public class DiscountRuleEntity {
         this.applyOnCounter = applyOnCounter;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

@@ -1,18 +1,14 @@
 package es.brasatech.fastbite.jpa.table;
 
-import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.table.Table;
-import es.brasatech.fastbite.domain.table.TableI18n;
 import es.brasatech.fastbite.domain.table.TableStatus;
-import es.brasatech.fastbite.jpa.i18n.Translations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -21,7 +17,6 @@ import java.util.Optional;
 @Transactional
 public class TableServiceJpaImpl implements TableService {
     private final TableJpaRepository repository;
-    private final I18nConfig i18nConfig;
     private final es.brasatech.fastbite.jpa.order.OrderJpaRepository orderRepository;
     private final es.brasatech.fastbite.application.table.TableSignatureUtil tableSignatureUtil;
 
@@ -68,30 +63,6 @@ public class TableServiceJpaImpl implements TableService {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Optional<TableI18n> findI18nById(String id) {
-        return repository.findById(id).map(entity -> new TableI18n(
-                entity.getId(),
-                Translations.toI18nField(entity.getTranslations(), "name", i18nConfig.getDefaultLanguage(), entity.getName()),
-                entity.getSeats(),
-                entity.getStatus(),
-                entity.isActive()));
-    }
-
-    @Override
-    public void updateI18n(String id, TableI18n i18n) {
-        repository.findById(id).ifPresent(entity -> {
-            String defaultLang = i18nConfig.getDefaultLanguage();
-
-            // Update main entity with default language value
-            entity.setName(i18n.name().getDefault(defaultLang));
-            entity.setSeats(i18n.seats());
-            entity.setStatus(i18n.status());
-            entity.setActive(i18n.active());
-            entity.setTranslations(Translations.of(defaultLang, Map.of("name", i18n.name())));
-        });
     }
 
     @Override

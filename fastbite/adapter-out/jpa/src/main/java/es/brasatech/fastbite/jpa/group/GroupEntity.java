@@ -3,6 +3,7 @@ package es.brasatech.fastbite.jpa.group;
 import jakarta.persistence.*;
 
 import java.util.List;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
  */
 @Entity(name = "Group")
 @Table(name = "groups")
-public class GroupEntity {
+public class GroupEntity implements Translatable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -89,10 +90,12 @@ public class GroupEntity {
         this.products = products;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

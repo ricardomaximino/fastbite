@@ -2,13 +2,14 @@ package es.brasatech.fastbite.jpa.table;
 
 import jakarta.persistence.*;
 import es.brasatech.fastbite.domain.table.TableStatus;
+import es.brasatech.fastbite.jpa.i18n.Translatable;
 import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity(name = "DiningTable")
 @Table(name = "dining_tables")
-public class TableEntity {
+public class TableEntity implements Translatable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -76,10 +77,12 @@ public class TableEntity {
         this.orderIds = orderIds;
     }
 
+    @Override
     public Map<String, Map<String, String>> getTranslations() {
         return translations;
     }
 
+    @Override
     public void setTranslations(Map<String, Map<String, String>> translations) {
         this.translations = translations != null ? translations : new HashMap<>();
     }

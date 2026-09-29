@@ -3,7 +3,6 @@ package es.brasatech.fastbite.jpa.product;
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.office.ProductService;
 import es.brasatech.fastbite.domain.product.ProductDto;
-import es.brasatech.fastbite.domain.product.ProductI18n;
 import es.brasatech.fastbite.jpa.i18n.Translations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,22 +30,13 @@ public class ProductServiceJpaImpl implements ProductService {
 
     @Override
     public List<ProductDto> findAll() {
-        return findAllInLocale(LocaleContextHolder.getLocale().getLanguage());
+        String language = LocaleContextHolder.getLocale().getLanguage();
+        return repository.findAll().stream().map(entity -> toDto(entity, language)).toList();
     }
 
     @Override
     public Optional<ProductDto> findById(String id) {
-        return findByIdInLocale(id, LocaleContextHolder.getLocale().getLanguage());
-    }
-
-    @Override
-    public List<ProductDto> findAllInLocale(String locale) {
-        return repository.findAll().stream().map(entity -> toDto(entity, locale)).toList();
-    }
-
-    @Override
-    public Optional<ProductDto> findByIdInLocale(String id, String locale) {
-        return repository.findById(id).map(entity -> toDto(entity, locale));
+        return repository.findById(id).map(entity -> toDto(entity, LocaleContextHolder.getLocale().getLanguage()));
     }
 
     @Override
@@ -84,27 +73,6 @@ public class ProductServiceJpaImpl implements ProductService {
         repository.deleteAll();
     }
 
-    @Override
-    public Optional<ProductI18n> findI18nById(String id) {
-        return repository.findById(id).map(this::toI18nDto);
-    }
-
-    @Override
-    public Optional<ProductI18n> updateI18n(String id, ProductI18n productI18n) {
-        String defaultLang = i18nConfig.getDefaultLanguage();
-        return repository.findById(id).map(entity -> {
-            entity.setName(productI18n.name().get(defaultLang, defaultLang));
-            entity.setPrice(productI18n.price());
-            entity.setDescription(productI18n.description().get(defaultLang, defaultLang));
-            entity.setImage(productI18n.image());
-            entity.setCustomizations(customizationsOf(productI18n.customizations()));
-            entity.setActive(productI18n.active());
-            entity.setTranslations(Translations.of(defaultLang,
-                    Map.of("name", productI18n.name(), "description", productI18n.description())));
-            return toI18nDto(repository.save(entity));
-        });
-    }
-
     private ProductDto toDto(ProductEntity entity, String language) {
         var translations = entity.getTranslations();
         return new ProductDto(
@@ -112,19 +80,6 @@ public class ProductServiceJpaImpl implements ProductService {
                 Translations.get(translations, language, "name", entity.getName()),
                 entity.getPrice(),
                 Translations.get(translations, language, "description", entity.getDescription()),
-                entity.getImage(),
-                entity.getCustomizations(),
-                entity.isActive());
-    }
-
-    private ProductI18n toI18nDto(ProductEntity entity) {
-        String defaultLang = i18nConfig.getDefaultLanguage();
-        var translations = entity.getTranslations();
-        return new ProductI18n(
-                entity.getId(),
-                Translations.toI18nField(translations, "name", defaultLang, entity.getName()),
-                entity.getPrice(),
-                Translations.toI18nField(translations, "description", defaultLang, entity.getDescription()),
                 entity.getImage(),
                 entity.getCustomizations(),
                 entity.isActive());
