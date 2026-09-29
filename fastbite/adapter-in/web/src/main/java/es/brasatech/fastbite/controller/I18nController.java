@@ -6,6 +6,7 @@ import es.brasatech.fastbite.application.office.GroupService;
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.office.ProductService;
 import es.brasatech.fastbite.application.table.TableService;
+import es.brasatech.fastbite.config.TenantRoutingResolver;
 import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.customization.CustomizationI18n;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionI18n;
@@ -17,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
@@ -26,7 +29,8 @@ import java.util.Map;
  * Handles translation grid UI and form submissions.
  */
 @Controller
-@RequestMapping("/backoffice/translations")
+// Path-style tenant pages (/{tenantId}/backoffice) link here with their prefix
+@RequestMapping({"/backoffice/translations", "/{tenantId}/backoffice/translations"})
 @RequiredArgsConstructor
 public class I18nController {
 
@@ -77,7 +81,7 @@ public class I18nController {
                 groupService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
+                return redirectToBackOffice();
         }
 
         // ===== Product Translations =====
@@ -121,7 +125,7 @@ public class I18nController {
                 productService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
+                return redirectToBackOffice();
         }
 
         // ===== Customization Translations =====
@@ -175,7 +179,7 @@ public class I18nController {
                 customizationService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
+                return redirectToBackOffice();
         }
 
         // ===== Table Translations =====
@@ -215,7 +219,7 @@ public class I18nController {
                 tableService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
+                return redirectToBackOffice();
         }
 
         // ===== Discount Translations =====
@@ -260,10 +264,17 @@ public class I18nController {
                 discountService.updateI18n(id, updated);
 
                 redirectAttributes.addFlashAttribute("message", "Translations saved successfully!");
-                return "redirect:/" + es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant() + "/backoffice";
+                return redirectToBackOffice();
         }
 
         // ===== Helper Methods =====
+
+        /** Back to the back office of the current tenant, on its host or under its path prefix. */
+        private static String redirectToBackOffice() {
+                Object prefix = RequestContextHolder.currentRequestAttributes()
+                                .getAttribute(TenantRoutingResolver.TENANT_URL_PREFIX, RequestAttributes.SCOPE_REQUEST);
+                return "redirect:" + (prefix != null ? prefix : "") + "/backoffice";
+        }
 
         /**
          * Parse form data for a specific field across all locales.
