@@ -1,70 +1,153 @@
 package es.brasatech.fastbite.config;
 
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
-import lombok.RequiredArgsConstructor;
+import es.brasatech.fastbite.domain.tenant.TenantLocation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ConcurrentLruCache;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.net.URI;
+import java.util.Set;
+import java.util.regex.Pattern;
 
+/**
+ * The single place that decides which restaurant (tenant) a request is for.
+ * Sources, in order: path prefix ({@code /kebab/menu}), host (subdomain or custom domain),
+ * {@code ?tenantId=}, and the Referer's path prefix (AJAX calls from path-prefixed pages).
+ * <p>
+ * The tenant only selects data; it grants nothing. Access is decided by
+ * {@link es.brasatech.fastbite.security.TenantAccessFilter}.
+ */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class TenantRoutingResolver {
 
-    private final TenantLocationService tenantLocationService;
-    private final Map<String, String> domainCache = new ConcurrentHashMap<>();
+    /** Request attribute holding the URL prefix for tenant links: "" on tenant hosts, "/{tenantId}" otherwise. */
+    public static final String TENANT_URL_PREFIX = "tenantUrlPrefix";
 
+    private static final Pattern TENANT_ID = Pattern.compile("^[a-zA-Z0-9]+$");
+
+    /** Top-level paths that belong to the platform, never to a tenant. */
+    private static final Set<String> RESERVED = Set.of(
+            "signup", "login", "logout", "owner", "menu", "dashboard", "counter", "backoffice",
+            "api", "css", "js", "images", "webjars", "stripe", "error", "actuator", "appspecific");
+
+    private static final int CUSTOM_DOMAIN_CACHE_SIZE = 1024;
+
+    private final TenantLocationService tenantLocationService;
+    private final ConcurrentLruCache<String, String> customDomainCache;
+
+    public TenantRoutingResolver(TenantLocationService tenantLocationService) {
+        this.tenantLocationService = tenantLocationService;
+        // Bounded: the key is the client-controlled Host header. "" caches "no tenant".
+        this.customDomainCache = new ConcurrentLruCache<>(CUSTOM_DOMAIN_CACHE_SIZE, this::lookupCustomDomain);
+    }
+
+    public record ResolvedTenant(String id, boolean fromHost) {
+        public String urlPrefix() {
+            return fromHost ? "" : "/" + id;
+        }
+    }
+
+    public ResolvedTenant resolve(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+
+        String pathTenant = firstSegment(path);
+        if (isTenantSegment(pathTenant)) {
+            return new ResolvedTenant(pathTenant, false);
+        }
+
+        String hostTenant = resolveTenantId(request.getHeader("Host"));
+        if (hostTenant != null) {
+            return new ResolvedTenant(hostTenant, true);
+        }
+
+        // Query string only: form fields named tenantId are data (e.g. the restaurant being created at signup).
+        String paramTenant = queryParameter(request, "tenantId");
+        if (paramTenant != null && TENANT_ID.matcher(paramTenant).matches()) {
+            return new ResolvedTenant(paramTenant, false);
+        }
+
+        // Entry pages must not inherit a tenant from wherever the visitor came from.
+        if (!isEntryPage(path)) {
+            String refererTenant = firstSegment(refererPath(request.getHeader("Referer")));
+            if (isTenantSegment(refererTenant)) {
+                return new ResolvedTenant(refererTenant, false);
+            }
+        }
+        return null;
+    }
+
+    /** Tenant from a Host header: {@code {tenant}.localhost}, {@code {tenant}.fastbite.com} or a bound custom domain. */
     public String resolveTenantId(String host) {
         if (host == null) {
             return null;
         }
         String cleanHost = host.split(":")[0].toLowerCase();
-        
-        // 1. IP Addresses check
-        if (cleanHost.matches("^[0-9\\.]+$")) {
+
+        if (cleanHost.matches("^[0-9.]+$")) {
             return null;
         }
 
-        // 2. Platform domains
         if (cleanHost.endsWith(".localhost") || cleanHost.endsWith(".fastbite.com")) {
-            String[] parts = cleanHost.split("\\.");
-            if (parts.length > 1) {
-                String subdomain = parts[0];
-                if (!"www".equals(subdomain) && !"api".equals(subdomain)) {
-                    return subdomain;
-                }
-            }
-            return null;
+            String subdomain = cleanHost.substring(0, cleanHost.indexOf('.'));
+            return "www".equals(subdomain) || "api".equals(subdomain) ? null : subdomain;
         }
 
-        // 3. Custom Domain - Cache check first
-        if (domainCache.containsKey(cleanHost)) {
-            String cached = domainCache.get(cleanHost);
-            return cached.isEmpty() ? null : cached;
-        }
-
-        // 4. Custom Domain - Database lookup fallback
         try {
-            log.info("Resolving custom domain from database: {}", cleanHost);
-            String tenantId = tenantLocationService.getLocationByCustomDomain(cleanHost)
-                    .map(loc -> loc.tenantId())
-                    .orElse(null);
-            
-            // Cache the result (using empty string to represent null/no tenant)
-            domainCache.put(cleanHost, tenantId != null ? tenantId : "");
-            return tenantId;
-        } catch (Exception e) {
-            log.error("Failed to resolve tenant by custom domain: " + cleanHost, e);
+            String tenantId = customDomainCache.get(cleanHost);
+            return tenantId.isEmpty() ? null : tenantId;
+        } catch (RuntimeException e) {
+            log.error("Failed to resolve tenant by custom domain: {}", cleanHost, e);
             return null;
         }
     }
 
     public void evictCache(String customDomain) {
         if (customDomain != null) {
-            domainCache.remove(customDomain.trim().toLowerCase());
-            log.info("Evicted domain cache for: {}", customDomain);
+            customDomainCache.remove(customDomain.trim().toLowerCase());
+        }
+    }
+
+    /** True if the path segment is a tenant prefix rather than a platform path. */
+    public static boolean isTenantSegment(String segment) {
+        return segment != null && TENANT_ID.matcher(segment).matches() && !RESERVED.contains(segment);
+    }
+
+    public static String firstSegment(String path) {
+        if (path == null || !path.startsWith("/")) {
+            return "";
+        }
+        int end = path.indexOf('/', 1);
+        return end < 0 ? path.substring(1) : path.substring(1, end);
+    }
+
+    private String lookupCustomDomain(String host) {
+        log.info("Resolving custom domain from database: {}", host);
+        return tenantLocationService.getLocationByCustomDomain(host)
+                .map(TenantLocation::tenantId)
+                .orElse("");
+    }
+
+    private static boolean isEntryPage(String path) {
+        return path.equals("/") || path.startsWith("/login") || path.startsWith("/signup") || path.startsWith("/logout");
+    }
+
+    private static String queryParameter(HttpServletRequest request, String name) {
+        String query = request.getQueryString();
+        return query == null ? null : UriComponentsBuilder.newInstance().query(query).build().getQueryParams().getFirst(name);
+    }
+
+    private static String refererPath(String referer) {
+        if (referer == null) {
+            return null;
+        }
+        try {
+            return URI.create(referer).getPath();
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 }

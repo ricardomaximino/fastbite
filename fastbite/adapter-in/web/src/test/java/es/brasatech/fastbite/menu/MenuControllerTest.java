@@ -56,6 +56,9 @@ class MenuControllerTest {
         @MockitoBean
         private es.brasatech.fastbite.application.discount.DiscountService discountService;
 
+        @MockitoBean
+        private es.brasatech.fastbite.application.tenant.TenantLocationService tenantLocationService;
+
         private List<CartItem> testCartItems;
         private MockHttpSession mockSession;
 

@@ -1,19 +1,38 @@
 package es.brasatech.fastbite.security;
 
+import es.brasatech.fastbite.application.tenant.TenantLocationService;
+import es.brasatech.fastbite.config.TenantRoutingResolver;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
+
+import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, TenantLocationService tenantLocationService) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
@@ -41,6 +60,8 @@ public class SecurityConfig {
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())
+                // Roles only count inside the restaurant they belong to; see TenantAccessFilter.
+                .addFilterBefore(new TenantAccessFilter(tenantLocationService), AnonymousAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(new TenantAuthenticationSuccessHandler())
@@ -49,21 +70,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new TenantAuthenticationEntryPoint()))
                 .logout(logout -> logout
-                        .logoutRequestMatcher(request -> {
-                            String path = request.getRequestURI().substring(request.getContextPath().length());
-                            if (!"POST".equalsIgnoreCase(request.getMethod())) {
-                                return false;
-                            }
-                            if (path.equals("/logout")) {
-                                return true;
-                            }
-                            String[] segments = path.split("/");
-                            if (segments.length > 2 && "logout".equals(segments[segments.length - 1])) {
-                                String tenantId = segments[1];
-                                return !es.brasatech.fastbite.config.TenantInterceptor.isReserved(tenantId);
-                            }
-                            return false;
-                        })
+                        .logoutRequestMatcher(SecurityConfig::isLogoutRequest)
                         .logoutSuccessHandler(new TenantLogoutSuccessHandler())
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
@@ -83,83 +90,51 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Custom Entry Point to redirect to /{tenantId}/login instead of global /login
-    private static class TenantAuthenticationEntryPoint implements org.springframework.security.web.AuthenticationEntryPoint {
+    /**
+     * Prefix for links inside the request's tenant: "" on a tenant host, "/{tenantId}" for path-based
+     * tenants, or null outside any tenant. Set by {@link es.brasatech.fastbite.config.TenantContextFilter}.
+     */
+    private static String tenantUrlPrefix(HttpServletRequest request) {
+        return (String) request.getAttribute(TenantRoutingResolver.TENANT_URL_PREFIX);
+    }
+
+    /** POST to /logout or /{tenantId}/logout. */
+    private static boolean isLogoutRequest(HttpServletRequest request) {
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            return false;
+        }
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String first = TenantRoutingResolver.firstSegment(path);
+        return path.equals("/logout") || (TenantRoutingResolver.isTenantSegment(first) && path.equals("/" + first + "/logout"));
+    }
+
+    private static class TenantAuthenticationEntryPoint implements AuthenticationEntryPoint {
         @Override
-        public void commence(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException authException) throws java.io.IOException {
-            String contextPath = request.getContextPath();
-            String host = request.getHeader("Host");
-            boolean hasSubdomain = false;
-            if (host != null) {
-                String cleanHost = host.split(":")[0].toLowerCase();
-                String[] parts = cleanHost.split("\\.");
-                if (cleanHost.endsWith(".localhost")) {
-                    hasSubdomain = parts.length > 1 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
-                } else {
-                    hasSubdomain = parts.length > 2 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
-                }
-            }
-
-            if (hasSubdomain) {
-                response.sendRedirect(contextPath + "/login");
-                return;
-            }
-
-            String uri = request.getRequestURI();
-            String path = uri.substring(contextPath.length());
-            String[] segments = path.split("/");
-            if (segments.length > 1) {
-                String firstSegment = segments[1];
-                if (!es.brasatech.fastbite.config.TenantInterceptor.isReserved(firstSegment)) {
-                    response.sendRedirect(contextPath + "/" + firstSegment + "/login");
-                    return;
-                }
-            }
-            response.sendRedirect(contextPath + "/login");
+        public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
+            String prefix = tenantUrlPrefix(request);
+            response.sendRedirect(request.getContextPath() + (prefix != null ? prefix : "") + "/login");
         }
     }
 
-    // Custom Success Handler to redirect to /{tenantId}/menu after successful login
-    private static class TenantAuthenticationSuccessHandler extends org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler {
+    private static class TenantAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
         @Override
-        public void onAuthenticationSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException, jakarta.servlet.ServletException {
-            String tenantId = (String) request.getAttribute("tenantId");
-            if (tenantId == null) {
-                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
-            }
-            if (tenantId == null) {
-                String path = request.getRequestURI().substring(request.getContextPath().length());
-                String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
-                    tenantId = segments[1];
-                }
-            }
+        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+            String prefix = tenantUrlPrefix(request);
+            boolean owner = authentication.getAuthorities().stream().anyMatch(a -> "ROLE_OWNER".equals(a.getAuthority()));
 
-            String host = request.getHeader("Host");
-            boolean hasSubdomain = false;
-            if (host != null) {
-                String cleanHost = host.split(":")[0].toLowerCase();
-                String[] parts = cleanHost.split("\\.");
-                if (cleanHost.endsWith(".localhost")) {
-                    hasSubdomain = parts.length > 1 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
-                } else {
-                    hasSubdomain = parts.length > 2 && !"www".equals(parts[0]) && !"api".equals(parts[0]);
-                }
-            }
-
-            if (hasSubdomain) {
+            if ("".equals(prefix)) {
                 setDefaultTargetUrl("/menu");
-            } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"))) {
+            } else if (owner) {
                 setDefaultTargetUrl("/owner/console");
-            } else if (tenantId != null) {
-                setDefaultTargetUrl("/" + tenantId + "/menu");
+            } else if (prefix != null) {
+                setDefaultTargetUrl(prefix + "/menu");
             } else {
                 setDefaultTargetUrl("/");
             }
 
-            // Sanitize RequestCache to prevent devtools or background JSON endpoints from capturing post-login redirect target
-            org.springframework.security.web.savedrequest.RequestCache requestCache = new org.springframework.security.web.savedrequest.HttpSessionRequestCache();
-            org.springframework.security.web.savedrequest.SavedRequest savedRequest = requestCache.getRequest(request, response);
+            // Keep devtools or background JSON requests from becoming the post-login redirect target
+            RequestCache requestCache = new HttpSessionRequestCache();
+            SavedRequest savedRequest = requestCache.getRequest(request, response);
             if (savedRequest != null) {
                 String redirectUrl = savedRequest.getRedirectUrl();
                 if (redirectUrl.contains("com.chrome.devtools") || redirectUrl.contains("/appspecific/") || redirectUrl.endsWith(".json") || redirectUrl.contains("/favicon.ico")) {
@@ -171,47 +146,21 @@ public class SecurityConfig {
         }
     }
 
-    // Custom Logout Success Handler to redirect back to /{tenantId}/menu on logout
-    private static class TenantLogoutSuccessHandler implements org.springframework.security.web.authentication.logout.LogoutSuccessHandler {
+    private static class TenantLogoutSuccessHandler implements LogoutSuccessHandler {
         @Override
-        public void onLogoutSuccess(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.Authentication authentication) throws java.io.IOException {
-            String tenantId = (String) request.getAttribute("tenantId");
-            if (tenantId == null) {
-                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
-            }
-            if (tenantId == null) {
-                String path = request.getRequestURI().substring(request.getContextPath().length());
-                String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
-                    tenantId = segments[1];
-                }
-            }
-            if (tenantId != null) {
-                response.sendRedirect(request.getContextPath() + "/" + tenantId + "/menu");
-            } else {
-                response.sendRedirect(request.getContextPath() + "/signup");
-            }
+        public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+            String prefix = tenantUrlPrefix(request);
+            response.sendRedirect(request.getContextPath() + (prefix != null ? prefix + "/menu" : "/signup"));
         }
     }
 
-    // Custom Failure Handler to redirect back to /{tenantId}/login?error on login failure
-    private static class TenantAuthenticationFailureHandler extends org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler {
+    private static class TenantAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         @Override
-        public void onAuthenticationFailure(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, org.springframework.security.core.AuthenticationException exception) throws java.io.IOException, jakarta.servlet.ServletException {
-            String tenantId = (String) request.getAttribute("tenantId");
-            if (tenantId == null) {
-                tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
-            }
-            if (tenantId == null) {
-                String path = request.getRequestURI().substring(request.getContextPath().length());
-                String[] segments = path.split("/");
-                if (segments.length > 1 && !es.brasatech.fastbite.config.TenantInterceptor.isReserved(segments[1])) {
-                    tenantId = segments[1];
-                }
-            }
-            if (tenantId != null) {
+        public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+            String prefix = tenantUrlPrefix(request);
+            if (prefix != null) {
                 saveException(request, exception);
-                getRedirectStrategy().sendRedirect(request, response, "/" + tenantId + "/login?error");
+                getRedirectStrategy().sendRedirect(request, response, prefix + "/login?error");
             } else {
                 setDefaultFailureUrl("/login?error");
                 super.onAuthenticationFailure(request, response, exception);
@@ -220,12 +169,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public org.springframework.session.web.http.CookieSerializer cookieSerializer() {
-        org.springframework.session.web.http.DefaultCookieSerializer serializer = new org.springframework.session.web.http.DefaultCookieSerializer();
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("JSESSIONID");
         // Allows wildcard session cookie sharing (e.g. *.localhost or *.yourdomain.com)
         serializer.setDomainNamePattern("^(?:.+?\\.)?(\\w+\\.\\w+)$");
         return serializer;
     }
 }
-

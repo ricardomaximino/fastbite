@@ -40,9 +40,16 @@ public class OwnerStaffService {
 
     public List<UserDto> createStaff(String ownerUsername, String tenantId, String username, String fullName, String encodedPassword, Role role) {
         checkOwnership(ownerUsername, tenantId);
+        if (role == Role.OWNER) {
+            throw new IllegalArgumentException("Owners are platform accounts and can't be added as staff.");
+        }
         try {
             TenantContext.setCurrentTenant(tenantId);
-            
+            // Saving upserts by username, so an existing name would overwrite that account.
+            if (userService.findByUsername(username).isPresent()) {
+                throw new IllegalArgumentException("Username '" + username + "' is already taken.");
+            }
+
             UserDto newUser = new UserDto(
                     null,
                     username,

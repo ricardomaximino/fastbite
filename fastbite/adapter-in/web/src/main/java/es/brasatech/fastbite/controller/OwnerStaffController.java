@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -18,6 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class OwnerStaffController {
+
+    private static final List<Role> STAFF_ROLES = Arrays.stream(Role.values()).filter(role -> role != Role.OWNER).toList();
 
     private final OwnerStaffService ownerStaffService;
     private final PasswordEncoder passwordEncoder;
@@ -37,7 +40,7 @@ public class OwnerStaffController {
         List<UserDto> users = ownerStaffService.listStaff(ownerUsername, tenantId);
         model.addAttribute("users", users);
         model.addAttribute("tenantId", tenantId);
-        model.addAttribute("roles", Role.values());
+        model.addAttribute("roles", STAFF_ROLES);
         return "fastfood/owner/fragments :: staff-list";
     }
 
@@ -57,7 +60,7 @@ public class OwnerStaffController {
             List<UserDto> users = ownerStaffService.createStaff(ownerUsername, tenantId, username, fullName, encodedPassword, role);
             model.addAttribute("users", users);
             model.addAttribute("tenantId", tenantId);
-            model.addAttribute("roles", Role.values());
+            model.addAttribute("roles", STAFF_ROLES);
             model.addAttribute("success", "User '" + username + "' created successfully!");
         } catch (Exception e) {
             log.error("Failed to create staff user for tenant " + tenantId, e);
@@ -66,7 +69,7 @@ public class OwnerStaffController {
             List<UserDto> users = ownerStaffService.listStaff(ownerUsername, tenantId);
             model.addAttribute("users", users);
             model.addAttribute("tenantId", tenantId);
-            model.addAttribute("roles", Role.values());
+            model.addAttribute("roles", STAFF_ROLES);
         }
         return "fastfood/owner/fragments :: staff-list";
     }
@@ -82,7 +85,7 @@ public class OwnerStaffController {
         List<UserDto> users = ownerStaffService.deleteStaff(ownerUsername, tenantId, userId);
         model.addAttribute("users", users);
         model.addAttribute("tenantId", tenantId);
-        model.addAttribute("roles", Role.values());
+        model.addAttribute("roles", STAFF_ROLES);
         model.addAttribute("success", "User deleted successfully!");
         return "fastfood/owner/fragments :: staff-list";
     }

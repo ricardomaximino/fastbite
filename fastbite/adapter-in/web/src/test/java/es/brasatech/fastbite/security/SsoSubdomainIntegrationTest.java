@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,20 +22,24 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = MenuController.class)
 @DisplayName("SSO Subdomain Integration Tests")
 @ContextConfiguration(classes = {
-        TestConfig.class, 
-        MenuController.class, 
-        SecurityConfig.class, 
+        TestConfig.class,
+        MenuController.class,
+        SecurityConfig.class,
+        TenantRoutingResolver.class,
         es.brasatech.fastbite.config.WebConfig.class
 })
 class SsoSubdomainIntegrationTest {
@@ -59,9 +63,6 @@ class SsoSubdomainIntegrationTest {
     private TenantLocationService tenantLocationService;
 
     @MockitoBean
-    private TenantRoutingResolver tenantRoutingResolver;
-
-    @MockitoBean
     private es.brasatech.fastbite.application.office.UserService userService;
 
     @BeforeEach
@@ -78,39 +79,59 @@ class SsoSubdomainIntegrationTest {
 
         when(menuDataService.buildMenuData(any(Locale.class)))
                 .thenReturn(new MenuData(new HashMap<>(), List.of(), "", dictionary, List.of(), ""));
-
-        // Setup owner check mock
+        when(tenantLocationService.getLocationByCustomDomain(anyString())).thenReturn(Optional.empty());
         when(tenantLocationService.isOwnerOf("kebabowner", "kebab")).thenReturn(true);
-        when(tenantRoutingResolver.resolveTenantId(any())).thenAnswer(invocation -> {
-            String host = invocation.getArgument(0);
-            if (host != null && host.startsWith("kebab.")) {
-                return "kebab";
-            }
-            return null;
-        });
     }
 
+    private static MockHttpSession sessionFor(String username, String homeTenantId, String... roles) {
+        var authorities = AuthorityUtils.createAuthorityList(roles);
+        var user = new TenantUser(username, "hash", true, authorities, homeTenantId);
+        var session = new MockHttpSession();
+        session.setAttribute("SPRING_SECURITY_CONTEXT",
+                new SecurityContextImpl(UsernamePasswordAuthenticationToken.authenticated(user, null, authorities)));
+        return session;
+    }
 
     @Test
-    @DisplayName("Accessing kebab.localhost/menu as logged in kebabowner should trigger SSO and display all staff tabs")
-    void testSsoSubdomainMenuAccessAsOwner() throws Exception {
-        // Create an authenticated session for kebabowner with ROLE_OWNER
-        MockHttpSession session = new MockHttpSession();
-        var authorities = List.of(new SimpleGrantedAuthority("ROLE_OWNER"));
-        var auth = new UsernamePasswordAuthenticationToken("kebabowner", "password", authorities);
-        var securityContext = new SecurityContextImpl(auth);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
-
+    @DisplayName("Owner visiting a restaurant they own sees all staff tabs")
+    void ownerGetsStaffAccessInOwnedRestaurant() throws Exception {
         mockMvc.perform(get("/menu")
-                .header("Host", "kebab.localhost:8080")
-                .session(session)
-                .with(csrf()))
-                .andDo(print())
+                        .header("Host", "kebab.localhost:8080")
+                        .session(sessionFor("kebabowner", null, "ROLE_OWNER")))
                 .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("kebabowner")))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("/kebab/dashboard")))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("/kebab/counter")))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("/kebab/backoffice")));
+                .andExpect(content().string(containsString("kebabowner")))
+                .andExpect(content().string(containsString("/kebab/dashboard")))
+                .andExpect(content().string(containsString("/kebab/counter")))
+                .andExpect(content().string(containsString("/kebab/backoffice")));
+    }
+
+    @Test
+    @DisplayName("Owner cannot administer a restaurant they don't own")
+    void ownerIsAnonymousInOtherRestaurants() throws Exception {
+        mockMvc.perform(get("/burger/backoffice")
+                        .header("Host", "localhost:8080")
+                        .session(sessionFor("kebabowner", null, "ROLE_OWNER", "ROLE_ADMIN")))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/burger/login"));
+    }
+
+    @Test
+    @DisplayName("Admin of another restaurant is sent to this restaurant's login")
+    void foreignStaffCannotAdministerThisRestaurant() throws Exception {
+        mockMvc.perform(get("/backoffice")
+                        .header("Host", "kebab.localhost:8080")
+                        .session(sessionFor("admin", "burger", "ROLE_ADMIN")))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    @DisplayName("Admin of this restaurant passes security")
+    void ownStaffPassesSecurity() throws Exception {
+        // No back-office controller in this slice: 404 means the request got past security.
+        mockMvc.perform(get("/backoffice")
+                        .header("Host", "kebab.localhost:8080")
+                        .session(sessionFor("admin", "kebab", "ROLE_ADMIN")))
+                .andExpect(status().isNotFound());
     }
 }
-

@@ -6,8 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Platform-wide registry of locations. Pinned to the platform schema so lookups work
+ * the same whichever tenant schema the current request is using.
+ */
 @Entity
-@Table(name = "tenant_locations")
+@Table(name = "tenant_locations", schema = "public")
 @Data
 @Builder
 @NoArgsConstructor

@@ -6,12 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LoginController {
 
+    /** The tenant comes from TenantContextFilter; the view gets it through TenantControllerAdvice. */
     @GetMapping({"/login", "/{tenantId}/login"})
-    public String login(@org.springframework.web.bind.annotation.PathVariable(required = false) String tenantId, org.springframework.ui.Model model) {
-        if (tenantId == null) {
-            tenantId = es.brasatech.fastbite.domain.tenant.TenantContext.getCurrentTenant();
-        }
-        model.addAttribute("tenantId", tenantId);
+    public String login() {
         return "fastfood/login";
     }
 }

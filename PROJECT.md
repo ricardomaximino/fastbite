@@ -58,7 +58,8 @@ FastBite runs as a single-instance SaaS platform partitionable into multiple dis
 Tenant contexts are dynamically extracted from incoming HTTP Host headers (e.g. `pizza.localhost:8080` resolves `tenantId = pizza`).
 
 * **Reserved Paths**: Specific administrative endpoints (like `/signup`, `/login`, `/owner/**`, static assets, and Webhook APIs) are registered as platform-level reserved paths. Requests targeting these endpoints automatically clear the tenant database context to query the global `PUBLIC` schema.
-* **SSO & Wildcard Session Cookies**: During authentication, session cookies are configured with a wildcard domain (`.localhost`), enabling platform Owners to log in once at the landing page and immediately gain administrative access across all branch consoles without re-authenticating.
+* **SSO & Wildcard Session Cookies**: During authentication, session cookies are configured with a wildcard domain, so platform Owners log in once at the landing page and get administrative access to the branches they own without re-authenticating.
+* **Tenant-Scoped Access**: The tenant is resolved once per request by `TenantRoutingResolver` (path prefix → host → `?tenantId=` query → Referer). It only selects data; `TenantAccessFilter` decides access. Staff accounts keep their roles only inside their own branch; owner (platform) accounts get `ADMIN` in branches they own and only `OWNER` elsewhere; anyone else is treated as anonymous for that request.
 
 ### Database Partitioning (Schema-per-Tenant)
 * **Master Schema (`PUBLIC`)**: Houses global user mappings, subscription details, location mappings, and core platform roles.
