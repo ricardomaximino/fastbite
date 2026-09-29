@@ -22,16 +22,14 @@ import static org.mockito.Mockito.when;
 class DiscountServiceTest {
 
     private DiscountRuleJpaRepository repository;
-    private DiscountRuleTranslationJpaRepository translationRepository;
     private OrderService orderService;
     private DiscountServiceJpaImpl discountService;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(DiscountRuleJpaRepository.class);
-        translationRepository = Mockito.mock(DiscountRuleTranslationJpaRepository.class);
         orderService = Mockito.mock(OrderService.class);
-        discountService = new DiscountServiceJpaImpl(repository, translationRepository, null, orderService);
+        discountService = new DiscountServiceJpaImpl(repository, null, orderService);
     }
 
     @Test

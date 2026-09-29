@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JPA entity for Customization.
  * Stores default language values directly.
- * Translations for other languages are in CustomizationTranslation table.
+ * Translations for other languages are in the translations column.
  * Options are now separate entities with @OneToMany relationship for efficient
  * queries.
  */
@@ -33,6 +36,11 @@ public class CustomizationEntity {
 
     @Column(nullable = false)
     private int usageCount = 0;
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public CustomizationEntity() {
     }
@@ -110,5 +118,13 @@ public class CustomizationEntity {
 
     public void setUsageCount(int usageCount) {
         this.usageCount = usageCount;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

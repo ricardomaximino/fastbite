@@ -64,16 +64,6 @@ CREATE TABLE IF NOT EXISTS product_customizations (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS product_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    product_id VARCHAR(36) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    description TEXT,
-    UNIQUE (product_id, language),
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
-
 -- Groups
 CREATE TABLE IF NOT EXISTS groups (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -85,16 +75,6 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TABLE IF NOT EXISTS group_products (
     group_id VARCHAR(36) NOT NULL,
     product_id VARCHAR(36) NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS group_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    group_id VARCHAR(36) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    description VARCHAR(1000),
-    UNIQUE (group_id, language),
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
 
@@ -115,24 +95,6 @@ CREATE TABLE IF NOT EXISTS customization_options (
     default_value INT DEFAULT 0,
     option_index INT NOT NULL,
     FOREIGN KEY (customization_id) REFERENCES customizations(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS customization_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    customization_id VARCHAR(36) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    UNIQUE (customization_id, language),
-    FOREIGN KEY (customization_id) REFERENCES customizations(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS customization_option_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    customization_option_id VARCHAR(255) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    UNIQUE (customization_option_id, language),
-    FOREIGN KEY (customization_option_id) REFERENCES customization_options(id) ON DELETE CASCADE
 );
 
 -- Orders
@@ -186,15 +148,6 @@ CREATE TABLE IF NOT EXISTS discount_rules (
     apply_on_counter BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS discount_rule_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    discount_rule_id VARCHAR(36) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    UNIQUE (discount_rule_id, language),
-    FOREIGN KEY (discount_rule_id) REFERENCES discount_rules(id) ON DELETE CASCADE
-);
-
 -- Dining Tables
 CREATE TABLE IF NOT EXISTS dining_tables (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -207,15 +160,6 @@ CREATE TABLE IF NOT EXISTS dining_tables (
 CREATE TABLE IF NOT EXISTS table_orders (
     table_id VARCHAR(36) NOT NULL,
     order_id VARCHAR(255) NOT NULL,
-    FOREIGN KEY (table_id) REFERENCES dining_tables(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS table_translations (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    table_id VARCHAR(36) NOT NULL,
-    language VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    UNIQUE (table_id, language),
     FOREIGN KEY (table_id) REFERENCES dining_tables(id) ON DELETE CASCADE
 );
 
@@ -238,3 +182,12 @@ CREATE TABLE IF NOT EXISTS money_denominations (
     type VARCHAR(50) NOT NULL,
     FOREIGN KEY (config_id) REFERENCES payment_configs(id) ON DELETE CASCADE
 );
+
+-- Translations of text fields into non-default languages, as JSON: {"es": {"name": "..."}}.
+-- ADD COLUMN IF NOT EXISTS also upgrades schemas created before the column existed.
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS translations TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS translations TEXT;
+ALTER TABLE customizations ADD COLUMN IF NOT EXISTS translations TEXT;
+ALTER TABLE customization_options ADD COLUMN IF NOT EXISTS translations TEXT;
+ALTER TABLE discount_rules ADD COLUMN IF NOT EXISTS translations TEXT;
+ALTER TABLE dining_tables ADD COLUMN IF NOT EXISTS translations TEXT;

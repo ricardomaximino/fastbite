@@ -9,8 +9,6 @@ import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
-import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
-import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +21,7 @@ import org.mockito.quality.Strictness;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,9 +37,6 @@ class OrderServiceJpaImplTest {
 
     @Mock
     private CustomizationOptionJpaRepository optionRepository;
-
-    @Mock
-    private CustomizationOptionTranslationJpaRepository optionTranslationRepository;
 
     @Mock
     private I18nConfig i18nConfig;
@@ -84,7 +80,6 @@ class OrderServiceJpaImplTest {
         assertThat(result.items().get(0).customizations().get(0).name()).isEqualTo("Cheese");
 
         verify(optionRepository, never()).findById(any());
-        verify(optionTranslationRepository, never()).findByOptionIdAndLanguage(any(), any());
     }
 
     @Test
@@ -105,18 +100,13 @@ class OrderServiceJpaImplTest {
         savedEntity.getItems().get(0).getCustomizations().get(0).setName("Cheese");
         when(repository.save(any(OrderEntity.class))).thenReturn(savedEntity);
 
-        // Mock: translation repository returns Spanish translation
-        CustomizationOptionTranslationEntity translation = new CustomizationOptionTranslationEntity();
-        translation.setLanguage("es");
-        translation.setName("Queso");
-        when(optionTranslationRepository.findByOptionIdAndLanguage(OPTION_ID, "es"))
-                .thenReturn(Optional.of(translation));
+        optionEntity.setTranslations(Map.of("es", Map.of("name", "Queso")));
 
         // When
         Order result = service.create(order);
 
-        // Then - verify default language name was used for storage
-        verify(optionRepository).findById(OPTION_ID);
+        // Then - the default language name was looked up for storage
+        verify(optionRepository, atLeastOnce()).findById(OPTION_ID);
 
         // The result should have the Spanish translation
         assertThat(result.items().get(0).customizations().get(0).name()).isEqualTo("Queso");
@@ -142,7 +132,7 @@ class OrderServiceJpaImplTest {
         assertThat(result.get().orderLanguage()).isEqualTo(DEFAULT_LANG);
         assertThat(result.get().items().get(0).customizations().get(0).name()).isEqualTo("Cheese");
 
-        verify(optionTranslationRepository, never()).findByOptionIdAndLanguage(any(), any());
+        verify(optionRepository, never()).findById(any());
     }
 
     @Test
@@ -157,12 +147,7 @@ class OrderServiceJpaImplTest {
         OrderEntity entity = createOrderEntity(order);
         when(repository.findById("order-1")).thenReturn(Optional.of(entity));
 
-        // Mock: translation repository returns Spanish translation
-        CustomizationOptionTranslationEntity translation = new CustomizationOptionTranslationEntity();
-        translation.setLanguage("es");
-        translation.setName("Queso");
-        when(optionTranslationRepository.findByOptionIdAndLanguage(OPTION_ID, "es"))
-                .thenReturn(Optional.of(translation));
+        when(optionRepository.findById(OPTION_ID)).thenReturn(Optional.of(option("Cheese", Map.of("es", Map.of("name", "Queso")))));
 
         // When
         Optional<Order> result = service.findById("order-1");
@@ -171,7 +156,7 @@ class OrderServiceJpaImplTest {
         assertThat(result).isPresent();
         assertThat(result.get().items().get(0).customizations().get(0).name()).isEqualTo("Queso");
 
-        verify(optionTranslationRepository).findByOptionIdAndLanguage(OPTION_ID, "es");
+        verify(optionRepository).findById(OPTION_ID);
     }
 
     @Test
@@ -186,9 +171,8 @@ class OrderServiceJpaImplTest {
         OrderEntity entity = createOrderEntity(order);
         when(repository.findById("order-1")).thenReturn(Optional.of(entity));
 
-        // Mock: no translation found
-        when(optionTranslationRepository.findByOptionIdAndLanguage(OPTION_ID, "pt"))
-                .thenReturn(Optional.empty());
+        // No Portuguese translation on the option
+        when(optionRepository.findById(OPTION_ID)).thenReturn(Optional.of(option("Cheese", Map.of("es", Map.of("name", "Queso")))));
 
         // When
         Optional<Order> result = service.findById("order-1");
@@ -197,7 +181,7 @@ class OrderServiceJpaImplTest {
         assertThat(result).isPresent();
         assertThat(result.get().items().get(0).customizations().get(0).name()).isEqualTo("Cheese");
 
-        verify(optionTranslationRepository).findByOptionIdAndLanguage(OPTION_ID, "pt");
+        verify(optionRepository).findById(OPTION_ID);
     }
 
     @Test
@@ -220,11 +204,7 @@ class OrderServiceJpaImplTest {
         OrderEntity entity2 = createOrderEntity(order2);
         when(repository.findAll()).thenReturn(List.of(entity1, entity2));
 
-        CustomizationOptionTranslationEntity translation = new CustomizationOptionTranslationEntity();
-        translation.setLanguage("es");
-        translation.setName("Queso");
-        when(optionTranslationRepository.findByOptionIdAndLanguage(OPTION_ID, "es"))
-                .thenReturn(Optional.of(translation));
+        when(optionRepository.findById(OPTION_ID)).thenReturn(Optional.of(option("Cheese", Map.of("es", Map.of("name", "Queso")))));
 
         // When
         List<Order> result = service.findAll();
@@ -234,7 +214,7 @@ class OrderServiceJpaImplTest {
         assertThat(result.get(0).items().get(0).customizations().get(0).name()).isEqualTo("Cheese");
         assertThat(result.get(1).items().get(0).customizations().get(0).name()).isEqualTo("Queso");
 
-        verify(optionTranslationRepository).findByOptionIdAndLanguage(OPTION_ID, "es");
+        verify(optionRepository).findById(OPTION_ID);
     }
 
     @Test
@@ -309,5 +289,13 @@ class OrderServiceJpaImplTest {
         }
 
         return entity;
+    }
+
+    private static CustomizationOptionEntity option(String name, Map<String, Map<String, String>> translations) {
+        CustomizationOptionEntity option = new CustomizationOptionEntity();
+        option.setId(OPTION_ID);
+        option.setName(name);
+        option.setTranslations(translations);
+        return option;
     }
 }

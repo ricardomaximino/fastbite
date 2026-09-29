@@ -3,11 +3,14 @@ package es.brasatech.fastbite.jpa.group;
 import jakarta.persistence.*;
 
 import java.util.List;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JPA entity for Group.
  * Stores default language values directly.
- * Translations for other languages are in GroupTranslation table.
+ * Translations for other languages are in the translations column.
  */
 @Entity(name = "Group")
 @Table(name = "groups")
@@ -29,6 +32,11 @@ public class GroupEntity {
     @CollectionTable(name = "group_products", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "product_id")
     private List<String> products;
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public GroupEntity() {
     }
@@ -79,5 +87,13 @@ public class GroupEntity {
 
     public void setProducts(List<String> products) {
         this.products = products;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

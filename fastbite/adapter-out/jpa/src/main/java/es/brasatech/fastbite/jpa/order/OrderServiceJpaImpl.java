@@ -12,8 +12,7 @@ import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity;
 import es.brasatech.fastbite.jpa.customization.CustomizationOptionJpaRepository;
-import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationEntity;
-import es.brasatech.fastbite.jpa.customization.CustomizationOptionTranslationJpaRepository;
+import es.brasatech.fastbite.jpa.i18n.Translations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,6 @@ public class OrderServiceJpaImpl implements OrderService {
 
     private final OrderJpaRepository repository;
     private final CustomizationOptionJpaRepository optionRepository;
-    private final CustomizationOptionTranslationJpaRepository optionTranslationRepository;
     private final I18nConfig i18nConfig;
     private final TableService tableService;
     private final ApplicationEventPublisher eventPublisher;
@@ -44,14 +42,12 @@ public class OrderServiceJpaImpl implements OrderService {
     public OrderServiceJpaImpl(
             OrderJpaRepository repository,
             CustomizationOptionJpaRepository optionRepository,
-            CustomizationOptionTranslationJpaRepository optionTranslationRepository,
             I18nConfig i18nConfig,
             TableService tableService,
             ApplicationEventPublisher eventPublisher,
             @org.springframework.context.annotation.Lazy es.brasatech.fastbite.application.discount.DiscountService discountService) {
         this.repository = repository;
         this.optionRepository = optionRepository;
-        this.optionTranslationRepository = optionTranslationRepository;
         this.i18nConfig = i18nConfig;
         this.tableService = tableService;
         this.eventPublisher = eventPublisher;
@@ -349,9 +345,8 @@ public class OrderServiceJpaImpl implements OrderService {
      * language.
      */
     private String getTranslatedName(String optionId, String language, String defaultName) {
-        return optionTranslationRepository.findByOptionIdAndLanguage(optionId, language)
-                .map(CustomizationOptionTranslationEntity::getName)
-                .filter(name -> name != null && !name.isEmpty())
+        return optionRepository.findById(optionId)
+                .map(option -> Translations.get(option.getTranslations(), language, "name", defaultName))
                 .orElse(defaultName);
     }
 }

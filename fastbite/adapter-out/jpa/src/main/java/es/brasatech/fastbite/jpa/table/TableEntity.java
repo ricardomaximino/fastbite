@@ -2,6 +2,9 @@ package es.brasatech.fastbite.jpa.table;
 
 import jakarta.persistence.*;
 import es.brasatech.fastbite.domain.table.TableStatus;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity(name = "DiningTable")
 @Table(name = "dining_tables")
@@ -19,6 +22,11 @@ public class TableEntity {
     @CollectionTable(name = "table_orders", joinColumns = @JoinColumn(name = "table_id"))
     @Column(name = "order_id")
     private java.util.List<String> orderIds = new java.util.ArrayList<>();
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public String getId() {
         return id;
@@ -66,5 +74,13 @@ public class TableEntity {
 
     public void setOrderIds(java.util.List<String> orderIds) {
         this.orderIds = orderIds;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

@@ -1,29 +1,22 @@
 package es.brasatech.fastbite.jpa.tenant;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.brasatech.fastbite.application.tenant.TenantBackupRestorePort;
 import es.brasatech.fastbite.domain.tenant.TenantContext;
 import es.brasatech.fastbite.jpa.customization.*;
 import es.brasatech.fastbite.jpa.discount.DiscountRuleEntity;
 import es.brasatech.fastbite.jpa.discount.DiscountRuleJpaRepository;
-import es.brasatech.fastbite.jpa.discount.DiscountRuleTranslationEntity;
-import es.brasatech.fastbite.jpa.discount.DiscountRuleTranslationJpaRepository;
 import es.brasatech.fastbite.jpa.group.GroupEntity;
 import es.brasatech.fastbite.jpa.group.GroupJpaRepository;
-import es.brasatech.fastbite.jpa.group.GroupTranslationEntity;
-import es.brasatech.fastbite.jpa.group.GroupTranslationJpaRepository;
 import es.brasatech.fastbite.jpa.order.OrderEntity;
 import es.brasatech.fastbite.jpa.order.OrderJpaRepository;
 import es.brasatech.fastbite.jpa.payment.PaymentConfigEntity;
 import es.brasatech.fastbite.jpa.payment.PaymentConfigJpaRepository;
 import es.brasatech.fastbite.jpa.product.ProductEntity;
 import es.brasatech.fastbite.jpa.product.ProductJpaRepository;
-import es.brasatech.fastbite.jpa.product.ProductTranslationEntity;
-import es.brasatech.fastbite.jpa.product.ProductTranslationJpaRepository;
 import es.brasatech.fastbite.jpa.table.TableEntity;
 import es.brasatech.fastbite.jpa.table.TableJpaRepository;
-import es.brasatech.fastbite.jpa.table.TableTranslationEntity;
-import es.brasatech.fastbite.jpa.table.TableTranslationJpaRepository;
 import es.brasatech.fastbite.jpa.user.UserEntity;
 import es.brasatech.fastbite.jpa.user.UserJpaRepository;
 import jakarta.persistence.EntityManager;
@@ -40,7 +33,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -68,13 +65,6 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
     private final UserJpaRepository userJpaRepository;
     private final PaymentConfigJpaRepository paymentConfigJpaRepository;
 
-    private final GroupTranslationJpaRepository groupTranslationJpaRepository;
-    private final ProductTranslationJpaRepository productTranslationJpaRepository;
-    private final CustomizationTranslationJpaRepository customizationTranslationJpaRepository;
-    private final CustomizationOptionTranslationJpaRepository customizationOptionTranslationJpaRepository;
-    private final DiscountRuleTranslationJpaRepository discountRuleTranslationJpaRepository;
-    private final TableTranslationJpaRepository tableTranslationJpaRepository;
-
     @Override
     @Transactional(readOnly = true)
     public void exportBackup(String tenantId, OutputStream outputStream) {
@@ -94,12 +84,6 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
             backupData.setUsers(userJpaRepository.findAll());
             backupData.setPaymentConfigs(paymentConfigJpaRepository.findAll());
 
-            backupData.setGroupTranslations(groupTranslationJpaRepository.findAll());
-            backupData.setProductTranslations(productTranslationJpaRepository.findAll());
-            backupData.setCustomizationTranslations(customizationTranslationJpaRepository.findAll());
-            backupData.setCustomizationOptionTranslations(customizationOptionTranslationJpaRepository.findAll());
-            backupData.setDiscountRuleTranslations(discountRuleTranslationJpaRepository.findAll());
-            backupData.setTableTranslations(tableTranslationJpaRepository.findAll());
 
             // 2. Write to ZIP
             try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
@@ -209,53 +193,21 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                 }
             }
 
-            if (backupData.getGroupTranslations() != null) {
-                for (var t : backupData.getGroupTranslations()) {
-                    if (t.getGroup() != null && t.getGroup().getId() != null) {
-                        t.setGroup(session.getReference(es.brasatech.fastbite.jpa.group.GroupEntity.class, t.getGroup().getId()));
-                    }
-                }
-            }
-
-            if (backupData.getProductTranslations() != null) {
-                for (var t : backupData.getProductTranslations()) {
-                    if (t.getProduct() != null && t.getProduct().getId() != null) {
-                        t.setProduct(session.getReference(es.brasatech.fastbite.jpa.product.ProductEntity.class, t.getProduct().getId()));
-                    }
-                }
-            }
-
-            if (backupData.getCustomizationTranslations() != null) {
-                for (var t : backupData.getCustomizationTranslations()) {
-                    if (t.getCustomization() != null && t.getCustomization().getId() != null) {
-                        t.setCustomization(session.getReference(es.brasatech.fastbite.jpa.customization.CustomizationEntity.class, t.getCustomization().getId()));
-                    }
-                }
-            }
-
-            if (backupData.getCustomizationOptionTranslations() != null) {
-                for (var t : backupData.getCustomizationOptionTranslations()) {
-                    if (t.getCustomizationOption() != null && t.getCustomizationOption().getId() != null) {
-                        t.setCustomizationOption(session.getReference(es.brasatech.fastbite.jpa.customization.CustomizationOptionEntity.class, t.getCustomizationOption().getId()));
-                    }
-                }
-            }
-
-            if (backupData.getDiscountRuleTranslations() != null) {
-                for (var t : backupData.getDiscountRuleTranslations()) {
-                    if (t.getDiscountRule() != null && t.getDiscountRule().getId() != null) {
-                        t.setDiscountRule(session.getReference(es.brasatech.fastbite.jpa.discount.DiscountRuleEntity.class, t.getDiscountRule().getId()));
-                    }
-                }
-            }
-
-            if (backupData.getTableTranslations() != null) {
-                for (var t : backupData.getTableTranslations()) {
-                    if (t.getTable() != null && t.getTable().getId() != null) {
-                        t.setTable(session.getReference(es.brasatech.fastbite.jpa.table.TableEntity.class, t.getTable().getId()));
-                    }
-                }
-            }
+            // Backups made before translations moved into each row carry them as separate rows
+            applyLegacyTranslations(backupData.getGroups(), backupData.getGroupTranslations(), "group",
+                    GroupEntity::getId, GroupEntity::setTranslations);
+            applyLegacyTranslations(backupData.getProducts(), backupData.getProductTranslations(), "product",
+                    ProductEntity::getId, ProductEntity::setTranslations);
+            applyLegacyTranslations(backupData.getCustomizations(), backupData.getCustomizationTranslations(), "customization",
+                    CustomizationEntity::getId, CustomizationEntity::setTranslations);
+            List<CustomizationOptionEntity> options = new ArrayList<>(backupData.getCustomizationOptions());
+            backupData.getCustomizations().forEach(c -> options.addAll(c.getOptions()));
+            applyLegacyTranslations(options, backupData.getCustomizationOptionTranslations(), "customizationOption",
+                    CustomizationOptionEntity::getId, CustomizationOptionEntity::setTranslations);
+            applyLegacyTranslations(backupData.getDiscountRules(), backupData.getDiscountRuleTranslations(), "discountRule",
+                    DiscountRuleEntity::getId, DiscountRuleEntity::setTranslations);
+            applyLegacyTranslations(backupData.getTables(), backupData.getTableTranslations(), "table",
+                    TableEntity::getId, TableEntity::setTranslations);
 
             // 4. Populate database (ordered to satisfy dependencies using Hibernate replicate)
             replicateAll(backupData.getGroups());
@@ -266,13 +218,6 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
             replicateAll(backupData.getOrders());
             replicateAll(backupData.getUsers());
             replicateAll(backupData.getPaymentConfigs());
-
-            replicateAll(backupData.getGroupTranslations());
-            replicateAll(backupData.getProductTranslations());
-            replicateAll(backupData.getCustomizationTranslations());
-            replicateAll(backupData.getCustomizationOptionTranslations());
-            replicateAll(backupData.getDiscountRuleTranslations());
-            replicateAll(backupData.getTableTranslations());
 
             log.info("Successfully restored backup data for tenant: {}", tenantId);
 
@@ -297,7 +242,6 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
 
             // 1. Delete all database records (reverse dependency order using native queries to handle element collections)
             entityManager.createNativeQuery("DELETE FROM table_orders").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM table_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM dining_tables").executeUpdate();
             
             entityManager.createNativeQuery("DELETE FROM cart_item_customizations").executeUpdate();
@@ -305,19 +249,14 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
             entityManager.createNativeQuery("DELETE FROM orders").executeUpdate();
             
             entityManager.createNativeQuery("DELETE FROM group_products").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM group_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM groups").executeUpdate();
             
             entityManager.createNativeQuery("DELETE FROM product_customizations").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM product_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM products").executeUpdate();
             
-            entityManager.createNativeQuery("DELETE FROM customization_option_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM customization_options").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM customization_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM customizations").executeUpdate();
             
-            entityManager.createNativeQuery("DELETE FROM discount_rule_translations").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM discount_rules").executeUpdate();
             
             entityManager.createNativeQuery("DELETE FROM user_roles").executeUpdate();
@@ -376,12 +315,47 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
         private List<UserEntity> users = new ArrayList<>();
         private List<PaymentConfigEntity> paymentConfigs = new ArrayList<>();
 
-        private List<GroupTranslationEntity> groupTranslations = new ArrayList<>();
-        private List<ProductTranslationEntity> productTranslations = new ArrayList<>();
-        private List<CustomizationTranslationEntity> customizationTranslations = new ArrayList<>();
-        private List<CustomizationOptionTranslationEntity> customizationOptionTranslations = new ArrayList<>();
-        private List<DiscountRuleTranslationEntity> discountRuleTranslations = new ArrayList<>();
-        private List<TableTranslationEntity> tableTranslations = new ArrayList<>();
+        // Legacy: translations as separate rows, only present in backups made before translations
+        // moved into each entity. Read on restore, never written.
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> groupTranslations = new ArrayList<>();
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> productTranslations = new ArrayList<>();
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> customizationTranslations = new ArrayList<>();
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> customizationOptionTranslations = new ArrayList<>();
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> discountRuleTranslations = new ArrayList<>();
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private List<Map<String, Object>> tableTranslations = new ArrayList<>();
+    }
+
+    /** Merges legacy translation rows ({parentKey: {id}, language, name, description}) into their parent entities. */
+    private static <E> void applyLegacyTranslations(List<E> entities, List<Map<String, Object>> rows, String parentKey,
+                                                    Function<E, String> id,
+                                                    BiConsumer<E, Map<String, Map<String, String>>> setTranslations) {
+        if (entities == null || rows == null || rows.isEmpty()) {
+            return;
+        }
+        Map<String, Map<String, Map<String, String>>> byParent = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            if (row.get(parentKey) instanceof Map<?, ?> parent && row.get("language") instanceof String language) {
+                Map<String, String> fields = byParent.computeIfAbsent(String.valueOf(parent.get("id")), k -> new HashMap<>())
+                        .computeIfAbsent(language, k -> new HashMap<>());
+                for (String field : List.of("name", "description")) {
+                    if (row.get(field) instanceof String value && !value.isBlank()) {
+                        fields.put(field, value);
+                    }
+                }
+            }
+        }
+        for (E entity : entities) {
+            Map<String, Map<String, String>> translations = byParent.get(id.apply(entity));
+            if (translations != null) {
+                setTranslations.accept(entity, translations);
+            }
+        }
     }
 
     private String rewriteImageUrl(String originalUrl, String newTenantId) {

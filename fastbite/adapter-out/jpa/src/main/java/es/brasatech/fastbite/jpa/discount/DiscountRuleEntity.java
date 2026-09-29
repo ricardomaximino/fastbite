@@ -5,6 +5,9 @@ import es.brasatech.fastbite.domain.discount.DiscountType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity(name = "DiscountRule")
 @Table(name = "discount_rules")
@@ -41,6 +44,11 @@ public class DiscountRuleEntity {
 
     @Column(name = "apply_on_counter", nullable = false, columnDefinition = "boolean default false")
     private boolean applyOnCounter = false;
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public String getId() {
         return id;
@@ -120,5 +128,13 @@ public class DiscountRuleEntity {
 
     public void setApplyOnCounter(boolean applyOnCounter) {
         this.applyOnCounter = applyOnCounter;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

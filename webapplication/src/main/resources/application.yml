@@ -32,6 +32,8 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
         multi_tenancy: SCHEMA
+        # Loads lazy collections (e.g. each product's customizations) in batches instead of one query per row
+        default_batch_fetch_size: 50
   session:
     store-type: jdbc
     jdbc:

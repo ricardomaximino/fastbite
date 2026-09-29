@@ -3,6 +3,9 @@ package es.brasatech.fastbite.jpa.customization;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JPA entity for Customization Option.
@@ -39,6 +42,11 @@ public class CustomizationOptionEntity {
 
     @Column(name = "option_index", nullable = false)
     private int optionIndex; // To maintain order within customization
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public CustomizationOptionEntity() {
     }
@@ -107,5 +115,13 @@ public class CustomizationOptionEntity {
 
     public void setOptionIndex(int optionIndex) {
         this.optionIndex = optionIndex;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

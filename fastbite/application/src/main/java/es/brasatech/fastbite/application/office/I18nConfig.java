@@ -12,7 +12,7 @@ public class I18nConfig {
     /**
      * Default language for entity text fields.
      * Values in main entity tables are stored in this language.
-     * Translations for other languages are in separate translation tables.
+     * Translations for other languages are stored alongside, per entity.
      */
     private String defaultLanguage = "en";
 

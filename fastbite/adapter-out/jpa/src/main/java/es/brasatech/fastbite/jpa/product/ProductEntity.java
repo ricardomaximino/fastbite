@@ -5,11 +5,14 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import es.brasatech.fastbite.jpa.i18n.TranslationsConverter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JPA entity for Product.
  * Stores default language values directly.
- * Translations for other languages are in ProductTranslation table.
+ * Translations for other languages are in the translations column.
  */
 @Entity(name = "Product")
 @Table(name = "products")
@@ -37,6 +40,11 @@ public class ProductEntity {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    /** Other languages of the text fields: language -> field -> text. */
+    @Convert(converter = TranslationsConverter.class)
+    @Column(name = "translations", columnDefinition = "text")
+    private Map<String, Map<String, String>> translations = new HashMap<>();
 
     public ProductEntity() {
     }
@@ -106,5 +114,13 @@ public class ProductEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Map<String, Map<String, String>> getTranslations() {
+        return translations;
+    }
+
+    public void setTranslations(Map<String, Map<String, String>> translations) {
+        this.translations = translations != null ? translations : new HashMap<>();
     }
 }

@@ -3,13 +3,13 @@ package es.brasatech.fastbite.jpa.discount;
 import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.order.OrderService;
-import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.discount.DiscountRule;
 import es.brasatech.fastbite.domain.discount.DiscountRuleI18n;
 import es.brasatech.fastbite.domain.discount.DiscountScope;
 import es.brasatech.fastbite.domain.discount.DiscountType;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.jpa.i18n.Translations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,6 @@ import java.util.*;
 public class DiscountServiceJpaImpl implements DiscountService {
 
     private final DiscountRuleJpaRepository repository;
-    private final DiscountRuleTranslationJpaRepository translationRepository;
     private final I18nConfig i18nConfig;
     private final OrderService orderService;
 
@@ -84,15 +83,9 @@ public class DiscountServiceJpaImpl implements DiscountService {
     @Override
     public Optional<DiscountRuleI18n> findI18nById(String id) {
         return repository.findById(id).map(entity -> {
-            List<DiscountRuleTranslationEntity> translations = translationRepository.findAllByDiscountRuleId(id);
-            Map<String, String> nameMap = new HashMap<>();
-            nameMap.put(i18nConfig.getDefaultLanguage(), entity.getName());
-            for (DiscountRuleTranslationEntity translation : translations) {
-                nameMap.put(translation.getLanguage(), translation.getName());
-            }
             return new DiscountRuleI18n(
                 entity.getId(),
-                new I18nField(nameMap),
+                Translations.toI18nField(entity.getTranslations(), "name", i18nConfig.getDefaultLanguage(), entity.getName()),
                 entity.getScope(),
                 entity.getType(),
                 entity.getValue(),
@@ -118,14 +111,7 @@ public class DiscountServiceJpaImpl implements DiscountService {
             entity.setActive(i18n.active());
             entity.setAccumulative(i18n.accumulative());
             entity.setApplyOnCounter(i18n.applyOnCounter());
-
-            translationRepository.deleteByDiscountRuleId(id);
-            Map<String, String> nameTranslations = i18n.name().getAll();
-            nameTranslations.forEach((lang, value) -> {
-                if (!lang.equals(defaultLang) && value != null && !value.isEmpty()) {
-                    translationRepository.save(new DiscountRuleTranslationEntity(entity, lang, value));
-                }
-            });
+            entity.setTranslations(Translations.of(defaultLang, Map.of("name", i18n.name())));
         });
     }
 

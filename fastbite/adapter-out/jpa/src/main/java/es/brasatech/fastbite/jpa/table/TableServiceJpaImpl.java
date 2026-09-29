@@ -2,16 +2,15 @@ package es.brasatech.fastbite.jpa.table;
 
 import es.brasatech.fastbite.application.office.I18nConfig;
 import es.brasatech.fastbite.application.table.TableService;
-import es.brasatech.fastbite.domain.I18nField;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableI18n;
 import es.brasatech.fastbite.domain.table.TableStatus;
+import es.brasatech.fastbite.jpa.i18n.Translations;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +21,6 @@ import java.util.Optional;
 @Transactional
 public class TableServiceJpaImpl implements TableService {
     private final TableJpaRepository repository;
-    private final TableTranslationJpaRepository translationRepository;
     private final I18nConfig i18nConfig;
     private final es.brasatech.fastbite.jpa.order.OrderJpaRepository orderRepository;
     private final es.brasatech.fastbite.application.table.TableSignatureUtil tableSignatureUtil;
@@ -74,20 +72,12 @@ public class TableServiceJpaImpl implements TableService {
 
     @Override
     public Optional<TableI18n> findI18nById(String id) {
-        return repository.findById(id).map(entity -> {
-            List<TableTranslationEntity> translations = translationRepository.findAllByTableId(id);
-
-            Map<String, String> nameMap = new HashMap<>();
-            nameMap.put(i18nConfig.getDefaultLanguage(), entity.getName());
-            for (TableTranslationEntity translation : translations) {
-                if (translation.getName() != null) {
-                    nameMap.put(translation.getLanguage(), translation.getName());
-                }
-            }
-
-            return new TableI18n(entity.getId(), new I18nField(nameMap), entity.getSeats(), entity.getStatus(),
-                    entity.isActive());
-        });
+        return repository.findById(id).map(entity -> new TableI18n(
+                entity.getId(),
+                Translations.toI18nField(entity.getTranslations(), "name", i18nConfig.getDefaultLanguage(), entity.getName()),
+                entity.getSeats(),
+                entity.getStatus(),
+                entity.isActive()));
     }
 
     @Override
@@ -100,16 +90,7 @@ public class TableServiceJpaImpl implements TableService {
             entity.setSeats(i18n.seats());
             entity.setStatus(i18n.status());
             entity.setActive(i18n.active());
-
-            // Update translations
-            translationRepository.deleteByTableId(id);
-
-            Map<String, String> nameTranslations = i18n.name().getAll();
-            nameTranslations.forEach((lang, value) -> {
-                if (!lang.equals(defaultLang) && value != null && !value.isEmpty()) {
-                    translationRepository.save(new TableTranslationEntity(entity, lang, value));
-                }
-            });
+            entity.setTranslations(Translations.of(defaultLang, Map.of("name", i18n.name())));
         });
     }
 
