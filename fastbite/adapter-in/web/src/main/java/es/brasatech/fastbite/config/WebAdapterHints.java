@@ -33,7 +33,6 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         hints.resources().registerPattern("static/**");
         hints.resources().registerPattern("templates/**");
-        hints.resources().registerPattern("data-jpa.sql");
         hints.resources().registerPattern("schema.sql");
         hints.resources().registerPattern("kebab_demo.zip");
         hints.resources().registerResourceBundle("i18n/messages");

@@ -14,9 +14,8 @@ spring:
       maximum-pool-size: 30
   sql:
     init:
-      data-locations: classpath:data-jpa.sql
-      mode: always
-      continue-on-error: true
+      # Schemas are created by TenantSchemaInitializer; demo content comes from kebab_demo.zip.
+      mode: never
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:

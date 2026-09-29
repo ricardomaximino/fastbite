@@ -10,6 +10,7 @@ import es.brasatech.fastbite.dto.order.OrderStatusChange;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +18,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import es.brasatech.fastbite.application.kds.KdsConfigService;
 
 @Controller
 @RequiredArgsConstructor
 public class OrderController {
+
+    private static final String SESSION_ORDER_ID = "orderId";
 
     private final MessageSource messageSource;
     private final SequenceNumberServiceImpl sequenceNumberService;
@@ -38,26 +42,37 @@ public class OrderController {
     ) {}
 
     @ResponseBody
-    @PostMapping("/api/create-order")
+    @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
         var orderNumber = sequenceNumberService.getNextSequenceNumber();
         
         try {
-            orderService.createOrderForTable(
-                request.items(), 
-                orderNumber, 
-                request.tableNumber(), 
-                locale.getLanguage(), 
+            Order order = orderService.createOrderForTable(
+                request.items(),
+                orderNumber,
+                request.tableNumber(),
+                locale.getLanguage(),
                 request.customerName()
             );
-            
+
             session.setAttribute("cart", request.items());
             session.setAttribute("orderNumber", orderNumber);
+            session.setAttribute(SESSION_ORDER_ID, order.id());
 
             return Map.of("status", "success");
         } catch (IllegalArgumentException e) {
             return Map.of("status", "error", "message", e.getMessage());
         }
+    }
+
+    /** Status of the order this guest placed; guests can only ever see their own order. */
+    @ResponseBody
+    @GetMapping({"/{tenantId}/api/order-status", "/api/order-status"})
+    public ResponseEntity<Map<String, String>> orderStatus(HttpSession session) {
+        return Optional.ofNullable((String) session.getAttribute(SESSION_ORDER_ID))
+                .flatMap(orderService::findById)
+                .map(order -> ResponseEntity.ok(Map.of("status", order.status().name())))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @ResponseBody

@@ -99,24 +99,30 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
 
         // Live Order Progress Tracker JS (F-21)
-        function startOrderProgressPolling() {
-            const orderNum = document.getElementById('orderNumber')?.innerText?.trim();
-            if (!orderNum) return;
+        // Relative URL, so it resolves to /{tenant}/api/order-status on path-based pages and /api/order-status on tenant hosts.
+        const FINISHED_STATUSES = ['COMPLETE', 'CANCELLED'];
 
-            setInterval(() => {
-                fetch('/api/order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+        function startOrderProgressPolling() {
+            let timer;
+            const poll = () => fetch('api/order-status')
+                .then(res => {
+                    if (!res.ok) {
+                        clearInterval(timer); // no order in this session
+                        return null;
+                    }
+                    return res.json();
                 })
-                .then(res => res.json())
-                .then(orders => {
-                    const myOrder = orders.find(o => o.orderNumber == orderNum);
-                    if (myOrder) {
-                        updateProgressTracker(myOrder.status);
+                .then(order => {
+                    if (!order) return;
+                    updateProgressTracker(order.status);
+                    if (FINISHED_STATUSES.includes(order.status)) {
+                        clearInterval(timer);
                     }
                 })
                 .catch(err => console.error('Polling order progress error:', err));
-            }, 5000);
+
+            poll();
+            timer = setInterval(poll, 5000);
         }
 
         function updateProgressTracker(status) {

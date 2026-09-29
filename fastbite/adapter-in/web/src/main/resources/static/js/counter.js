@@ -73,53 +73,32 @@ function printProforma(orderId) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadInitialData();
-    setupEventListeners();
+    // The grid and tables are rendered by the server and don't need the data below,
+    // so everything loads at once. Clicks are enabled once the data has arrived.
+    const data = loadInitialData();
     renderAll();
     renderTables();
+    await data;
+    setupEventListeners();
 });
+
+async function fetchItems(url) {
+    const res = await fetch(url);
+    if (!res.ok) {
+        return [];
+    }
+    const data = await res.json();
+    return data.map(d => ({ id: d.id, ...d.customFields }));
+}
 
 async function loadInitialData() {
     try {
-        // Load products
-        const prodRes = await fetch('/api/backoffice/products');
-        if (prodRes.ok) {
-            const data = await prodRes.json();
-            products = data.map(d => ({
-                id: d.id,
-                ...d.customFields
-            }));
-        }
-
-        // Load categories (groups)
-        const groupRes = await fetch('/api/backoffice/groups');
-        if (groupRes.ok) {
-            const data = await groupRes.json();
-            categories = data.map(d => ({
-                id: d.id,
-                ...d.customFields
-            }));
-        }
-
-        // Load customizations
-        const custRes = await fetch('/api/backoffice/customizations');
-        if (custRes.ok) {
-            const data = await custRes.json();
-            allCustomizations = data.map(d => ({
-                id: d.id,
-                ...d.customFields
-            }));
-        }
-
-        // Load tables
-        const tableRes = await fetch('/api/backoffice/tables');
-        if (tableRes.ok) {
-            const data = await tableRes.json();
-            allTables = data.map(d => ({
-                id: d.id,
-                ...d.customFields
-            }));
-        }
+        [products, categories, allCustomizations, allTables] = await Promise.all([
+            fetchItems('/api/backoffice/products'),
+            fetchItems('/api/backoffice/groups'),
+            fetchItems('/api/backoffice/customizations'),
+            fetchItems('/api/backoffice/tables')
+        ]);
     } catch (error) {
         console.error('Error loading data:', error);
     }

@@ -6,6 +6,7 @@ function getApiSaveCartUrl() { return getTenantPrefix() + '/api/create-order'; }
 function getCartUrl() { return getTenantPrefix() + '/api/calculate-cart'; }
 function getConfirmationUrl() { return getTenantPrefix() + '/api/calculate-confirmation'; }
 function getOrderConfirmationUrl() { return getTenantPrefix() + '/order-confirmation'; }
+function getToastUrl() { return getTenantPrefix() + '/api/toast'; }
 
 function getTenantPrefix() {
     const path = window.location.pathname;
@@ -488,19 +489,6 @@ function proceedToCheckout() {
     }).catch(error => console.error('Error proceeding to checkout:', error));
 }
 
-function loadFragments(url, payload = cart) {
-    const fullUrl = (url.startsWith('/') && !url.startsWith(getTenantPrefix())) ? getTenantPrefix() + url : url;
-    return fetch(fullUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
-        },
-        body: JSON.stringify(payload)
-    })
-        .then(response => response.text());
-}
-
 function disableNonCustomizableEditButtons() {
     const editButtons = document.querySelectorAll('.edit-cart-button');
     editButtons.forEach(button => {
@@ -626,7 +614,7 @@ function showToast(message) {
     // Create toast element
     const toastContainer = document.getElementById('toastContainer') || createToastContainer();
 
-    loadFragments('/api/toast', { message: message })
+    loadFragments(getToastUrl(), { message: message })
         .then(html => {
             const div = document.createElement('div');
             div.innerHTML = html;

@@ -95,13 +95,25 @@ async function handlePaymentConfigSubmit(e) {
     }
 }
 
+async function fetchJson(url) {
+    const response = await fetch(url);
+    return response.ok ? response.json() : null;
+}
+
 // Load data from backend
 async function loadData() {
     try {
-        // Load products
-        const productsResponse = await fetch('/api/backoffice/products');
-        if (productsResponse.ok) {
-            const productsData = await productsResponse.json();
+        // All requests in parallel; a failed one keeps the previously loaded list.
+        const [productsData, customizationsData, groupsData, tablesData, discountsData, paymentData] = await Promise.all([
+            fetchJson('/api/backoffice/products'),
+            fetchJson('/api/backoffice/customizations'),
+            fetchJson('/api/backoffice/groups'),
+            fetchJson('/api/backoffice/tables'),
+            fetchJson('/api/backoffice/discounts'),
+            fetchJson('/api/backoffice/payment/all')
+        ]);
+
+        if (productsData) {
             products = productsData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
@@ -113,10 +125,7 @@ async function loadData() {
             }));
         }
 
-        // Load customizations
-        const customizationsResponse = await fetch('/api/backoffice/customizations');
-        if (customizationsResponse.ok) {
-            const customizationsData = await customizationsResponse.json();
+        if (customizationsData) {
             customizations = customizationsData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
@@ -126,10 +135,7 @@ async function loadData() {
             }));
         }
 
-        // Load groups
-        const groupsResponse = await fetch('/api/backoffice/groups');
-        if (groupsResponse.ok) {
-            const groupsData = await groupsResponse.json();
+        if (groupsData) {
             groups = groupsData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
@@ -139,10 +145,7 @@ async function loadData() {
             }));
         }
 
-        // Load tables
-        const tablesResponse = await fetch('/api/backoffice/tables');
-        if (tablesResponse.ok) {
-            const tablesData = await tablesResponse.json();
+        if (tablesData) {
             tables = tablesData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
@@ -152,10 +155,7 @@ async function loadData() {
             }));
         }
 
-        // Load discounts
-        const discountsResponse = await fetch('/api/backoffice/discounts');
-        if (discountsResponse.ok) {
-            const discountsData = await discountsResponse.json();
+        if (discountsData) {
             discounts = discountsData.map(data => ({
                 id: data.id,
                 name: data.customFields.name,
@@ -170,10 +170,8 @@ async function loadData() {
             }));
         }
 
-        // Load payment configs
-        const paymentResponse = await fetch('/api/backoffice/payment/all');
-        if (paymentResponse.ok) {
-            allPaymentConfigs = await paymentResponse.json();
+        if (paymentData) {
+            allPaymentConfigs = paymentData;
             // Default to first or active one if not selected
             if (!selectedPaymentConfig && allPaymentConfigs.length > 0) {
                 selectedPaymentConfig = allPaymentConfigs.find(c => c.active) || allPaymentConfigs[0];

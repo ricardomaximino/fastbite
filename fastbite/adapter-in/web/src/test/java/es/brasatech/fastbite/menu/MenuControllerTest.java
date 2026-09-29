@@ -25,7 +25,10 @@ import java.util.*;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -176,6 +179,31 @@ class MenuControllerTest {
                                 .andExpect(model().attribute("subtotal", new BigDecimal("25.00")))
                                 .andExpect(model().attribute("tax", new BigDecimal("3.75")))
                                 .andExpect(model().attribute("total", new BigDecimal("25.00")));
+        }
+
+        @Test
+        @DisplayName("POST /{tenantId}/api/calculate-cart - Path-prefixed menu pages reach the cart")
+        void testCalculateCartWithTenantPrefix() throws Exception {
+                mockMvc.perform(post("/kebab/api/calculate-cart")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(testCartItems)))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("fastfood/fragments/menu :: #cart"));
+        }
+
+        @Test
+        @DisplayName("POST /{tenantId}/api/toast - Guests get the popup without rebuilding the menu")
+        void testToastIsPublicAndCheap() throws Exception {
+                mockMvc.perform(post("/kebab/api/toast")
+                                .with(anonymous())
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"message\":\"Added\"}"))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("fastfood/fragments/menu :: toast"));
+
+                verify(menuDataService, never()).buildMenuData(any());
         }
 
         @Test

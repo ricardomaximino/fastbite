@@ -76,29 +76,7 @@ public class TenantSchemaInitializer implements org.springframework.beans.factor
             } else {
                 log.warn("schema.sql not found in classpath!");
             }
-
-            boolean hasData = false;
-            try (Statement stmt = connection.createStatement()) {
-                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM groups")) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        hasData = true;
-                    }
-                }
-            } catch (Exception e) {
-                // Ignore, let script run
-            }
-
-            if (!hasData) {
-                Resource dataResource = resourceLoader.getResource("classpath:data-jpa.sql");
-                if (dataResource.exists()) {
-                    ScriptUtils.executeSqlScript(connection, dataResource);
-                    log.info("Successfully executed data-jpa.sql for tenant: {}", schemaName);
-                } else {
-                    log.warn("data-jpa.sql not found in classpath!");
-                }
-            } else {
-                log.info("Initial data already exists for tenant: {}, skipping data-jpa.sql", schemaName);
-            }
+            // Demo content is loaded from kebab_demo.zip (DemoDataInitializer / "Restore demo"), not seeded here.
         } catch (Exception e) {
             log.error("Failed to initialize schema for tenant: " + tenantId, e);
         }

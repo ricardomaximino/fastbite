@@ -3,7 +3,6 @@ package es.brasatech.fastbite.controller;
 import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
-import es.brasatech.fastbite.dto.menu.MenuData;
 import es.brasatech.fastbite.dto.menu.OrderDto;
 import es.brasatech.fastbite.dto.office.MenuDataService;
 import jakarta.servlet.http.HttpSession;
@@ -37,8 +36,9 @@ public class MenuController {
             @RequestParam(value = "table", required = false) String tableParam,
             @RequestParam(value = "token", required = false) String tokenParam,
             HttpSession session,
+            Locale locale,
             Model model) {
-        
+        model.addAttribute("menuData", menuDataService.buildMenuData(locale));
         try {
             String existingTableNumber = (String) session.getAttribute("tableNumber");
             List<CartItem> cartItems = (List<CartItem>) session.getAttribute("cart");
@@ -57,7 +57,7 @@ public class MenuController {
         return "fastfood/menu";
     }
 
-    @PostMapping("/api/calculate-cart")
+    @PostMapping({"/{tenantId}/api/calculate-cart", "/api/calculate-cart"})
     public String calculateCart(
             @RequestBody List<CartItem> cartItems,
             @RequestParam(required = false) String couponCode,
@@ -68,7 +68,7 @@ public class MenuController {
         return "fastfood/fragments/menu :: #cart";
     }
 
-    @PostMapping("/api/calculate-confirmation")
+    @PostMapping({"/{tenantId}/api/calculate-confirmation", "/api/calculate-confirmation"})
     public String calculateConfirmation(
             @RequestBody List<CartItem> cartItems,
             @RequestParam(required = false) String couponCode,
@@ -79,7 +79,7 @@ public class MenuController {
         return "fastfood/fragments/menu :: #confirmation";
     }
 
-    @PostMapping("/api/toast")
+    @PostMapping({"/{tenantId}/api/toast", "/api/toast"})
     public String getToast(@RequestBody Map<String, String> payload, Model model) {
         model.addAttribute("message", payload.get("message"));
         return "fastfood/fragments/menu :: toast";
@@ -94,16 +94,6 @@ public class MenuController {
         var order = new OrderDto(orderNumber, cartItems != null ? cartItems : new ArrayList<>());
         model.addAttribute("order", order);
         return "fastfood/paymentSelection";
-    }
-
-    /**
-     * Provides MenuData for all controller methods.
-     * Can use either BackOffice data or hardcoded I18nHelper data based on
-     * configuration.
-     */
-    @ModelAttribute
-    private MenuData menu(Locale locale) {
-        return menuDataService.buildMenuData(locale);
     }
 
     private void calculate(List<CartItem> cartItems, String couponCode, String tableId, Model model) {
