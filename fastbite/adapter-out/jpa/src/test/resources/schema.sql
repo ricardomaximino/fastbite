@@ -191,3 +191,12 @@ ALTER TABLE customizations ADD COLUMN IF NOT EXISTS translations TEXT;
 ALTER TABLE customization_options ADD COLUMN IF NOT EXISTS translations TEXT;
 ALTER TABLE discount_rules ADD COLUMN IF NOT EXISTS translations TEXT;
 ALTER TABLE dining_tables ADD COLUMN IF NOT EXISTS translations TEXT;
+
+-- Order numbers: one row per restaurant schema; numbering restarts at 1 every business day.
+CREATE TABLE IF NOT EXISTS order_counter (
+    id INT NOT NULL PRIMARY KEY,
+    business_day DATE NOT NULL,
+    last_number INT NOT NULL
+);
+INSERT INTO order_counter (id, business_day, last_number)
+SELECT 1, CURRENT_DATE, 0 WHERE NOT EXISTS (SELECT 1 FROM order_counter WHERE id = 1);

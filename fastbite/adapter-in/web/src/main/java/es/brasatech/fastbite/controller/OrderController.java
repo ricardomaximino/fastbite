@@ -1,10 +1,10 @@
 package es.brasatech.fastbite.controller;
 
+import es.brasatech.fastbite.application.order.OrderNumberService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
-import es.brasatech.fastbite.dto.menu.SequenceNumberServiceImpl;
 import es.brasatech.fastbite.dto.order.OrderCancelReason;
 import es.brasatech.fastbite.dto.order.OrderStatusChange;
 import jakarta.servlet.http.HttpSession;
@@ -29,7 +29,7 @@ public class OrderController {
     private static final String SESSION_ORDER_ID = "orderId";
 
     private final MessageSource messageSource;
-    private final SequenceNumberServiceImpl sequenceNumberService;
+    private final OrderNumberService orderNumberService;
     private final OrderService orderService;
     private final TableService tableService;
     private final KdsConfigService kdsConfigService;
@@ -44,7 +44,7 @@ public class OrderController {
     @ResponseBody
     @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
-        var orderNumber = sequenceNumberService.getNextSequenceNumber();
+        var orderNumber = orderNumberService.next();
         
         try {
             Order order = orderService.createOrderForTable(

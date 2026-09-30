@@ -3,6 +3,7 @@ package es.brasatech.fastbite.controller;
 import es.brasatech.fastbite.application.office.CustomizationService;
 import es.brasatech.fastbite.application.office.GroupService;
 import es.brasatech.fastbite.application.office.ProductService;
+import es.brasatech.fastbite.application.order.OrderNumberService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.payment.PaymentService;
 import es.brasatech.fastbite.application.table.TableService;
@@ -13,7 +14,6 @@ import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.domain.user.Customer;
 import es.brasatech.fastbite.dto.counter.CounterOrderRequest;
-import es.brasatech.fastbite.dto.menu.SequenceNumberServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +32,7 @@ public class CounterController {
     private final TableService tableService;
     private final PaymentService paymentService;
     private final OrderService orderService;
-    private final SequenceNumberServiceImpl sequenceNumberService;
+    private final OrderNumberService orderNumberService;
     private final GroupService groupService;
     private final ProductService productService;
     private final CustomizationService customizationService;
@@ -56,7 +56,7 @@ public class CounterController {
             @AuthenticationPrincipal UserDetails userDetails,
             Locale locale) {
 
-        var orderNumber = sequenceNumberService.getNextSequenceNumber();
+        var orderNumber = orderNumberService.next();
         var paymentStatus = request.paid() ? OrderPaymentStatus.PAID : OrderPaymentStatus.UNPAID;
 
         Order order = orderService.createOrder(

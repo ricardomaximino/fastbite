@@ -2,6 +2,7 @@ package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.TestConfig;
 import es.brasatech.fastbite.application.kds.KdsConfigService;
+import es.brasatech.fastbite.application.order.OrderNumberService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
@@ -9,7 +10,6 @@ import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.order.OrderStatus;
-import es.brasatech.fastbite.dto.menu.SequenceNumberServiceImpl;
 import es.brasatech.fastbite.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ class OrderStatusEndpointTest {
     @MockitoBean
     private OrderService orderService;
     @MockitoBean
-    private SequenceNumberServiceImpl sequenceNumberService;
+    private OrderNumberService orderNumberService;
     @MockitoBean
     private TableService tableService;
     @MockitoBean

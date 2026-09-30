@@ -190,13 +190,13 @@ function createOrderCard(order, role) {
 
 // Get actions for role
 function getActionsForRole(order, role) {
-    const cancelBtn = `<button class="btn btn-outline-danger btn-sm flex-grow-1" onclick="showCancelModal('${order.orderNumber}')"><i class="fas fa-times"></i> ${i18n.actionCancel}</button>`;
-    const prevBtn = `<button class="btn btn-outline-secondary btn-sm flex-grow-1" onclick="moveToPreviousStatus('${order.orderNumber}')"><i class="fas fa-undo"></i> ${i18n.actionPrevious}</button>`;
+    const cancelBtn = `<button class="btn btn-outline-danger btn-sm flex-grow-1" onclick="showCancelModal('${order.id}')"><i class="fas fa-times"></i> ${i18n.actionCancel}</button>`;
+    const prevBtn = `<button class="btn btn-outline-secondary btn-sm flex-grow-1" onclick="moveToPreviousStatus('${order.id}')"><i class="fas fa-undo"></i> ${i18n.actionPrevious}</button>`;
 
     switch (role) {
         case 'cashier':
             return `
-                <button class="btn btn-primary btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                <button class="btn btn-primary btn-sm flex-grow-1" onclick="moveToNextStatus('${order.id}')">
                     <i class="fas fa-check"></i> ${i18n.actionAccept}
                 </button>
                 ${cancelBtn}
@@ -204,7 +204,7 @@ function getActionsForRole(order, role) {
         case 'queue':
             return `
                 <div class="d-flex w-100 gap-2 mb-2">
-                    <button class="btn btn-info btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                    <button class="btn btn-info btn-sm flex-grow-1" onclick="moveToNextStatus('${order.id}')">
                         <i class="fas fa-fire"></i> ${i18n.actionCook}
                     </button>
                 </div>
@@ -216,7 +216,7 @@ function getActionsForRole(order, role) {
         case 'cook':
             return `
                 <div class="d-flex w-100 gap-2 mb-2">
-                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.id}')">
                         <i class="fas fa-check"></i> ${i18n.actionDone}
                     </button>
                 </div>
@@ -228,7 +228,7 @@ function getActionsForRole(order, role) {
         case 'waiter':
             return `
                 <div class="d-flex w-100 gap-2 mb-2">
-                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.orderNumber}')">
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="moveToNextStatus('${order.id}')">
                         <i class="fas fa-check-double"></i> ${i18n.actionDelivered}
                     </button>
                 </div>
@@ -249,7 +249,7 @@ function createManagerRow(order) {
 
     // Create cancel button only if order is not already cancelled
     const cancelButton = order.status !== 'CANCELLED'
-        ? `<button class="btn btn-sm btn-outline-danger" onclick="showCancelModal('${order.orderNumber}')">
+        ? `<button class="btn btn-sm btn-outline-danger" onclick="showCancelModal('${order.id}')">
                <i class="fas fa-ban"></i> ${i18n.actionCancel}
            </button>`
         : '';
@@ -262,7 +262,7 @@ function createManagerRow(order) {
             <td><span class="badge ${getStatusBadgeClass(order.status)}">${order.status}</span></td>
             <td>${timeAgo}</td>
             <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="showStatusChangeModal('${order.orderNumber}')">
+                <button class="btn btn-sm btn-outline-primary" onclick="showStatusChangeModal('${order.id}')">
                     <i class="fas fa-edit"></i> ${i18n.actionChange}
                 </button>
                 ${cancelButton}
@@ -372,7 +372,7 @@ function getTimeAgo(dateString) {
 
 // Move to next status
 function moveToNextStatus(orderId) {
-    const order = orders.find(o => o.orderNumber == orderId);
+    const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
     const moveToNextStatusUrl = moveToNextStatusUrlTemplate.replace('{id}', order.id);
@@ -383,12 +383,12 @@ function moveToNextStatus(orderId) {
 
 // Move to previous status
 function moveToPreviousStatus(orderId) {
-    const order = orders.find(o => o.orderNumber == orderId);
+    const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
     const moveToPreviousStatusUrl = moveToPreviousStatusUrlTemplate.replace('{id}', order.id);
     callAPI(moveToPreviousStatusUrl).then(response => updateOrders()).catch(error => console.error('Error:', error));
-    showToast(`Order #${orderId} moved to previous status`);
+    showToast(`Order #${order.orderNumber} moved to previous status`);
 }
 
 function moveAllToNext(role) {
@@ -443,7 +443,7 @@ function moveAllToPrevious(role) {
 // Show cancel modal
 function showCancelModal(orderId) {
     currentCancelOrderId = orderId;
-    document.getElementById('cancelOrderNumber').textContent = orderId;
+    document.getElementById('cancelOrderNumber').textContent = orders.find(o => o.id === orderId)?.orderNumber ?? '';
     document.getElementById('cancelReason').value = '';
     const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
     modal.show();
@@ -451,7 +451,7 @@ function showCancelModal(orderId) {
 
 // Confirm cancel
 function confirmCancel() {
-    const order = orders.find(o => o.orderNumber == currentCancelOrderId);
+    const order = orders.find(o => o.id === currentCancelOrderId);
 
     if (order) {
         const cancelOrderUrl = cancelOrderUrlTemplate.replace('{id}', order.id);
@@ -465,7 +465,7 @@ function confirmCancel() {
             body: JSON.stringify({ value: cancelReason })
         }).then(response => {
             updateOrders();
-            showToast(`Order #${currentCancelOrderId} cancelled`);
+            showToast(`Order #${order.orderNumber} cancelled`);
             bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide();
         })
             .catch(error => console.error('Error:', error));
@@ -475,8 +475,8 @@ function confirmCancel() {
 // Show status change modal
 function showStatusChangeModal(orderId) {
     currentStatusChangeOrderId = orderId;
-    const order = orders.find(o => o.orderNumber == orderId);
-    document.getElementById('statusOrderNumber').textContent = orderId;
+    const order = orders.find(o => o.id === orderId);
+    document.getElementById('statusOrderNumber').textContent = order.orderNumber;
     document.getElementById('newStatus').value = order.status;
     document.getElementById('statusCancelReasonDiv').style.display = order.status === 'CANCELLED' ? 'block' : 'none';
     document.getElementById('statusCancelReason').value = order.cancelReason || '';
@@ -486,7 +486,7 @@ function showStatusChangeModal(orderId) {
 
 // Confirm status change
 function confirmStatusChange() {
-    const order = orders.find(o => o.orderNumber == currentStatusChangeOrderId);
+    const order = orders.find(o => o.id === currentStatusChangeOrderId);
     if (order) {
         const changeOrderStatusUrl = changeOrderStatusUrlTemplate.replace('{id}', order.id);
         const newStatus = document.getElementById('newStatus').value;
@@ -503,7 +503,7 @@ function confirmStatusChange() {
                 body: JSON.stringify({ value: reason })
             }).then(response => {
                 updateOrders();
-                showToast(`Order #${currentStatusChangeOrderId} cancelled`);
+                showToast(`Order #${order.orderNumber} cancelled`);
                 bootstrap.Modal.getInstance(document.getElementById('statusChangeModal')).hide();
             }).catch(error => console.error('Error:', error));
         } else {

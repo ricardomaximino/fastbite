@@ -115,6 +115,9 @@ fastbite:
   table:
     # Secret key used for cryptographic table signature generation
     secret: "SuperSecretKeyForTableOrderingSignatures!!!"
+  orders:
+    # Order numbers restart at 1 at midnight in this time zone
+    time-zone: ${ORDERS_TIME_ZONE:Europe/Madrid}
 
 stripe:
   secret:
