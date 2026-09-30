@@ -1389,7 +1389,18 @@ h6 {
   border-radius: 4px !important;
 }
 
+/* Counter: the search box shares the header with the table and takeaway buttons */
+.pos-main .pos-search {
+    flex: 1 1 200px;
+    max-width: 480px;
+}
 
+/* Counter: the unpaid-order button reads "assign to table" or "pay at pickup" */
+.label-for-takeaway,
+.order-for-takeaway .label-for-table {
+    display: none;
+}
 
-
-
+.order-for-takeaway .label-for-takeaway {
+    display: inline;
+}

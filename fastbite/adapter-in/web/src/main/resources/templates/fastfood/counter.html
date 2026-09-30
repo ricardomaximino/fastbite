@@ -50,16 +50,26 @@
 
         <!-- Main Product Area -->
         <div class="pos-main">
-            <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
-                <div class="input-group w-50">
+            <header class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
+                <div class="input-group pos-search">
                     <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control border-start-0" id="productSearch"
                         th:placeholder="#{placeholder.search.products}">
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary" id="btn-select-table">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-secondary" id="btn-select-table"
+                        th:classappend="${settings.dineIn} ? '' : 'd-none'">
                         <i class="fas fa-table me-1"></i> <span id="selected-table-name"
                             th:text="#{label.assign.table}">Assign Table</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btn-takeaway"
+                        th:classappend="${settings.takeaway} ? '' : 'd-none'">
+                        <i class="fas fa-shopping-bag me-1"></i> <span th:text="#{label.takeaway}">Takeaway</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btn-pickup-orders"
+                        th:classappend="${settings.takeaway} ? '' : 'd-none'">
+                        <i class="fas fa-hand-holding-usd me-1"></i> <span th:text="#{label.pickup.orders}">To collect</span>
+                        <span class="badge bg-danger ms-1 d-none" id="pickup-count">0</span>
                     </button>
                     <a th:href="${tenantId != null ? '/' + tenantId + '/dashboard' : '/dashboard'}" class="btn btn-outline-primary">
                         <i class="fas fa-columns me-1"></i> <span th:text="#{button.dashboard}">Dashboard</span>
@@ -104,13 +114,16 @@
                     <span th:text="#{label.total}">TOTAL</span>
                     <span id="cart-total">€0,00</span>
                 </div>
+                <input type="text" class="form-control mb-2 d-none" id="takeaway-customer-name" maxlength="80"
+                    th:placeholder="#{placeholder.customer.name}">
                 <div class="d-flex gap-2" id="cart-actions-new">
                     <button class="btn btn-outline-warning flex-grow-1 d-none" id="btn-billing">
                         <i class="fas fa-file-invoice-dollar me-2"></i> <span th:text="#{button.billing}">BILLING</span>
                     </button>
                     <button class="btn btn-outline-primary flex-grow-1" id="btn-assign-table" disabled>
-                        <i class="fas fa-table me-2"></i> <span th:text="#{button.assign.to.table}">ASSIGN TO
-                            TABLE</span>
+                        <i class="fas fa-table me-2"></i> <span class="label-for-table"
+                            th:text="#{button.assign.to.table}">ASSIGN TO TABLE</span><span class="label-for-takeaway"
+                            th:text="#{button.pay.at.pickup}">PAY AT PICKUP</span>
                     </button>
                     <button class="btn btn-pos-primary btn-pay flex-grow-1" id="btn-proceed-payment" disabled>
                         <i class="fas fa-credit-card me-2"></i> <span th:text="#{button.pay.now}">PAY NOW</span>
@@ -349,7 +362,8 @@
         th:data-label-unpaid="#{label.order.status.unpaid}" th:data-label-canceled="#{label.order.status.canceled}"
         th:data-message-confirm-cancel-order="#{message.confirm.cancel.order}" th:data-button-pay="#{button.pay.now}"
         th:data-button-cancel="#{button.cancel}" th:data-label-assign-table="#{label.assign.table}"
-        th:data-label-table-name="#{label.table.name}" th:data-label-loading="#{label.loading}">
+        th:data-label-table-name="#{label.table.name}" th:data-label-loading="#{label.loading}"
+        th:data-message-no-pickup-orders="#{message.no.pickup.orders}">
     </div>
 
     </div> <!-- pos-wrapper -->

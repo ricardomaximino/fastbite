@@ -23,6 +23,9 @@ public interface OrderService {
 
     List<Order> findActiveByTableId(String tableId);
 
+    /** Takeaway orders the customer still has to pay for when collecting them. */
+    List<Order> findTakeawayAwaitingPayment();
+
     void setTableStatus(String tableId, TableStatus status);
 
     void publishEvent(Object event);
@@ -30,21 +33,12 @@ public interface OrderService {
     Order createOrderForTable(List<CartItem> cartItems, int orderNumber, String tableNumber, String orderLanguage, String customerName);
 
     default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
-            OrderChannel orderChannel, String orderLanguage, String userId, String customerName) {
-        var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId, customerName);
+            OrderChannel orderChannel, String orderLanguage, String userId, String customerName, ServiceType serviceType) {
+        var order = new Order(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId,
+                customerName, serviceType);
         var savedOrder = create(order);
         publishEvent(new OrderStatusChangedEvent(savedOrder));
         return savedOrder;
-    }
-
-    default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
-            OrderChannel orderChannel, String orderLanguage, String userId) {
-        return createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, userId, null);
-    }
-
-    default Order createOrder(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus orderPaymentStatus,
-            OrderChannel orderChannel, String orderLanguage) {
-        return createOrder(cartItems, orderNumber, orderPaymentStatus, orderChannel, orderLanguage, null, null);
     }
 
     default void moveToNextStatus(String id) {

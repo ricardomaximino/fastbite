@@ -1,9 +1,9 @@
 package es.brasatech.fastbite.controller;
 
-import es.brasatech.fastbite.application.kds.KdsConfigService;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
 import es.brasatech.fastbite.application.tenant.PlanEntitlementService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
-import es.brasatech.fastbite.domain.kds.KdsConfig;
+import es.brasatech.fastbite.domain.settings.RestaurantSettings;
 import es.brasatech.fastbite.domain.tenant.PlanFeature;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -19,7 +19,7 @@ import java.util.Set;
 public class BackOfficeController {
 
     private final PlanEntitlementService planEntitlementService;
-    private final KdsConfigService kdsConfigService;
+    private final RestaurantSettingsService settingsService;
     private final TenantLocationService tenantLocationService;
 
     /**
@@ -33,28 +33,24 @@ public class BackOfficeController {
                 .orElse("Basic Plan");
 
         Set<PlanFeature> enabledFeatures = planEntitlementService.getEnabledFeatures(plan);
-        KdsConfig kdsConfig = kdsConfigService.getKdsConfig(activeTenant);
 
         model.addAttribute("activeTenant", activeTenant);
         model.addAttribute("tenantPlan", plan);
         model.addAttribute("enabledFeatures", enabledFeatures);
-        model.addAttribute("kdsConfig", kdsConfig);
+        model.addAttribute("settings", settingsService.get());
         return "fastfood/backOffice";
     }
 
-    @GetMapping("/api/backoffice/kds-config")
+    @GetMapping("/api/backoffice/settings")
     @ResponseBody
-    public KdsConfig getKdsConfig(@RequestParam(required = false) String tenantId) {
-        return kdsConfigService.getKdsConfig(tenantId);
+    public RestaurantSettings getSettings() {
+        return settingsService.get();
     }
 
-    @PostMapping("/api/backoffice/kds-config")
+    @PutMapping("/api/backoffice/settings")
     @ResponseBody
-    public KdsConfig updateKdsConfig(
-            @RequestParam(required = false) String tenantId,
-            @RequestParam int yellowTimerMinutes,
-            @RequestParam int redTimerMinutes) {
-        return kdsConfigService.updateKdsConfig(tenantId, yellowTimerMinutes, redTimerMinutes);
+    public RestaurantSettings saveSettings(@RequestBody RestaurantSettings settings) {
+        return settingsService.save(settings);
     }
 
     @PostMapping("/api/backoffice/fragments/groups-list")

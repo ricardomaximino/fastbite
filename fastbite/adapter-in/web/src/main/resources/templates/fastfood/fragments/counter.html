@@ -134,6 +134,8 @@
                             th:classappend="${order.expanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
                         <span class="fw-bold text-primary text-nowrap"
                             th:text="#{label.order} + ' #' + ${order.orderNumber}">Order #123</span>
+                        <span th:if="${takeaway and !#strings.isEmpty(order.customerName)}" class="ms-2 text-truncate"
+                            th:text="${order.customerName}">Customer</span>
                         <span class="badge ms-2"
                             th:classappend="${order.status == 'CANCELLED' ? 'bg-danger' : (order.paymentStatus == 'PAID' ? 'bg-success' : 'bg-warning text-dark')}">
                             <span th:if="${order.status == 'CANCELLED'}"
@@ -180,7 +182,7 @@
                             th:disabled="${order.paymentStatus == 'PAID' or order.status == 'CANCELLED'}">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-warning flex-grow-1" th:data-id="${order.id}"
+                        <button th:if="${!takeaway}" class="btn btn-sm btn-outline-warning flex-grow-1" th:data-id="${order.id}"
                             onclick="openReassignModal(this.dataset.id)"
                             th:disabled="${order.paymentStatus == 'PAID' or order.status == 'CANCELLED'}">
                             <i class="fas fa-exchange-alt me-1"></i><span th:text="#{label.reassign}">Reassign</span>

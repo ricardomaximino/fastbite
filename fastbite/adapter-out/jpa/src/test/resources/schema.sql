@@ -200,3 +200,15 @@ CREATE TABLE IF NOT EXISTS order_counter (
 );
 INSERT INTO order_counter (id, business_day, last_number)
 SELECT 1, CURRENT_DATE, 0 WHERE NOT EXISTS (SELECT 1 FROM order_counter WHERE id = 1);
+
+-- How each order is served (DINE_IN, TAKEAWAY). Empty on orders from before service types existed.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_type VARCHAR(20);
+
+-- One row of settings per restaurant schema; a restaurant without a row uses the defaults.
+CREATE TABLE IF NOT EXISTS restaurant_settings (
+    id INT NOT NULL PRIMARY KEY,
+    dine_in BOOLEAN NOT NULL,
+    takeaway BOOLEAN NOT NULL,
+    kds_yellow_minutes INT NOT NULL,
+    kds_red_minutes INT NOT NULL
+);

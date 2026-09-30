@@ -7,28 +7,34 @@ import java.util.UUID;
 
 public record Order(List<CartItem> items, int orderNumber, String id, LocalDateTime createdAt, LocalDateTime updatedAt,
         OrderStatus status, BigDecimal total, String cancelReason, OrderPaymentStatus paymentStatus,
-        OrderChannel orderChannel, String orderLanguage, String userId, String customerName) {
+        OrderChannel orderChannel, String orderLanguage, String userId, String customerName, ServiceType serviceType) {
 
+    /** The steps an order moves through from placed to closed. */
+    private static final List<OrderStatus> FLOW = List.of(OrderStatus.CREATED, OrderStatus.ACCEPTED,
+            OrderStatus.PROCESSING, OrderStatus.DONE, OrderStatus.DELIVERED, OrderStatus.COMPLETE);
+
+    /** A new order. */
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
-            String orderLanguage, String userId, String customerName) {
+            String orderLanguage, String userId, String customerName, ServiceType serviceType) {
         this(cartItems,
              orderNumber,
              UUID.randomUUID().toString(),
              LocalDateTime.now(),
              LocalDateTime.now(),
              OrderStatus.CREATED,
-             cartItems.stream().map(CartItem::totalPrice).reduce(BigDecimal.ZERO, BigDecimal::add),
+             subtotal(cartItems),
              null,
              paymentStatus,
              orderChannel,
              orderLanguage,
              userId,
-             customerName);
+             customerName,
+             serviceType);
     }
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
-            String orderLanguage, String userId) {
-        this(cartItems, orderNumber, paymentStatus, orderChannel, orderLanguage, userId, null);
+            String orderLanguage, String userId, String customerName) {
+        this(cartItems, orderNumber, paymentStatus, orderChannel, orderLanguage, userId, customerName, ServiceType.DINE_IN);
     }
 
     public Order(List<CartItem> cartItems, int orderNumber, OrderPaymentStatus paymentStatus, OrderChannel orderChannel,
@@ -37,68 +43,47 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
     }
 
     public Order next() {
-        if (status == OrderStatus.CREATED) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.ACCEPTED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.ACCEPTED) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.PROCESSING, total,
-                    null, paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.PROCESSING) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DONE, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.DONE) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DELIVERED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.COMPLETE, total, null,
-                paymentStatus, orderChannel, orderLanguage, userId, customerName);
+        int step = FLOW.indexOf(status);
+        return setStatus(step < 0 ? OrderStatus.COMPLETE : FLOW.get(Math.min(step + 1, FLOW.size() - 1)));
     }
 
     public Order previous() {
-        if (status == OrderStatus.ACCEPTED) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CREATED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.PROCESSING) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.ACCEPTED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.DONE) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.PROCESSING, total,
-                    null, paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.DELIVERED) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DONE, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        if (status == OrderStatus.COMPLETE) {
-            return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.DELIVERED, total, null,
-                    paymentStatus, orderChannel, orderLanguage, userId, customerName);
-        }
-        return this;
+        int step = FLOW.indexOf(status);
+        return step <= 0 ? this : setStatus(FLOW.get(step - 1));
     }
 
     public Order cancel(String cancelReason) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), OrderStatus.CANCELLED, total,
-                cancelReason, paymentStatus, orderChannel, orderLanguage, userId, customerName);
+                cancelReason, paymentStatus, orderChannel, orderLanguage, userId, customerName, serviceType);
     }
 
     public Order setStatus(OrderStatus status) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId, customerName);
+                orderChannel, orderLanguage, userId, customerName, serviceType);
     }
 
     public Order setPaymentStatus(OrderPaymentStatus paymentStatus) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId, customerName);
+                orderChannel, orderLanguage, userId, customerName, serviceType);
     }
 
     public Order setChannel(OrderChannel orderChannel) {
         return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, total, null, paymentStatus,
-                orderChannel, orderLanguage, userId, customerName);
+                orderChannel, orderLanguage, userId, customerName, serviceType);
     }
 
+    /** The same order with other lines. */
+    public Order withItems(List<CartItem> items) {
+        return new Order(items, orderNumber, id, createdAt, LocalDateTime.now(), status, subtotal(items), cancelReason,
+                paymentStatus, orderChannel, orderLanguage, userId, customerName, serviceType);
+    }
+
+    /** What the lines add up to, before discounts. */
+    public BigDecimal subtotal() {
+        return subtotal(items);
+    }
+
+    private static BigDecimal subtotal(List<CartItem> items) {
+        return items.stream().map(CartItem::totalPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

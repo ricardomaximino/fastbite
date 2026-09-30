@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import es.brasatech.fastbite.application.kds.KdsConfigService;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class OrderController {
     private final OrderPricingService orderPricingService;
     private final OrderService orderService;
     private final TableService tableService;
-    private final KdsConfigService kdsConfigService;
+    private final RestaurantSettingsService settingsService;
 
     public record CreateOrderRequest(
         List<CartItem> items,
@@ -49,6 +49,9 @@ public class OrderController {
     @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
         try {
+            if (!settingsService.get().dineIn()) {
+                throw new IllegalArgumentException("This restaurant is not taking table orders");
+            }
             List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.TABLE);
             if (items.isEmpty()) {
                 throw new IllegalArgumentException("Your cart is empty");
@@ -146,10 +149,8 @@ public class OrderController {
     }
 
     @GetMapping({"/{tenantId}/dashboard", "/dashboard"})
-    public String dashboard(@PathVariable(required = false) String tenantId, HttpSession session, Model model) {
-        String activeTenant = (tenantId != null) ? tenantId : "kebab";
-        var kdsConfig = kdsConfigService.getKdsConfig(activeTenant);
-        model.addAttribute("kdsConfig", kdsConfig);
+    public String dashboard(Model model) {
+        model.addAttribute("settings", settingsService.get());
         return "fastfood/dashboard";
     }
 }

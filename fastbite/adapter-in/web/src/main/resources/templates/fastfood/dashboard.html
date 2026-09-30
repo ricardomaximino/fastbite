@@ -15,7 +15,7 @@
 <body>
     <!-- Navigation -->
     <div th:replace="~{fastfood/fragments/navbar :: navbar(activeTab='dashboard')}"></div>
-    <div id="kds-timer-config" style="display:none;" th:data-yellow-minutes="${kdsConfig != null ? kdsConfig.yellowTimerMinutes : 0}" th:data-red-minutes="${kdsConfig != null ? kdsConfig.redTimerMinutes : 0}"></div>
+    <div id="kds-timer-config" style="display:none;" th:data-yellow-minutes="${settings.kdsYellowMinutes}" th:data-red-minutes="${settings.kdsRedMinutes}"></div>
 
     <!-- Main Content -->
     <div class="container-fluid mt-4 mb-5">
@@ -367,6 +367,7 @@
         th:data-time-just-now="#{dashboard.js.just.now}" th:data-time-min-ago="#{dashboard.js.min.ago}"
         th:data-time-hours-ago="#{dashboard.js.hours.ago}" th:data-time-days-ago="#{dashboard.js.days.ago}"
         th:data-label-total="#{dashboard.js.total}" th:data-label-order="#{dashboard.js.order.hash}"
+        th:data-label-takeaway="#{label.takeaway}"
         th:data-action-accept="#{dashboard.js.actions.accept}"
         th:data-action-cook="#{dashboard.js.actions.start.cooking}"
         th:data-action-ready="#{dashboard.js.actions.mark.ready}"

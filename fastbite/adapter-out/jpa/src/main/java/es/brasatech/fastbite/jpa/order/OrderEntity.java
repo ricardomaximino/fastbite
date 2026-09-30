@@ -3,6 +3,7 @@ package es.brasatech.fastbite.jpa.order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.order.OrderStatus;
+import es.brasatech.fastbite.domain.order.ServiceType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -33,6 +34,19 @@ public class OrderEntity {
     private String orderLanguage;
     private String userId;
     private String customerName;
+
+    // Null on orders saved before service types existed; those were table orders
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ServiceType serviceType;
+
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
+    }
 
     public String getId() {
         return id;

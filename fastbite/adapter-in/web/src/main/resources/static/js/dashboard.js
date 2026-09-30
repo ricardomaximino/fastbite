@@ -159,6 +159,13 @@ function getKdsTimerBadgeClass(order) {
     return 'bg-primary';
 }
 
+// Customer names are typed in by guests: never put them into the page as markup
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text ?? '';
+    return div.innerHTML;
+}
+
 // Create order card
 function createOrderCard(order, role) {
     const timeAgo = getTimeAgo(order.updatedAt);
@@ -168,12 +175,16 @@ function createOrderCard(order, role) {
 
     const actions = getActionsForRole(order, role);
     const timerBadgeClass = getKdsTimerBadgeClass(order);
+    const takeaway = order.serviceType === 'TAKEAWAY'
+        ? `<div class="small"><span class="badge bg-dark"><i class="fas fa-shopping-bag me-1"></i>${i18n.labelTakeaway}</span> ${escapeHtml(order.customerName)}</div>`
+        : '';
 
     return `
         <div class="cart-item mb-2">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                     <h6 class="mb-1 fw-bold">${i18n.labelOrder}${order.orderNumber}</h6>
+                    ${takeaway}
                     <small class="text-muted">${timeAgo}</small>
                 </div>
                 <span class="badge ${timerBadgeClass}">${i18n['status' + (order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase())] || order.status}</span>

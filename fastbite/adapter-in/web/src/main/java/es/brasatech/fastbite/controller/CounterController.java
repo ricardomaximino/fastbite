@@ -7,11 +7,13 @@ import es.brasatech.fastbite.application.order.OrderNumberService;
 import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.payment.PaymentService;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
+import es.brasatech.fastbite.domain.order.ServiceType;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.domain.user.Customer;
 import es.brasatech.fastbite.dto.counter.CounterOrderRequest;
@@ -39,10 +41,12 @@ public class CounterController {
     private final ProductService productService;
     private final CustomizationService customizationService;
     private final es.brasatech.fastbite.application.discount.DiscountService discountService;
+    private final RestaurantSettingsService settingsService;
 
     @GetMapping({"/{tenantId}/counter", "/counter"})
     public String counter(Model model) {
         model.addAttribute("tables", tableService.findAll());
+        model.addAttribute("settings", settingsService.get());
         var config = paymentService.getActiveConfig();
         model.addAttribute("paymentConfig", Map.of(
             "activeModes", new java.util.ArrayList<>(config.activeModes()),
@@ -58,6 +62,14 @@ public class CounterController {
             @AuthenticationPrincipal UserDetails userDetails,
             Locale locale) {
 
+        boolean forTable = request.tableId() != null && !request.tableId().isEmpty();
+        ServiceType serviceType = forTable ? ServiceType.DINE_IN : ServiceType.TAKEAWAY;
+        // A sale paid on the spot always works; tables and pay-at-pickup are the restaurant's choice
+        if ((forTable || !request.paid()) && !settingsService.get().offers(serviceType)) {
+            throw new IllegalArgumentException(forTable
+                    ? "Table orders are switched off for this restaurant"
+                    : "Takeaway orders are switched off for this restaurant");
+        }
         List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.COUNTER);
         var orderNumber = orderNumberService.next();
         var paymentStatus = request.paid() ? OrderPaymentStatus.PAID : OrderPaymentStatus.UNPAID;
@@ -68,29 +80,14 @@ public class CounterController {
                 paymentStatus,
                 OrderChannel.COUNTER,
                 locale.getLanguage(),
-                userDetails.getUsername());
+                userDetails.getUsername(),
+                request.customerName(),
+                serviceType);
 
-        if (request.tableId() != null && !request.tableId().isEmpty()) {
+        if (forTable) {
             tableService.assignOrder(request.tableId(), order.id());
-            // Recalculate order to apply table scope discounts since table is now associated
-            order = orderService.findById(order.id()).orElse(order);
-            var updatedOrder = new Order(
-                    order.items(),
-                    order.orderNumber(),
-                    order.id(),
-                    order.createdAt(),
-                    java.time.LocalDateTime.now(),
-                    order.status(),
-                    order.items().stream()
-                            .map(CartItem::totalPrice)
-                            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add),
-                    order.cancelReason(),
-                    order.paymentStatus(),
-                    order.orderChannel(),
-                    order.orderLanguage(),
-                    order.userId(),
-                    order.customerName());
-            order = orderService.update(order.id(), updatedOrder).orElse(order);
+            // Saving again applies the discounts that depend on the table
+            order = orderService.update(order.id(), order).orElse(order);
         }
 
         return Map.of("status", "success", "orderNumber", orderNumber, "orderId", order.id());
@@ -100,6 +97,12 @@ public class CounterController {
     @GetMapping("/counter/api/tables/{tableId}/active-orders")
     public List<Order> getActiveOrders(@PathVariable String tableId) {
         return orderService.findActiveByTableId(tableId);
+    }
+
+    @ResponseBody
+    @GetMapping("/counter/api/takeaway/orders")
+    public List<Order> getTakeawayOrdersAwaitingPayment() {
+        return orderService.findTakeawayAwaitingPayment();
     }
 
     @ResponseBody
@@ -119,24 +122,15 @@ public class CounterController {
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
         List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.COUNTER);
-        var updatedOrder = new Order(
-                items,
-                existingOrder.orderNumber(),
-                orderId,
-                existingOrder.createdAt(),
-                java.time.LocalDateTime.now(),
-                existingOrder.status(),
-                items.stream()
-                        .map(item -> item.totalPrice())
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add),
-                existingOrder.cancelReason(),
-                request.paid() ? OrderPaymentStatus.PAID : existingOrder.paymentStatus(),
-                existingOrder.orderChannel(),
-                existingOrder.orderLanguage(),
-                existingOrder.userId(),
-                existingOrder.customerName());
+        orderService.update(orderId, existingOrder.withItems(items));
+        return Map.of("status", "success", "orderId", orderId);
+    }
 
-        orderService.update(orderId, updatedOrder);
+    /** Takes payment for an order as it was placed; its lines and prices stay untouched. */
+    @ResponseBody
+    @PostMapping("/counter/api/orders/{orderId}/pay")
+    public Map<String, Object> payOrder(@PathVariable String orderId) {
+        orderService.markOrderPaid(orderId);
         return Map.of("status", "success", "orderId", orderId);
     }
 
@@ -254,11 +248,12 @@ public class CounterController {
         return "fastfood/fragments/counter :: order-cart";
     }
 
-    @GetMapping("/counter/fragments/table-session-cart/{tableId}")
-    public String getTableSessionCartFragment(Model model, @PathVariable String tableId,
+    /** The open orders of one table, or without a table the takeaway orders still to be paid. */
+    @GetMapping({"/counter/fragments/table-session-cart/{tableId}", "/counter/fragments/takeaway-session-cart"})
+    public String getTableSessionCartFragment(Model model, @PathVariable(required = false) String tableId,
             @RequestParam(required = false) List<Integer> expandedIndices,
             jakarta.servlet.http.HttpServletResponse response) {
-        var orders = orderService.findActiveByTableId(tableId);
+        var orders = tableId != null ? orderService.findActiveByTableId(tableId) : orderService.findTakeawayAwaitingPayment();
 
         // Wrap orders to include expansion state and simplify data for fragment
         var wrappedOrders = new java.util.ArrayList<Map<String, Object>>();
@@ -274,9 +269,7 @@ public class CounterController {
                 return m;
             }).toList();
 
-            java.math.BigDecimal orderSubtotal = order.items().stream()
-                    .map(item -> item.totalPrice())
-                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            java.math.BigDecimal orderSubtotal = order.subtotal();
             java.math.BigDecimal orderDiscount = orderSubtotal.subtract(order.total());
             if (orderDiscount.compareTo(java.math.BigDecimal.ZERO) < 0) {
                 orderDiscount = java.math.BigDecimal.ZERO;
@@ -285,6 +278,7 @@ public class CounterController {
             Map<String, Object> map = new java.util.HashMap<>();
             map.put("id", order.id());
             map.put("orderNumber", order.orderNumber());
+            map.put("customerName", order.customerName());
             map.put("subtotal", orderSubtotal);
             map.put("discount", orderDiscount);
             map.put("total", order.total());
@@ -303,10 +297,7 @@ public class CounterController {
         for (var o : orders) {
             if (o.paymentStatus() != es.brasatech.fastbite.domain.order.OrderPaymentStatus.PAID && o.status() != es.brasatech.fastbite.domain.order.OrderStatus.CANCELLED) {
                 // Table orders are already discounted/stored. Sum their items totalPrice as raw subtotal.
-                java.math.BigDecimal orderSubtotal = o.items().stream()
-                        .map(item -> item.totalPrice())
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-                subtotal = subtotal.add(orderSubtotal);
+                subtotal = subtotal.add(o.subtotal());
                 total = total.add(o.total());
             }
         }
@@ -321,6 +312,7 @@ public class CounterController {
         response.setHeader("X-Cart-Total", total.toString());
 
         model.addAttribute("orders", wrappedOrders);
+        model.addAttribute("takeaway", tableId == null);
         return "fastfood/fragments/counter :: table-session-cart";
     }
 

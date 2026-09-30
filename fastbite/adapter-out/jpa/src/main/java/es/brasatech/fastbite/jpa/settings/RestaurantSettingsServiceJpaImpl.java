@@ -1,0 +1,38 @@
+package es.brasatech.fastbite.jpa.settings;
+
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
+import es.brasatech.fastbite.domain.settings.RestaurantSettings;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Profile("jpa")
+@RequiredArgsConstructor
+@Transactional
+public class RestaurantSettingsServiceJpaImpl implements RestaurantSettingsService {
+
+    private final RestaurantSettingsJpaRepository repository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public RestaurantSettings get() {
+        return repository.findById(RestaurantSettingsEntity.ID)
+                .map(entity -> new RestaurantSettings(entity.isDineIn(), entity.isTakeaway(),
+                        entity.getKdsYellowMinutes(), entity.getKdsRedMinutes()))
+                .orElse(RestaurantSettings.DEFAULTS);
+    }
+
+    @Override
+    public RestaurantSettings save(RestaurantSettings settings) {
+        RestaurantSettingsEntity entity = repository.findById(RestaurantSettingsEntity.ID)
+                .orElseGet(RestaurantSettingsEntity::new);
+        entity.setDineIn(settings.dineIn());
+        entity.setTakeaway(settings.takeaway());
+        entity.setKdsYellowMinutes(settings.kdsYellowMinutes());
+        entity.setKdsRedMinutes(settings.kdsRedMinutes());
+        repository.save(entity);
+        return settings;
+    }
+}

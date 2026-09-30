@@ -1559,26 +1559,33 @@ async function triggerRestoreDemo() {
     }
 }
 
-async function saveKdsTimerSettings(event) {
+// The ordering options and the KDS timers are saved together as this restaurant's settings
+async function saveRestaurantSettings(event) {
     event.preventDefault();
-    const yellow = document.getElementById('yellowTimerInput').value;
-    const red = document.getElementById('redTimerInput').value;
+    const settings = {
+        dineIn: document.getElementById('dineInInput').checked,
+        takeaway: document.getElementById('takeawayInput').checked,
+        kdsYellowMinutes: parseInt(document.getElementById('yellowTimerInput').value || '0'),
+        kdsRedMinutes: parseInt(document.getElementById('redTimerInput').value || '0')
+    };
 
     try {
-        const response = await fetch('/api/backoffice/kds-config?yellowTimerMinutes=' + yellow + '&redTimerMinutes=' + red, {
-            method: 'POST',
+        const response = await fetch('/api/backoffice/settings', {
+            method: 'PUT',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': getCsrfToken()
-            }
+            },
+            body: JSON.stringify(settings)
         });
         if (response.ok) {
-            showToast('KDS Urgency Timer settings saved successfully!');
+            showToast('Settings saved successfully!');
         } else {
-            showToast('Failed to save KDS Timer settings', 'error');
+            showToast('Failed to save settings', 'error');
         }
     } catch (err) {
-        console.error('Error saving KDS timer settings:', err);
-        showToast('Error saving KDS Timer settings', 'error');
+        console.error('Error saving settings:', err);
+        showToast('Error saving settings', 'error');
     }
 }
 

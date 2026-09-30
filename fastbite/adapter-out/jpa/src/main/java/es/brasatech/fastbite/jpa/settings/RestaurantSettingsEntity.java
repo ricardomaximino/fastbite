@@ -1,0 +1,52 @@
+package es.brasatech.fastbite.jpa.settings;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+/** The single settings row of a restaurant schema. */
+@Entity(name = "RestaurantSettings")
+@Table(name = "restaurant_settings")
+public class RestaurantSettingsEntity {
+
+    static final int ID = 1;
+
+    @Id
+    private int id = ID;
+    private boolean dineIn;
+    private boolean takeaway;
+    private int kdsYellowMinutes;
+    private int kdsRedMinutes;
+
+    public boolean isDineIn() {
+        return dineIn;
+    }
+
+    public void setDineIn(boolean dineIn) {
+        this.dineIn = dineIn;
+    }
+
+    public boolean isTakeaway() {
+        return takeaway;
+    }
+
+    public void setTakeaway(boolean takeaway) {
+        this.takeaway = takeaway;
+    }
+
+    public int getKdsYellowMinutes() {
+        return kdsYellowMinutes;
+    }
+
+    public void setKdsYellowMinutes(int kdsYellowMinutes) {
+        this.kdsYellowMinutes = kdsYellowMinutes;
+    }
+
+    public int getKdsRedMinutes() {
+        return kdsRedMinutes;
+    }
+
+    public void setKdsRedMinutes(int kdsRedMinutes) {
+        this.kdsRedMinutes = kdsRedMinutes;
+    }
+}

@@ -99,6 +99,9 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(Table.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(PaymentConfig.class), MemberCategory.values());
 
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.order.ServiceType.class), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.settings.RestaurantSettings.class), MemberCategory.values());
+
         // Translation editor
         hints.reflection().registerType(TypeReference.of(I18nField.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(es.brasatech.fastbite.domain.TranslatableText.class), MemberCategory.values());

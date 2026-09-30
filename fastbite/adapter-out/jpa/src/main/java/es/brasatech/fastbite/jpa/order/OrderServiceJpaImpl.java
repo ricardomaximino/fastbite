@@ -5,7 +5,9 @@ import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.order.OrderStatus;
+import es.brasatech.fastbite.domain.order.ServiceType;
 import es.brasatech.fastbite.domain.product.ProductCustomizer;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
@@ -118,6 +120,15 @@ public class OrderServiceJpaImpl implements OrderService {
     }
 
     @Override
+    public List<Order> findTakeawayAwaitingPayment() {
+        return repository.findByServiceTypeAndPaymentStatusAndStatusNotInOrderByCreatedAt(ServiceType.TAKEAWAY,
+                        OrderPaymentStatus.UNPAID, List.of(OrderStatus.COMPLETE, OrderStatus.CANCELLED))
+                .stream()
+                .map(this::toOrderWithTranslation)
+                .toList();
+    }
+
+    @Override
     public void setTableStatus(String tableId, TableStatus status) {
         tableService.findById(tableId).ifPresent(table -> {
             List<String> orderIds = table.orderIds();
@@ -167,7 +178,7 @@ public class OrderServiceJpaImpl implements OrderService {
             throw new IllegalArgumentException("Table does not exist");
         }
         
-        var savedOrder = createOrder(cartItems, orderNumber, es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID, es.brasatech.fastbite.domain.order.OrderChannel.TABLE, orderLanguage, null, customerName);
+        var savedOrder = createOrder(cartItems, orderNumber, es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID, es.brasatech.fastbite.domain.order.OrderChannel.TABLE, orderLanguage, null, customerName, ServiceType.DINE_IN);
         tableService.assignOrder(tableId, savedOrder.id());
         return savedOrder;
     }
@@ -217,6 +228,7 @@ public class OrderServiceJpaImpl implements OrderService {
         entity.setOrderLanguage(orderLang);
         entity.setUserId(order.userId());
         entity.setCustomerName(order.customerName());
+        entity.setServiceType(order.serviceType());
 
         // Convert items
         if (order.items() != null) {
@@ -331,7 +343,8 @@ public class OrderServiceJpaImpl implements OrderService {
                 entity.getOrderChannel(),
                 entity.getOrderLanguage(),
                 entity.getUserId(),
-                entity.getCustomerName());
+                entity.getCustomerName(),
+                entity.getServiceType() != null ? entity.getServiceType() : ServiceType.DINE_IN);
     }
 
     /**

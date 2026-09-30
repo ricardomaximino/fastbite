@@ -15,6 +15,16 @@ let currentProduct = null;
 let payingSingleOrderId = null;
 let isFirstQuickCashClick = true;
 
+// Takeaway takes the place of a table: a new order without one, or the list of those still to be paid
+const TAKEAWAY = { id: null, takeaway: true };
+const isTakeaway = () => Boolean(selectedTable && selectedTable.takeaway);
+const sessionOrdersUrl = () => isTakeaway()
+    ? '/counter/api/takeaway/orders'
+    : `/counter/api/tables/${selectedTable.id}/active-orders`;
+const sessionCartUrl = () => isTakeaway()
+    ? '/counter/fragments/takeaway-session-cart'
+    : `/counter/fragments/table-session-cart/${selectedTable.id}`;
+
 // CSRF tokens
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
@@ -78,6 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = loadInitialData();
     renderAll();
     renderTables();
+    refreshPickupCount();
     await data;
     setupEventListeners();
 });
@@ -144,6 +155,17 @@ function setupEventListeners() {
         } else {
             selectAvailableTable(tableId, tableName);
             hideModal('tableModal');
+        }
+    });
+
+    // Takeaway: a new order to collect, or the orders waiting to be paid at pickup
+    document.getElementById('btn-takeaway').addEventListener('click', selectTakeaway);
+    document.getElementById('btn-pickup-orders').addEventListener('click', async () => {
+        selectedTable = TAKEAWAY;
+        await loadTable();
+        if (tableOrders.length === 0) {
+            showToast(t('messageNoPickupOrders'));
+            resetPOS();
         }
     });
 
@@ -269,10 +291,22 @@ function calculateChange() {
 
 function selectAvailableTable(id, name) {
     selectedTable = { id, name };
-    isTableMode = false;
     document.getElementById('selected-table-name').textContent = `${t('labelTableName')}: ${name}`;
+    startNewOrder();
+}
+
+function selectTakeaway() {
+    selectedTable = TAKEAWAY;
+    document.getElementById('selected-table-name').textContent = t('labelAssignTable');
+    startNewOrder();
+}
+
+// An empty cart for the table or takeaway that was just picked
+function startNewOrder() {
+    isTableMode = false;
+    editingOrderId = null;
     document.querySelectorAll('.table-btn').forEach(el => {
-        el.classList.toggle('active', el.dataset.id === id);
+        el.classList.toggle('active', el.dataset.id === selectedTable.id);
     });
 
     document.getElementById('cart-actions-new').classList.remove('d-none');
@@ -281,7 +315,19 @@ function selectAvailableTable(id, name) {
     document.getElementById('btn-billing').classList.add('d-none');
 
     cart = [];
+    showOrderTarget();
     updateCartUI();
+}
+
+// Shows whether the order being entered is for a table or to take away
+function showOrderTarget() {
+    const takeaway = isTakeaway();
+    document.getElementById('btn-takeaway').classList.toggle('active', takeaway);
+    // A class, not the button text: the text is replaced by a spinner while an order is sent
+    document.getElementById('cart-actions-new').classList.toggle('order-for-takeaway', takeaway);
+    const name = document.getElementById('takeaway-customer-name');
+    name.classList.toggle('d-none', !takeaway || isTableMode || editingOrderId !== null);
+    if (!takeaway) name.value = '';
 }
 
 async function loadTableOrders(tableId) {
@@ -305,11 +351,12 @@ async function loadTableOrders(tableId) {
 async function loadTable() {
     if (!selectedTable) return;
     try {
-        const res = await fetch(`/counter/api/tables/${selectedTable.id}/active-orders`);
+        const res = await fetch(sessionOrdersUrl());
         if (!res.ok) throw new Error('Failed to load orders');
         const orders = await res.json();
         isTableMode = true;
         tableOrders = orders.map(o => ({ ...o, expanded: false }));
+        showOrderTarget();
         updateCartUI();
     } catch (error) {
         console.error('Error loading table orders:', error);
@@ -322,7 +369,7 @@ async function refreshTableMode() {
         resetPOS();
         return;
     }
-    const res = await fetch(`/counter/api/tables/${selectedTable.id}/active-orders`);
+    const res = await fetch(sessionOrdersUrl());
     const orders = await res.json();
     tableOrders = orders.map(o => {
         const old = tableOrders.find(prev => prev.id === o.id);
@@ -337,13 +384,14 @@ async function renderTableCart() {
 
     if (tableOrders.length === 0) {
         isTableMode = false;
+        showOrderTarget();
         updateCartUI();
         return;
     }
 
     try {
         const expandedIndices = tableOrders.map((o, idx) => o.expanded ? idx : null).filter(idx => idx !== null);
-        const res = await fetch(`/counter/fragments/table-session-cart/${selectedTable.id}?expandedIndices=${expandedIndices.join(',')}`);
+        const res = await fetch(`${sessionCartUrl()}?expandedIndices=${expandedIndices.join(',')}`);
         if (res.ok) {
             container.innerHTML = await res.text();
 
@@ -377,9 +425,10 @@ async function renderTableCart() {
                     totalUnpaid += order.total;
                 }
             });
-            document.getElementById('btn-proceed-payment').disabled = totalUnpaid <= 0;
+            // Takeaway orders belong to different customers: each is paid on its own, never together
+            document.getElementById('btn-proceed-payment').disabled = totalUnpaid <= 0 || isTakeaway();
             document.getElementById('btn-assign-table').classList.add('d-none');
-            document.getElementById('btn-billing').classList.remove('d-none');
+            document.getElementById('btn-billing').classList.toggle('d-none', isTakeaway());
         }
     } catch (e) {
         console.error(e);
@@ -450,6 +499,9 @@ function editOrderFromTable(orderId) {
     isTableMode = false;
     document.getElementById('cart-actions-new').classList.add('d-none');
     document.getElementById('cart-actions-edit').classList.remove('d-none');
+    // Billing is a table state; a takeaway order being edited is just saved
+    document.querySelector('#cart-actions-edit #btn-billing').classList.toggle('d-none', isTakeaway());
+    showOrderTarget();
     updateCartUI();
 }
 
@@ -540,13 +592,9 @@ async function submitTableBulkPayment() {
             : tableOrders.filter(o => o.paymentStatus !== 'PAID' && o.status !== 'CANCELLED');
 
         const promises = ordersToPay.map(order =>
-            fetch(`/counter/api/orders/${order.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify({ ...order, paid: true })
+            fetch(`/counter/api/orders/${order.id}/pay`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken }
             })
         );
 
@@ -595,7 +643,8 @@ async function submitOrder(paid = true) {
         items: cart,
         tableId: selectedTable ? selectedTable.id : null,
         paymentMethod: method,
-        paid: paid
+        paid: paid,
+        customerName: isTakeaway() ? document.getElementById('takeaway-customer-name').value.trim() : null
     };
 
     const btn = paid ? document.getElementById('btn-complete-order') : document.getElementById('btn-assign-table');
@@ -662,11 +711,27 @@ function resetPOS() {
     document.getElementById('cart-actions-edit').classList.add('d-none');
     document.getElementById('btn-billing').classList.add('d-none');
     document.getElementById('btn-assign-table').classList.remove('d-none');
+    showOrderTarget();
     updateCartUI();
     refreshTables();
 }
 
+// How many takeaway orders are waiting to be paid at pickup
+async function refreshPickupCount() {
+    const badge = document.getElementById('pickup-count');
+    try {
+        const res = await fetch('/counter/api/takeaway/orders');
+        if (!res.ok) return;
+        const waiting = (await res.json()).length;
+        badge.textContent = waiting;
+        badge.classList.toggle('d-none', waiting === 0);
+    } catch (error) {
+        console.error('Error counting takeaway orders:', error);
+    }
+}
+
 async function refreshTables() {
+    refreshPickupCount(); // both change whenever an order is placed, paid or cancelled
     try {
         const tableRes = await fetch('/api/backoffice/tables');
         if (tableRes.ok) {
@@ -687,7 +752,7 @@ async function renderTables() {
     if (!list) return;
 
     try {
-        const selectedTableId = selectedTable ? selectedTable.id : '';
+        const selectedTableId = selectedTable?.id || '';
         const res = await fetch(`/counter/fragments/tables?selectedTableId=${selectedTableId}`);
         if (res.ok) {
             list.innerHTML = await res.text();

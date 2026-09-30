@@ -7,5 +7,6 @@ public record CounterOrderRequest(
         List<CartItem> items,
         String tableId,
         String paymentMethod,
-        boolean paid) {
+        boolean paid,
+        String customerName) {
 }

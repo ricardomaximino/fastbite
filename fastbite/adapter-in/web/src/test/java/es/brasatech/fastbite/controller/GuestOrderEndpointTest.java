@@ -1,12 +1,12 @@
 package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.TestConfig;
-import es.brasatech.fastbite.application.kds.KdsConfigService;
 import es.brasatech.fastbite.application.office.CustomizationService;
 import es.brasatech.fastbite.application.office.ProductService;
 import es.brasatech.fastbite.application.order.OrderNumberService;
 import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
 import es.brasatech.fastbite.domain.order.CartItem;
@@ -14,6 +14,7 @@ import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.product.ProductDto;
+import es.brasatech.fastbite.domain.settings.RestaurantSettings;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.security.SecurityConfig;
@@ -70,12 +71,13 @@ class GuestOrderEndpointTest {
     @MockitoBean
     private TableService tableService;
     @MockitoBean
-    private KdsConfigService kdsConfigService;
+    private RestaurantSettingsService settingsService;
     @MockitoBean
     private TenantLocationService tenantLocationService;
 
     @BeforeEach
     void setUp() {
+        when(settingsService.get()).thenReturn(RestaurantSettings.DEFAULTS);
         when(productService.findById("kebab")).thenReturn(Optional.of(new ProductDto("kebab", "Kebab",
                 new BigDecimal("6.50"), "Beef kebab", "/kebab.webp", Set.of(), true)));
         when(tableService.findTableByNameOrId("Table 1")).thenReturn(Optional.of(table("t1", "Table 1")));
@@ -121,6 +123,18 @@ class GuestOrderEndpointTest {
                 .andExpect(jsonPath("$.status").value("success"));
 
         savedItems("t2");
+    }
+
+    @Test
+    void guestsCannotOrderToATableWhenTableServiceIsOff() throws Exception {
+        when(settingsService.get()).thenReturn(new RestaurantSettings(false, true, 0, 0));
+
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(tamperedCart("Table 1", 2)))
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("This restaurant is not taking table orders"));
+
+        verify(orderService, never()).createOrderForTable(any(), anyInt(), any(), any(), any());
     }
 
     @Test
