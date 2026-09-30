@@ -3,6 +3,7 @@ package es.brasatech.fastbite.controller;
 import es.brasatech.fastbite.TestConfig;
 import es.brasatech.fastbite.application.kds.KdsConfigService;
 import es.brasatech.fastbite.application.order.OrderNumberService;
+import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
@@ -42,6 +43,8 @@ class OrderStatusEndpointTest {
     private OrderService orderService;
     @MockitoBean
     private OrderNumberService orderNumberService;
+    @MockitoBean
+    private OrderPricingService orderPricingService;
     @MockitoBean
     private TableService tableService;
     @MockitoBean

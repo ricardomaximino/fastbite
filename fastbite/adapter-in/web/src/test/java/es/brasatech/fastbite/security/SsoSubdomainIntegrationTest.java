@@ -60,6 +60,9 @@ class SsoSubdomainIntegrationTest {
     private es.brasatech.fastbite.application.discount.DiscountService discountService;
 
     @MockitoBean
+    private es.brasatech.fastbite.application.order.OrderPricingService orderPricingService;
+
+    @MockitoBean
     private TenantLocationService tenantLocationService;
 
     @MockitoBean

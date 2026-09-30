@@ -62,6 +62,9 @@ class MenuControllerTest {
         @MockitoBean
         private es.brasatech.fastbite.application.tenant.TenantLocationService tenantLocationService;
 
+        @MockitoBean
+        private es.brasatech.fastbite.application.order.OrderPricingService orderPricingService;
+
         private List<CartItem> testCartItems;
         private MockHttpSession mockSession;
 
@@ -85,6 +88,8 @@ class MenuControllerTest {
                 // Mock TableSignatureUtil to return true for standard signatures
                 org.mockito.Mockito.when(tableSignatureUtil.isValid(any(), any())).thenReturn(true);
                 org.mockito.Mockito.when(tableSignatureUtil.generateSignature(any())).thenReturn("val_sig");
+                // Pricing has its own tests; here the catalog agrees with the request
+                org.mockito.Mockito.when(orderPricingService.price(any(), any())).thenAnswer(call -> call.getArgument(0));
                 org.mockito.Mockito.when(discountService.calculateDiscount(any(), any(), any())).thenReturn(BigDecimal.ZERO);
                 org.mockito.Mockito.when(discountService.calculateDiscount(any(), any(), any(), any())).thenReturn(BigDecimal.ZERO);
                 org.mockito.Mockito.when(discountService.calculateCartBreakdown(any(), any(), any(), org.mockito.Mockito.anyDouble()))

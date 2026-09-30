@@ -1,8 +1,10 @@
 package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.application.discount.DiscountService;
+import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
+import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.dto.menu.OrderDto;
 import es.brasatech.fastbite.dto.office.MenuDataService;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +26,7 @@ public class MenuController {
     private final MenuDataService menuDataService;
     private final TableService tableService;
     private final DiscountService discountService;
+    private final OrderPricingService orderPricingService;
     
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
@@ -96,7 +99,8 @@ public class MenuController {
         return "fastfood/paymentSelection";
     }
 
-    private void calculate(List<CartItem> cartItems, String couponCode, String tableId, Model model) {
+    private void calculate(List<CartItem> requested, String couponCode, String tableId, Model model) {
+        List<CartItem> cartItems = orderPricingService.price(requested, OrderChannel.TABLE);
         var breakdown = discountService.calculateCartBreakdown(cartItems, couponCode, tableId, taxPercentage);
 
         model.addAttribute("cart", cartItems);

@@ -474,7 +474,7 @@ function loadCartData() {
             cartSection.innerHTML = html;
             disableNonCustomizableEditButtons();
         })
-        .catch(error => console.error('Error loading cart data:', error));
+        .catch(error => showToast(error.message));
 }
 
 function proceedToCheckout() {
@@ -486,7 +486,7 @@ function proceedToCheckout() {
         document.getElementById('cartSection').style.display = 'none';
         confirmationSection.style.display = 'block';
         updateStep(3);
-    }).catch(error => console.error('Error proceeding to checkout:', error));
+    }).catch(error => showToast(error.message));
 }
 
 function disableNonCustomizableEditButtons() {
@@ -649,5 +649,9 @@ function loadFragments(url, payload = cart) {
         },
         body: JSON.stringify(payload)
     })
-        .then(response => response.text());
+        .then(response => response.text().then(text => {
+            // A rejected cart (e.g. a product that just sold out) comes back as the reason in plain text
+            if (!response.ok) throw new Error(text);
+            return text;
+        }));
 }

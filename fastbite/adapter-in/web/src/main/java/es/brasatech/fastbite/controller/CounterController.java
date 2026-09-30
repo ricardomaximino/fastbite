@@ -4,6 +4,7 @@ import es.brasatech.fastbite.application.office.CustomizationService;
 import es.brasatech.fastbite.application.office.GroupService;
 import es.brasatech.fastbite.application.office.ProductService;
 import es.brasatech.fastbite.application.order.OrderNumberService;
+import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.payment.PaymentService;
 import es.brasatech.fastbite.application.table.TableService;
@@ -33,6 +34,7 @@ public class CounterController {
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final OrderNumberService orderNumberService;
+    private final OrderPricingService orderPricingService;
     private final GroupService groupService;
     private final ProductService productService;
     private final CustomizationService customizationService;
@@ -56,11 +58,12 @@ public class CounterController {
             @AuthenticationPrincipal UserDetails userDetails,
             Locale locale) {
 
+        List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.COUNTER);
         var orderNumber = orderNumberService.next();
         var paymentStatus = request.paid() ? OrderPaymentStatus.PAID : OrderPaymentStatus.UNPAID;
 
         Order order = orderService.createOrder(
-                request.items(),
+                items,
                 orderNumber,
                 paymentStatus,
                 OrderChannel.COUNTER,
@@ -115,14 +118,15 @@ public class CounterController {
         var existingOrder = orderService.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
+        List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.COUNTER);
         var updatedOrder = new Order(
-                request.items(),
+                items,
                 existingOrder.orderNumber(),
                 orderId,
                 existingOrder.createdAt(),
                 java.time.LocalDateTime.now(),
                 existingOrder.status(),
-                request.items().stream()
+                items.stream()
                         .map(item -> item.totalPrice())
                         .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add),
                 existingOrder.cancelReason(),
@@ -215,7 +219,8 @@ public class CounterController {
     }
 
     @PostMapping("/counter/fragments/order-cart")
-    public String getOrderCartFragment(Model model, @RequestBody List<CartItem> items, jakarta.servlet.http.HttpServletResponse response) {
+    public String getOrderCartFragment(Model model, @RequestBody List<CartItem> requested, jakarta.servlet.http.HttpServletResponse response) {
+        List<CartItem> items = orderPricingService.price(requested, OrderChannel.COUNTER);
         // Enriched list for the fragment
         var enrichedItems = items.stream().map(item -> {
             boolean customizable = productService.findById(item.itemId())

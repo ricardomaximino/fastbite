@@ -1,10 +1,13 @@
 package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.application.order.OrderNumberService;
+import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
+import es.brasatech.fastbite.domain.order.OrderChannel;
+import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.dto.order.OrderCancelReason;
 import es.brasatech.fastbite.dto.order.OrderStatusChange;
 import jakarta.servlet.http.HttpSession;
@@ -30,6 +33,7 @@ public class OrderController {
 
     private final MessageSource messageSource;
     private final OrderNumberService orderNumberService;
+    private final OrderPricingService orderPricingService;
     private final OrderService orderService;
     private final TableService tableService;
     private final KdsConfigService kdsConfigService;
@@ -44,18 +48,26 @@ public class OrderController {
     @ResponseBody
     @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
-        var orderNumber = orderNumberService.next();
-        
         try {
+            List<CartItem> items = orderPricingService.price(request.items(), OrderChannel.TABLE);
+            if (items.isEmpty()) {
+                throw new IllegalArgumentException("Your cart is empty");
+            }
+            // The table the guest's QR code bound to this session wins over the form field
+            String table = Optional.ofNullable((String) session.getAttribute("tableNumber")).orElse(request.tableNumber());
+            String tableId = tableService.findTableByNameOrId(table).map(Table::id)
+                    .orElseThrow(() -> new IllegalArgumentException("Table does not exist"));
+
+            var orderNumber = orderNumberService.next();
             Order order = orderService.createOrderForTable(
-                request.items(),
+                items,
                 orderNumber,
-                request.tableNumber(),
+                tableId,
                 locale.getLanguage(),
                 request.customerName()
             );
 
-            session.setAttribute("cart", request.items());
+            session.setAttribute("cart", items);
             session.setAttribute("orderNumber", orderNumber);
             session.setAttribute(SESSION_ORDER_ID, order.id());
 

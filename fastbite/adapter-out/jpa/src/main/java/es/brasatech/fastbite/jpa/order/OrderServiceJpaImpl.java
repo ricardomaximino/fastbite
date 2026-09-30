@@ -167,7 +167,7 @@ public class OrderServiceJpaImpl implements OrderService {
             throw new IllegalArgumentException("Table does not exist");
         }
         
-        var savedOrder = createOrder(cartItems, orderNumber, es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID, es.brasatech.fastbite.domain.order.OrderChannel.TABLE, orderLanguage, customerName);
+        var savedOrder = createOrder(cartItems, orderNumber, es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID, es.brasatech.fastbite.domain.order.OrderChannel.TABLE, orderLanguage, null, customerName);
         tableService.assignOrder(tableId, savedOrder.id());
         return savedOrder;
     }
