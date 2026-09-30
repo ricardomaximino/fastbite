@@ -13,6 +13,7 @@ import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.order.ServiceType;
 import es.brasatech.fastbite.security.SecurityConfig;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -26,10 +27,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,6 +55,8 @@ class OrderStatusEndpointTest {
     @MockitoBean
     private RestaurantSettingsService settingsService;
     @MockitoBean
+    private OrderCheckoutService orderCheckoutService;
+    @MockitoBean
     private TenantLocationService tenantLocationService;
 
     @Test
@@ -70,6 +76,22 @@ class OrderStatusEndpointTest {
     void guestWithoutAnOrderGetsNotFound() throws Exception {
         mockMvc.perform(get("/api/order-status"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void comingBackFromStripeThePaymentIsCheckedAndShown() throws Exception {
+        when(orderCheckoutService.confirmReturn("cs_paid")).thenReturn(true);
+        when(orderCheckoutService.confirmReturn("cs_open")).thenReturn(false);
+
+        mockMvc.perform(get("/kebab/order-confirmation").param("session_id", "cs_paid"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("alert mt-3 mb-0 alert-success")));
+        mockMvc.perform(get("/kebab/order-confirmation").param("session_id", "cs_open"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("alert mt-3 mb-0 alert-warning")));
+        mockMvc.perform(get("/kebab/order-confirmation"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("id=\"paymentResult\""))));
     }
 
     @Test

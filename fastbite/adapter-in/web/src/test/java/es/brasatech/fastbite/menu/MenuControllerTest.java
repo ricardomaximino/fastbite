@@ -4,7 +4,6 @@ import es.brasatech.fastbite.TestConfig;
 import es.brasatech.fastbite.controller.MenuController;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.dto.menu.MenuData;
-import es.brasatech.fastbite.dto.menu.OrderDto;
 import es.brasatech.fastbite.dto.office.MenuDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +63,9 @@ class MenuControllerTest {
 
         @MockitoBean
         private es.brasatech.fastbite.application.order.OrderPricingService orderPricingService;
+
+        @MockitoBean
+        private es.brasatech.fastbite.application.order.OrderService orderService;
 
         private List<CartItem> testCartItems;
         private MockHttpSession mockSession;
@@ -280,59 +282,29 @@ class MenuControllerTest {
         }
 
         @Test
-        @DisplayName("GET /select-payment - Should return payment selection page with order from session")
-        void testSelectPayment() throws Exception {
+        @DisplayName("GET /select-payment - Shows the saved order of this guest, not what the browser holds")
+        void testSelectPaymentShowsTheSavedOrder() throws Exception {
+                var saved = new es.brasatech.fastbite.domain.order.Order(testCartItems, 12,
+                                es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID,
+                                es.brasatech.fastbite.domain.order.OrderChannel.TABLE, "en");
+                when(orderService.findById("order-12")).thenReturn(java.util.Optional.of(saved));
+                mockSession.setAttribute("orderId", "order-12");
+
                 mockMvc.perform(get("/default/select-payment").session(mockSession).with(csrf()))
-                                .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("fastfood/paymentSelection"))
-                                .andExpect(model().attributeExists("order"))
-                                .andExpect(result -> {
-                                        var order = (OrderDto) result.getModelAndView()
-                                                         .getModel().get("order");
-                                        assert order != null;
-                                        assert "ORD-12345".equals(order.id());
-                                        assert order.itemList().size() == 2;
-                                });
+                                .andExpect(model().attribute("order", saved))
+                                .andExpect(model().attribute("subtotal", new BigDecimal("25.00")))
+                                .andExpect(content().string(org.hamcrest.Matchers.containsString("2 x Burger")))
+                                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-order-total=\"25.00\"")));
         }
 
         @Test
-        @DisplayName("GET /select-payment - Should handle missing cart in session")
-        void testSelectPaymentWithoutCart() throws Exception {
-                MockHttpSession emptySession = new MockHttpSession();
-                emptySession.setAttribute("orderNumber", "ORD-67890");
-
-                mockMvc.perform(get("/default/select-payment").session(emptySession).with(csrf()))
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(view().name("fastfood/paymentSelection"))
-                                .andExpect(model().attributeExists("order"))
-                                .andExpect(result -> {
-                                        var order = (OrderDto) result.getModelAndView()
-                                                         .getModel().get("order");
-                                        assert order != null;
-                                        assert "ORD-67890".equals(order.id());
-                                        assert order.itemList().isEmpty();
-                                });
-        }
-
-        @Test
-        @DisplayName("GET /select-payment - Should handle null session attributes")
-        void testSelectPaymentWithNullSession() throws Exception {
-                MockHttpSession nullSession = new MockHttpSession();
-
-                mockMvc.perform(get("/default/select-payment").session(nullSession).with(csrf()))
-                                .andDo(print())
-                                .andExpect(status().isOk())
-                                .andExpect(view().name("fastfood/paymentSelection"))
-                                .andExpect(model().attributeExists("order"))
-                                .andExpect(result -> {
-                                        var order = (OrderDto) result.getModelAndView()
-                                                         .getModel().get("order");
-                                        assert order != null;
-                                        assert order.id() == null;
-                                        assert order.itemList().isEmpty();
-                                });
+        @DisplayName("GET /select-payment - Without an order there is nothing to pay")
+        void testSelectPaymentWithoutAnOrderGoesBackToTheMenu() throws Exception {
+                mockMvc.perform(get("/default/select-payment").session(new MockHttpSession()).with(csrf()))
+                                .andExpect(status().isFound())
+                                .andExpect(redirectedUrl("/menu"));
         }
 
         @Test

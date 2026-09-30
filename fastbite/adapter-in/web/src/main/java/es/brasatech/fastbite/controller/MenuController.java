@@ -2,11 +2,15 @@ package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.order.OrderPricingService;
+import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.OrderChannel;
-import es.brasatech.fastbite.dto.menu.OrderDto;
+import es.brasatech.fastbite.config.TenantRoutingResolver;
+import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.dto.office.MenuDataService;
+import es.brasatech.fastbite.service.OrderCheckoutService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,10 +18,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class MenuController {
     private final TableService tableService;
     private final DiscountService discountService;
     private final OrderPricingService orderPricingService;
+    private final OrderService orderService;
     
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
@@ -88,14 +94,19 @@ public class MenuController {
         return "fastfood/fragments/menu :: toast";
     }
 
+    /** The payment page for the order this guest just placed, as it was saved. */
     @GetMapping({"/{tenantId}/select-payment", "/select-payment"})
-    @SuppressWarnings("unchecked")
-    public String selectPayment(HttpSession session, Model model) {
-        var orderNumberObj = session.getAttribute("orderNumber");
-        var orderNumber = orderNumberObj != null ? orderNumberObj.toString() : null;
-        var cartItems = (List<CartItem>) session.getAttribute("cart");
-        var order = new OrderDto(orderNumber, cartItems != null ? cartItems : new ArrayList<>());
-        model.addAttribute("order", order);
+    public String selectPayment(HttpSession session, HttpServletRequest request, Model model) {
+        Optional<Order> order = Optional.ofNullable((String) session.getAttribute("orderId"))
+                .flatMap(orderService::findById);
+        if (order.isEmpty()) {
+            Object prefix = request.getAttribute(TenantRoutingResolver.TENANT_URL_PREFIX);
+            return "redirect:" + (prefix != null ? prefix : "") + "/menu";
+        }
+        model.addAttribute("order", order.get());
+        model.addAttribute("subtotal", order.get().subtotal());
+        model.addAttribute("discount", order.get().subtotal().subtract(order.get().total()).max(BigDecimal.ZERO));
+        model.addAttribute("tipPercents", OrderCheckoutService.TIP_PERCENTS);
         return "fastfood/paymentSelection";
     }
 

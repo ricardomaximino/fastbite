@@ -81,7 +81,8 @@ public class ProductServiceJpaImpl implements ProductService {
                 entity.getPrice(),
                 Translations.get(translations, language, "description", entity.getDescription()),
                 entity.getImage(),
-                entity.getCustomizations(),
+                // A copy: the entity's own collection cannot be read once the transaction is over
+                entity.getCustomizations() != null ? new HashSet<>(entity.getCustomizations()) : null,
                 entity.isActive());
     }
 

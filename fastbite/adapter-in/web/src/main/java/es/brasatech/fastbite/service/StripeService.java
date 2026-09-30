@@ -5,82 +5,45 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
-import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
-import lombok.extern.slf4j.Slf4j;
+import es.brasatech.fastbite.domain.order.Order;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@Slf4j
 public class StripeService {
+
+    public static final String RESTAURANT_ORDER = "RESTAURANT_ORDER";
+    private static final String CURRENCY = "eur";
 
     private final String secretKey;
     private final String webhookSecret;
 
     public StripeService(
-            @Value("${stripe.secret.key:${STRIPE_SECRET_KEY_SANDBOX:}}") String secretKey,
-            @Value("${stripe.webhook.secret:${STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX:}}") String webhookSecret) {
-        this.secretKey = (secretKey != null && !secretKey.isBlank()) 
-                ? secretKey 
-                : System.getenv("STRIPE_SECRET_KEY_SANDBOX");
-        this.webhookSecret = (webhookSecret != null && !webhookSecret.isBlank()) 
-                ? webhookSecret 
-                : System.getenv("STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX");
-
-        if (this.secretKey != null && !this.secretKey.isBlank()) {
-            Stripe.apiKey = this.secretKey;
-        }
+            @Value("${stripe.secret.key:}") String secretKey,
+            @Value("${stripe.webhook.secret:}") String webhookSecret) {
+        this.secretKey = secretKey;
+        this.webhookSecret = webhookSecret;
+        Stripe.apiKey = secretKey;
     }
 
-    public String getSecretKey() {
-        if (secretKey != null && !secretKey.isBlank()) {
-            return secretKey;
+    private void requireSecretKey() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("Online payment is not set up: STRIPE_SECRET_KEY is missing.");
         }
-        String env = System.getenv("STRIPE_SECRET_KEY_SANDBOX");
-        if (env != null && !env.isBlank()) {
-            return env;
-        }
-        return getWinEnv("STRIPE_SECRET_KEY_SANDBOX");
-    }
-
-    public String getWebhookSecret() {
-        if (webhookSecret != null && !webhookSecret.isBlank()) {
-            return webhookSecret;
-        }
-        String env = System.getenv("STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX");
-        if (env != null && !env.isBlank()) {
-            return env;
-        }
-        return getWinEnv("STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX");
-    }
-
-    private String getWinEnv(String name) {
-        try {
-            if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
-                Process process = new ProcessBuilder("powershell", "-Command",
-                        "[System.Environment]::GetEnvironmentVariable('" + name + "', 'User') + [System.Environment]::GetEnvironmentVariable('" + name + "', 'Machine')").start();
-                String val = new String(process.getInputStream().readAllBytes()).trim();
-                return val.isBlank() ? null : val;
-            }
-        } catch (Exception ignored) {}
-        return null;
     }
 
     /**
      * Level 1: Platform Level Checkout Session for Tenant Users / Restaurant Owners to purchase subscriptions or additional locations.
      */
     public Session createPlatformCheckoutSession(String tenantId, String ownerUsername, String plan, String successUrl, String cancelUrl) throws StripeException {
-        String activeSecretKey = getSecretKey();
-        if (activeSecretKey == null || activeSecretKey.isBlank()) {
-            throw new IllegalStateException("STRIPE_SECRET_KEY_SANDBOX is not configured.");
-        }
-        Stripe.apiKey = activeSecretKey;
+        requireSecretKey();
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("tenantId", tenantId);
@@ -99,7 +62,7 @@ public class StripeService {
                                 .setQuantity(1L)
                                 .setPriceData(
                                         SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency("eur")
+                                                .setCurrency(CURRENCY)
                                                 .setUnitAmount(2900L) // €29.00 default subscription cost
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -117,101 +80,77 @@ public class StripeService {
     }
 
     /**
-     * Level 2: Restaurant Level Checkout Session for Guest Customers ordering food at a specific restaurant location.
+     * Level 2: a guest pays a restaurant order. The amount is the order's saved total plus the tip;
+     * the session carries the restaurant and order so the payment can be matched to them afterwards.
+     *
+     * @param connectedAccountId the restaurant's Stripe account the money goes to, or blank to keep it on the platform account
      */
-    public Session createRestaurantCheckoutSession(
-            String tenantId,
-            String orderId,
-            BigDecimal amount,
-            String currency,
-            String customerName,
-            String stripeAccountId,
-            String successUrl,
-            String cancelUrl) throws StripeException {
-
-        String activeSecretKey = getSecretKey();
-        if (activeSecretKey == null || activeSecretKey.isBlank()) {
-            throw new IllegalStateException("STRIPE_SECRET_KEY_SANDBOX is not configured.");
-        }
-        Stripe.apiKey = activeSecretKey;
-
-        long amountInCents = amount.multiply(BigDecimal.valueOf(100)).longValue();
-        if (amountInCents <= 0) {
-            amountInCents = 100; // minimum amount
-        }
-
-        String curr = (currency != null && !currency.isBlank()) ? currency.toLowerCase() : "eur";
+    public Session createOrderCheckoutSession(String tenantId, Order order, BigDecimal tip, String connectedAccountId,
+            String successUrl, String cancelUrl) throws StripeException {
+        requireSecretKey();
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("tenantId", tenantId);
-        metadata.put("orderId", orderId);
-        metadata.put("customerName", customerName != null ? customerName : "Guest");
-        metadata.put("type", "RESTAURANT_ORDER");
+        metadata.put("orderId", order.id());
+        metadata.put("orderNumber", String.valueOf(order.orderNumber()));
+        metadata.put("tip", tip.toPlainString());
+        metadata.put("type", RESTAURANT_ORDER);
 
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(successUrl)
                 .setCancelUrl(cancelUrl)
-                .setClientReferenceId(orderId)
+                .setClientReferenceId(order.id())
                 .putAllMetadata(metadata)
-                .addLineItem(
-                        SessionCreateParams.LineItem.builder()
-                                .setQuantity(1L)
-                                .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency(curr)
-                                                .setUnitAmount(amountInCents)
-                                                .setProductData(
-                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("Restaurant Order #" + orderId + " (" + tenantId + ")")
-                                                                .build()
-                                                )
-                                                .build()
-                                )
-                                .build()
-                );
-
-        // If location has a Connected Stripe Account, use destination charge for Connect integration
-        if (stripeAccountId != null && !stripeAccountId.isBlank()) {
-            builder.setPaymentIntentData(
-                    SessionCreateParams.PaymentIntentData.builder()
-                            .setTransferData(
-                                    SessionCreateParams.PaymentIntentData.TransferData.builder()
-                                            .setDestination(stripeAccountId.trim())
-                                            .build()
-                            )
-                            .build()
-            );
+                .addLineItem(lineItem("Order #" + order.orderNumber(), order.total()));
+        if (tip.signum() > 0) {
+            builder.addLineItem(lineItem("Tip", tip));
         }
-
-        SessionCreateParams params = builder.build();
-
-        // Option to execute on behalf of connected account if direct charge
-        if (stripeAccountId != null && !stripeAccountId.isBlank()) {
-            RequestOptions options = RequestOptions.builder()
-                    .setStripeAccount(stripeAccountId.trim())
-                    .build();
-            try {
-                return Session.create(params, options);
-            } catch (Exception e) {
-                log.warn("Direct charge via StripeAccount header failed, falling back to standard create: {}", e.getMessage());
-            }
+        if (connectedAccountId != null && !connectedAccountId.isBlank()) {
+            // Destination charge: the platform takes the payment and passes it on to the restaurant's account
+            builder.setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
+                    .setTransferData(SessionCreateParams.PaymentIntentData.TransferData.builder()
+                            .setDestination(connectedAccountId.trim())
+                            .build())
+                    .build());
         }
+        return Session.create(builder.build());
+    }
 
-        return Session.create(params);
+    private static SessionCreateParams.LineItem lineItem(String name, BigDecimal amount) {
+        return SessionCreateParams.LineItem.builder()
+                .setQuantity(1L)
+                .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                        .setCurrency(CURRENCY)
+                        .setUnitAmount(toCents(amount))
+                        .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                .setName(name)
+                                .build())
+                        .build())
+                .build();
+    }
+
+    public static long toCents(BigDecimal amount) {
+        return amount.movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
+    }
+
+    /** The checkout session as Stripe has it now: the trusted source for whether and how much was paid. */
+    public Session retrieveSession(String sessionId) throws StripeException {
+        requireSecretKey();
+        return Session.retrieve(sessionId);
     }
 
     /**
-     * Construct and verify Stripe Webhook event signature.
+     * Parses a webhook call after checking Stripe's signature on it.
+     *
+     * @throws SignatureVerificationException if the call is unsigned or the signature does not match
      */
     public Event constructEvent(String payload, String sigHeader) throws SignatureVerificationException {
         if (webhookSecret == null || webhookSecret.isBlank()) {
-            log.warn("STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX is not set, parsing event unverified");
-            return Event.GSON.fromJson(payload, Event.class);
+            throw new SignatureVerificationException("Webhooks are refused: STRIPE_CONNECT_WEBHOOK_SECRET is missing", sigHeader);
         }
         if (sigHeader == null || sigHeader.isBlank()) {
-            log.warn("No Stripe-Signature header provided, parsing event payload directly");
-            return Event.GSON.fromJson(payload, Event.class);
+            throw new SignatureVerificationException("Missing Stripe-Signature header", sigHeader);
         }
         return Webhook.constructEvent(payload, sigHeader, webhookSecret);
     }

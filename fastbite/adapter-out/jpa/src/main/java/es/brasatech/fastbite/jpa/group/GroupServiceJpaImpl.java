@@ -76,7 +76,8 @@ public class GroupServiceJpaImpl implements GroupService {
                 Translations.get(translations, language, "name", entity.getName()),
                 Translations.get(translations, language, "description", entity.getDescription()),
                 entity.getIcon(),
-                entity.getProducts());
+                // A copy: the entity's own collection cannot be read once the transaction is over
+                entity.getProducts() != null ? new ArrayList<>(entity.getProducts()) : null);
     }
 
     private static List<String> productsOf(List<String> products) {

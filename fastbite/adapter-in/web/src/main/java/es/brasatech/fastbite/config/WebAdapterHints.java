@@ -82,7 +82,6 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(CustomizationOption.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(CustomizationInputType.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(Tab.class), MemberCategory.values());
-        hints.reflection().registerType(TypeReference.of(OrderDto.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(Cart.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(CartItem.class), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of(BackOfficeDto.class), MemberCategory.values());

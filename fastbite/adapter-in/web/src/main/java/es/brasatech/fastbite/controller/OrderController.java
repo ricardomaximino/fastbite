@@ -10,6 +10,7 @@ import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.dto.order.OrderCancelReason;
 import es.brasatech.fastbite.dto.order.OrderStatusChange;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -37,6 +38,7 @@ public class OrderController {
     private final OrderService orderService;
     private final TableService tableService;
     private final RestaurantSettingsService settingsService;
+    private final OrderCheckoutService orderCheckoutService;
 
     public record CreateOrderRequest(
         List<CartItem> items,
@@ -142,9 +144,14 @@ public class OrderController {
     }
 
     @GetMapping({"/{tenantId}/order-confirmation", "/order-confirmation"})
-    public String confirmation(HttpSession session, Model model) {
+    public String confirmation(@RequestParam(name = "session_id", required = false) String checkoutSessionId,
+            HttpSession session, Model model) {
         var orderNumber = session.getAttribute("orderNumber");
         model.addAttribute("orderNumber", orderNumber);
+        if (checkoutSessionId != null) {
+            // Back from Stripe: ask Stripe whether the payment went through
+            model.addAttribute("paidOnline", orderCheckoutService.confirmReturn(checkoutSessionId));
+        }
         return "fastfood/confirmation";
     }
 

@@ -41,6 +41,12 @@
                                 Submitted Successfully!</h2>
                             <p class="text-muted" th:text="#{message.thank.you.details}">Gracias por tu pedido. Lo
                                 estamos preparando ya.</p>
+                            <!-- Shown when the guest comes back from paying online -->
+                            <div th:if="${paidOnline != null}" class="alert mt-3 mb-0" id="paymentResult"
+                                th:classappend="${paidOnline} ? 'alert-success' : 'alert-warning'">
+                                <i class="fas me-2" th:classappend="${paidOnline} ? 'fa-circle-check' : 'fa-triangle-exclamation'"></i>
+                                <span th:text="${paidOnline} ? #{message.payment.received} : #{message.payment.not.confirmed}">Payment received</span>
+                            </div>
                         </div>
 
                         <div class="py-4">

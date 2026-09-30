@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .permitAll())
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/webhooks/stripe", "/api/stripe/**")
+                        .ignoringRequestMatchers("/api/webhooks/stripe")
                 )
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())

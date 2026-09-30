@@ -64,6 +64,8 @@ class GuestCartPricingTest {
     private TableService tableService;
     @MockitoBean
     private TenantLocationService tenantLocationService;
+    @MockitoBean
+    private es.brasatech.fastbite.application.order.OrderService orderService;
 
     @BeforeEach
     void setUp() {

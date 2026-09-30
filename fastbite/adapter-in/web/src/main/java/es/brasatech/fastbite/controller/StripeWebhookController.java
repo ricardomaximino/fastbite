@@ -1,11 +1,11 @@
 package es.brasatech.fastbite.controller;
 
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
-import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
 import es.brasatech.fastbite.application.tenant.TenantSignupService;
-import es.brasatech.fastbite.domain.tenant.TenantContext;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import es.brasatech.fastbite.service.StripeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class StripeWebhookController {
     private final StripeService stripeService;
     private final TenantSignupService tenantSignupService;
     private final TenantLocationService tenantLocationService;
-    private final OrderService orderService;
+    private final OrderCheckoutService orderCheckoutService;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
 
@@ -49,7 +49,8 @@ public class StripeWebhookController {
             }
             log.info("Processing verified Stripe event type: {}", eventType);
 
-            if ("checkout.session.completed".equals(eventType) || "customer.subscription.created".equals(eventType)) {
+            if ("checkout.session.completed".equals(eventType) || "checkout.session.async_payment_succeeded".equals(eventType)
+                    || "customer.subscription.created".equals(eventType)) {
                 Session session = null;
                 if (event != null) {
                     try {
@@ -68,6 +69,7 @@ public class StripeWebhookController {
 
                 Map<String, String> metadata = new HashMap<>();
                 String clientReferenceId = "";
+                String checkoutSessionId = session != null ? session.getId() : null;
 
                 if (session != null) {
                     if (session.getMetadata() != null) {
@@ -81,6 +83,7 @@ public class StripeWebhookController {
                         JsonNode root = objectMapper.readTree(payload);
                         JsonNode obj = root.path("data").path("object");
                         clientReferenceId = obj.path("client_reference_id").asText();
+                        checkoutSessionId = obj.path("id").asText();
                         JsonNode metaNode = obj.path("metadata");
                         if (metaNode.isObject()) {
                             metaNode.forEachEntry((key, val) -> metadata.put(key, val.asText()));
@@ -101,13 +104,11 @@ public class StripeWebhookController {
                         return ResponseEntity.badRequest().body("Missing tenant identifier for order payment");
                     }
                     log.info("Processing Restaurant Order Payment for order: {} in tenant: {}", orderId, tenantId);
-                    try {
-                        TenantContext.setCurrentTenant(tenantId);
-                        orderService.markOrderPaid(orderId);
-                        log.info("Successfully marked order: {} as PAID in tenant: {}", orderId, tenantId);
-                    } finally {
-                        TenantContext.clear();
+                    // What was paid, and for which order, is read back from Stripe rather than from this call
+                    if (checkoutSessionId == null || checkoutSessionId.isBlank()) {
+                        return ResponseEntity.badRequest().body("Missing checkout session");
                     }
+                    orderCheckoutService.confirm(stripeService.retrieveSession(checkoutSessionId));
                 } 
                 // ===== LEVEL 1: PLATFORM LEVEL PAYMENT (OWNER SUBSCRIPTION / LOCATION PROVISIONING) =====
                 else {
@@ -139,6 +140,9 @@ public class StripeWebhookController {
             }
 
             return ResponseEntity.ok("Webhook processed successfully");
+        } catch (SignatureVerificationException e) {
+            log.warn("Refused Stripe webhook: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid signature");
         } catch (Exception e) {
             log.error("Failed to process Stripe webhook payload: ", e);
             return ResponseEntity.status(500).body("Error processing webhook: " + e.getMessage());

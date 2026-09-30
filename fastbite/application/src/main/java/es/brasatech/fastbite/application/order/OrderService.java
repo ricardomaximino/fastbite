@@ -4,9 +4,16 @@ import es.brasatech.fastbite.domain.event.OrderStatusChangedEvent;
 import es.brasatech.fastbite.domain.order.*;
 import es.brasatech.fastbite.domain.table.TableStatus;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Transactional here, not only on the implementation: the default methods below read an order and
+ * save it again, and each of them has to be one unit of work.
+ */
+@Transactional
 public interface OrderService {
 
     List<Order> findAll();

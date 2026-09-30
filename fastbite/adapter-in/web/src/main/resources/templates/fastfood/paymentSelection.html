@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{page.payment.title}">Payment Method - FastBite</title>
+    <meta name="_csrf" th:content="${_csrf.token}" />
     <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -36,13 +37,27 @@
                 <div class="confirmation-card">
                     <h3 class="mb-4" th:text="#{label.select.payment.method}">Select Payment Method</h3>
 
-                    <form id="paymentForm" action="/process-payment" method="POST">
+                    <form id="paymentForm">
                         <!-- Payment Options - Logo Style -->
                         <div class="row g-3 mb-4">
-                            <!-- Stripe Card Payment -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="paymentMethod" id="local" value="local"
-                                    checked>
+                            <!-- Pay online with Stripe -->
+                            <div class="col-md-6">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="stripe"
+                                    value="stripe-checkout" checked>
+                                <label class="card product-card h-100 text-center p-4" for="stripe"
+                                    style="cursor: pointer;">
+                                    <div class="mb-3">
+                                        <i class="fab fa-stripe fa-4x" style="color: #635bff;"></i>
+                                    </div>
+                                    <h6 class="fw-bold" th:text="#{label.payment.online}">Pay online now</h6>
+                                    <small class="text-muted" th:text="#{label.payment.mobile.wallets}">Apple Pay,
+                                        Google Pay</small>
+                                </label>
+                            </div>
+
+                            <!-- Pay in person -->
+                            <div class="col-md-6">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="local" value="local">
                                 <label class="card product-card h-100 text-center p-4" for="local"
                                     style="cursor: pointer;">
                                     <div class="mb-3">
@@ -54,94 +69,54 @@
                                         counter</small>
                                 </label>
                             </div>
-
-                            <!-- PayPal -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="paymentMethod" id="paypal" value="paypal">
-                                <label class="card product-card h-100 text-center p-4" for="paypal"
-                                    style="cursor: pointer;">
-                                    <div class="mb-3">
-                                        <i class="fab fa-paypal fa-4x" style="color: #003087;"></i>
-                                    </div>
-                                    <h6 class="fw-bold">PayPal</h6>
-                                    <small class="text-muted" th:text="#{label.payment.fast.secure}">Fast &
-                                        Secure</small>
-                                </label>
-                            </div>
-
-                            <!-- Stripe Checkout -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="paymentMethod" id="stripe"
-                                    value="stripe-checkout">
-                                <label class="card product-card h-100 text-center p-4" for="stripe"
-                                    style="cursor: pointer;">
-                                    <div class="mb-3">
-                                        <i class="fab fa-stripe fa-4x" style="color: #635bff;"></i>
-                                    </div>
-                                    <h6 class="fw-bold">Stripe Checkout</h6>
-                                    <small class="text-muted" th:text="#{label.payment.mobile.wallets}">Apple Pay,
-                                        Google Pay</small>
-                                </label>
-                            </div>
                         </div>
 
-                        <!-- Bill Splitting Options (F-21) -->
-                        <div class="card mb-4 border-0 bg-light rounded-4 p-3 shadow-sm">
-                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-users-slash me-2 text-primary"></i>Split Bill Option</h6>
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-6">
-                                    <select id="splitBillMode" class="form-select border-secondary rounded-pill" onchange="updateBillSplit()">
-                                        <option value="full" selected>Pay Full Bill (1 Person)</option>
-                                        <option value="equal2">Equal Split (2 Guests)</option>
-                                        <option value="equal3">Equal Split (3 Guests)</option>
-                                        <option value="equal4">Equal Split (4 Guests)</option>
-                                        <option value="equal5">Equal Split (5 Guests)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 text-md-end">
-                                    <span id="splitShareDisplay" class="badge bg-primary fs-6 px-3 py-2 rounded-pill">Your Share: $<span id="shareAmount" th:text="${#numbers.formatDecimal(order.total, 1, 2)}">0.00</span></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 1-Tap Tipping Presets (F-21) -->
-                        <div class="card mb-4 border-0 bg-light rounded-4 p-3 shadow-sm">
-                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-heart me-2 text-danger"></i>Add Waiter Tip</h6>
+                        <!-- Tip, added to an online payment -->
+                        <div class="card mb-4 border-0 bg-light rounded-4 p-3 shadow-sm" id="tipCard">
+                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-heart me-2 text-danger"></i><span
+                                    th:text="#{label.tip.add}">Add a tip</span></h6>
                             <div class="d-flex flex-wrap gap-2 mb-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill tip-chip active" onclick="selectTip(0, this)">No Tip</button>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(10, this)">10% ($<span id="tip10">0.00</span>)</button>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(15, this)">15% ($<span id="tip15">0.00</span>)</button>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill tip-chip" onclick="selectTip(20, this)">20% ($<span id="tip20">0.00</span>)</button>
+                                <button th:each="percent : ${tipPercents}" type="button"
+                                    class="btn btn-sm rounded-pill tip-chip"
+                                    th:classappend="${percent == 0} ? 'btn-danger active' : 'btn-outline-danger'"
+                                    th:data-percent="${percent}" onclick="selectTip(this)">
+                                    <span th:if="${percent == 0}" th:text="#{label.tip.none}">No tip</span>
+                                    <span th:unless="${percent == 0}"><span th:text="${percent}">10</span>% (<span
+                                            class="tip-amount">0.00</span>)</span>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Order Summary -->
                         <div class="order-summary mb-4">
                             <h5 class="mb-3"><i class="fas fa-receipt me-2"></i><span
-                                    th:text="#{label.order.summary}">Order Summary</span></h5>
-                            <div th:each="item : ${order.itemList}">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span th:text="${item.name}">Coca Cola x 1 (Large)</span>
-                                    <span class="badge bg-primary rounded-pill h5 mb-0"
-                                        th:text="${#numbers.formatDecimal(item.price, 1, 2)}">$5.99</span>
-                                </div>
+                                    th:text="#{label.order.summary}">Order Summary</span> <span
+                                    th:text="'#' + ${order.orderNumber}">#12</span></h5>
+                            <div th:each="item : ${order.items}" class="d-flex justify-content-between mb-2">
+                                <span>
+                                    <span th:text="${item.quantity} + ' x ' + ${item.name}">1 x Coca Cola</span>
+                                    <small th:if="${not #lists.isEmpty(item.customizations)}" class="text-muted d-block"
+                                        th:text="${#strings.listJoin(item.customizations.![name], ', ')}">Large</small>
+                                </span>
+                                <span th:text="${#numbers.formatDecimal(item.totalPrice(), 1, 2)}">5.99</span>
                             </div>
+                            <hr>
                             <div class="d-flex justify-content-between mb-2">
                                 <span th:text="#{label.subtotal} + ':'">Subtotal:</span>
-                                <span th:text="${#numbers.formatDecimal(order.subtotal, 1, 2)}">$5.99</span>
+                                <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}">5.99</span>
                             </div>
-                            <div th:if="${order.tax > 0}" class="d-flex justify-content-between mb-2">
-                                <span th:text="#{label.tax} + ' (' + ${order.tax} + '%):'">Tax (10%):</span>
-                                <span th:text="${#numbers.formatDecimal(order.taxAmount, 1, 2)}">$0.60</span>
+                            <div th:if="${discount > 0}" class="d-flex justify-content-between mb-2 text-danger">
+                                <span th:text="#{label.discount} + ':'">Discount:</span>
+                                <span th:text="'-' + ${#numbers.formatDecimal(discount, 1, 2)}">-1.00</span>
                             </div>
-                            <div id="tipRow" class="d-flex justify-content-between mb-2" style="display: none;">
-                                <span>Tip (<span id="selectedTipPercent">0</span>%):</span>
-                                <span class="text-danger fw-bold">$<span id="tipAmountDisplay">0.00</span></span>
+                            <div id="tipRow" class="justify-content-between mb-2" style="display: none;">
+                                <span><span th:text="#{label.tip}">Tip</span> (<span id="selectedTipPercent">0</span>%):</span>
+                                <span class="text-danger fw-bold" id="tipAmountDisplay">0.00</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between fw-bold fs-5">
                                 <span th:text="#{label.total} + ':'">Total:</span>
-                                <span>$<span id="displayGrandTotal" th:text="${#numbers.formatDecimal(order.total, 1, 2)}">6.59</span></span>
+                                <span id="displayGrandTotal" th:text="${#numbers.formatDecimal(order.total, 1, 2)}">6.59</span>
                             </div>
                         </div>
 
@@ -151,6 +126,8 @@
                             <span th:text="#{message.secure.payment.desc}"><strong>Secure Payment</strong> - Your
                                 information is encrypted and secure</span>
                         </div>
+
+                        <div class="alert alert-danger d-none" id="paymentError" role="alert"></div>
 
                         <!-- Action Buttons -->
                         <div class="text-center">
@@ -168,78 +145,90 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <div id="paymentData" style="display:none" th:data-order-total="${order.total}"
+        th:data-processing="#{button.processing}" th:data-error="#{message.payment.unavailable}"></div>
+
+    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Restore theme preference
         const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
         document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // Add selected styling to payment cards
-        document.querySelectorAll('.btn-check').forEach(radio => {
-            radio.addEventListener('change', function () {
-                // Remove selected styling from all cards
-                document.querySelectorAll('.btn-check + label').forEach(label => {
-                    label.style.borderColor = '';
-                    label.style.backgroundColor = '';
-                });
+        const paymentData = document.getElementById('paymentData').dataset;
+        const orderTotal = parseFloat(paymentData.orderTotal) || 0;
+        let tipPercent = 0;
 
-                // Add selected styling to checked card
-                if (this.checked) {
-                    const label = this.nextElementSibling;
-                    // Resolve active theme variables dynamically
-                    label.style.borderColor = 'var(--primary-color)';
-                    label.style.backgroundColor = 'var(--light-color)';
-                }
+        const selectedMethod = () => document.querySelector('input[name="paymentMethod"]:checked').value;
+
+        // Highlight the chosen payment card; a tip only makes sense when paying online
+        function showSelectedMethod() {
+            document.querySelectorAll('.btn-check').forEach(radio => {
+                const label = radio.nextElementSibling;
+                label.style.borderColor = radio.checked ? 'var(--primary-color)' : '';
+                label.style.backgroundColor = radio.checked ? 'var(--light-color)' : '';
             });
-        });
+            document.getElementById('tipCard').style.display = selectedMethod() === 'stripe-checkout' ? '' : 'none';
+            updateTotals();
+        }
+        document.querySelectorAll('.btn-check').forEach(radio => radio.addEventListener('change', showSelectedMethod));
 
-        // Initialize first option as selected
-        document.querySelector('.btn-check').dispatchEvent(new Event('change'));
+        // What is shown here is only a preview: the server works out the amount to charge
+        function updateTotals() {
+            const percent = selectedMethod() === 'stripe-checkout' ? tipPercent : 0;
+            const tip = Math.round(orderTotal * percent) / 100;
+            document.querySelectorAll('.tip-chip').forEach(chip => {
+                const amount = chip.querySelector('.tip-amount');
+                if (amount) amount.innerText = (Math.round(orderTotal * chip.dataset.percent) / 100).toFixed(2);
+            });
+            document.getElementById('tipAmountDisplay').innerText = tip.toFixed(2);
+            document.getElementById('selectedTipPercent').innerText = percent;
+            document.getElementById('tipRow').style.display = percent > 0 ? 'flex' : 'none';
+            document.getElementById('displayGrandTotal').innerText = (orderTotal + tip).toFixed(2);
+        }
 
-        // Handle form submission
+        function selectTip(chip) {
+            document.querySelectorAll('.tip-chip').forEach(other => {
+                other.classList.remove('active', 'btn-danger');
+                other.classList.add('btn-outline-danger');
+            });
+            chip.classList.remove('btn-outline-danger');
+            chip.classList.add('active', 'btn-danger');
+            tipPercent = parseInt(chip.dataset.percent, 10);
+            updateTotals();
+        }
+
         document.getElementById('paymentForm').addEventListener('submit', function (e) {
             e.preventDefault();
+            if (selectedMethod() !== 'stripe-checkout') {
+                window.location.assign(getTenantPrefix() + '/order-confirmation');
+                return;
+            }
 
-            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
-            const processingText = '[[#{button.processing}]]';
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (processingText || 'Processing...');
+            const errorBox = document.getElementById('paymentError');
+            const fail = message => {
+                errorBox.textContent = message || paymentData.error;
+                errorBox.classList.remove('d-none');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            };
+            errorBox.classList.add('d-none');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + paymentData.processing;
             submitBtn.disabled = true;
 
-            if (selectedMethod === 'stripe-checkout') {
-                const tenantPrefix = getTenantPrefix();
-                const tenantId = tenantPrefix ? tenantPrefix.replace('/', '') : '';
-
-                fetch('/api/stripe/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        tenantId: tenantId,
-                        orderId: '[[${order.id != null ? order.id : ""}]]',
-                        amount: '[[${order.total != null ? order.total : 0}]]'
-                    })
-                })
+            fetch(getTenantPrefix() + '/api/stripe/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                },
+                body: JSON.stringify({ tipPercent: tipPercent })
+            })
                 .then(res => res.json())
-                .then(data => {
-                    if (data.checkoutUrl) {
-                        window.location.href = data.checkoutUrl;
-                    } else {
-                        alert(data.error || 'Failed to initiate Stripe Checkout');
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    console.error('Stripe Checkout Error:', err);
-                    window.location.assign(getTenantPrefix() + '/order-confirmation');
-                });
-            } else {
-                setTimeout(() => {
-                    window.location.assign(getTenantPrefix() + '/order-confirmation');
-                }, 800);
-            }
+                .then(data => data.checkoutUrl ? window.location.assign(data.checkoutUrl) : fail(data.error))
+                .catch(() => fail());
         });
 
         function getTenantPrefix() {
@@ -255,64 +244,11 @@
             return '';
         }
 
-        // Go back to confirmation
         function goBack() {
             window.history.back();
         }
 
-        // Tipping & Split Bill JS Logic (F-21)
-        let baseSubtotal = parseFloat('[[${order.total != null ? order.total : 0}]]') || 0;
-        let currentTipPercent = 0;
-
-        function updateTotals() {
-            let tipAmount = (baseSubtotal * currentTipPercent) / 100;
-            let grandTotal = baseSubtotal + tipAmount;
-
-            const t10 = document.getElementById('tip10');
-            const t15 = document.getElementById('tip15');
-            const t20 = document.getElementById('tip20');
-            if (t10) t10.innerText = ((baseSubtotal * 10) / 100).toFixed(2);
-            if (t15) t15.innerText = ((baseSubtotal * 15) / 100).toFixed(2);
-            if (t20) t20.innerText = ((baseSubtotal * 20) / 100).toFixed(2);
-
-            const tipDisplay = document.getElementById('tipAmountDisplay');
-            const tipPercentDisplay = document.getElementById('selectedTipPercent');
-            const tipRow = document.getElementById('tipRow');
-            const grandTotalDisplay = document.getElementById('displayGrandTotal');
-
-            if (tipDisplay) tipDisplay.innerText = tipAmount.toFixed(2);
-            if (tipPercentDisplay) tipPercentDisplay.innerText = currentTipPercent;
-            if (tipRow) tipRow.style.display = currentTipPercent > 0 ? 'flex' : 'none';
-            if (grandTotalDisplay) grandTotalDisplay.innerText = grandTotal.toFixed(2);
-
-            updateBillSplit(grandTotal);
-        }
-
-        function selectTip(percent, btnEl) {
-            document.querySelectorAll('.tip-chip').forEach(btn => btn.classList.remove('active', 'btn-danger'));
-            document.querySelectorAll('.tip-chip').forEach(btn => btn.classList.add('btn-outline-danger'));
-            btnEl.classList.remove('btn-outline-danger');
-            btnEl.classList.add('active', 'btn-danger');
-            currentTipPercent = percent;
-            updateTotals();
-        }
-
-        function updateBillSplit(totalAmount) {
-            let total = totalAmount || (baseSubtotal + (baseSubtotal * currentTipPercent) / 100);
-            let selectEl = document.getElementById('splitBillMode');
-            let mode = selectEl ? selectEl.value : 'full';
-            let guests = 1;
-            if (mode.startsWith('equal')) {
-                guests = parseInt(mode.replace('equal', ''), 10) || 1;
-            }
-            let share = total / guests;
-            const shareAmountEl = document.getElementById('shareAmount');
-            if (shareAmountEl) shareAmountEl.innerText = share.toFixed(2);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTotals();
-        });
+        document.addEventListener('DOMContentLoaded', showSelectedMethod);
     </script>
 </body>
 

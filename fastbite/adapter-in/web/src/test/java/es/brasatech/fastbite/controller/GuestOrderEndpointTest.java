@@ -18,6 +18,7 @@ import es.brasatech.fastbite.domain.settings.RestaurantSettings;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
 import es.brasatech.fastbite.security.SecurityConfig;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -72,6 +73,8 @@ class GuestOrderEndpointTest {
     private TableService tableService;
     @MockitoBean
     private RestaurantSettingsService settingsService;
+    @MockitoBean
+    private OrderCheckoutService orderCheckoutService;
     @MockitoBean
     private TenantLocationService tenantLocationService;
 

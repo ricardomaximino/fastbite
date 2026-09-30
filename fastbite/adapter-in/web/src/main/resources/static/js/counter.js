@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // so everything loads at once. Clicks are enabled once the data has arrived.
     const data = loadInitialData();
     renderAll();
+    showTableCount();
     renderTables();
     refreshPickupCount();
     await data;
@@ -716,6 +717,14 @@ function resetPOS() {
     refreshTables();
 }
 
+// How many tables have open orders, counted from the table picker
+function showTableCount() {
+    const busy = document.querySelectorAll('#tables-list .table-btn:not([data-status="AVAILABLE"])').length;
+    const badge = document.getElementById('table-count');
+    badge.textContent = busy;
+    badge.classList.toggle('d-none', busy === 0);
+}
+
 // How many takeaway orders are waiting to be paid at pickup
 async function refreshPickupCount() {
     const badge = document.getElementById('pickup-count');
@@ -756,6 +765,7 @@ async function renderTables() {
         const res = await fetch(`/counter/fragments/tables?selectedTableId=${selectedTableId}`);
         if (res.ok) {
             list.innerHTML = await res.text();
+            showTableCount();
         }
     } catch (error) {
         console.error('Error refreshing tables:', error);

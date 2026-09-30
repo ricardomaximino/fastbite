@@ -1,10 +1,12 @@
 package es.brasatech.fastbite.controller;
 
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
+import com.stripe.model.checkout.Session;
 import es.brasatech.fastbite.TestConfig;
-import es.brasatech.fastbite.application.order.OrderService;
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
 import es.brasatech.fastbite.application.tenant.TenantSignupService;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import es.brasatech.fastbite.service.StripeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -47,7 +50,7 @@ class StripeWebhookControllerTest {
     private TenantLocationService tenantLocationService;
 
     @MockitoBean
-    private OrderService orderService;
+    private OrderCheckoutService orderCheckoutService;
 
     @MockitoBean
     private PasswordEncoder passwordEncoder;
@@ -122,6 +125,9 @@ class StripeWebhookControllerTest {
 
         Event mockEvent = Event.GSON.fromJson(payload, Event.class);
         when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(mockEvent);
+        // The payment is judged on the session as Stripe returns it, not on what the call says
+        Session fromStripe = new Session();
+        when(stripeService.retrieveSession("cs_test_888")).thenReturn(fromStripe);
 
         mockMvc.perform(post("/api/webhooks/stripe")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -130,6 +136,23 @@ class StripeWebhookControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(orderService).markOrderPaid("ORD-101");
+        verify(orderCheckoutService).confirm(fromStripe);
+    }
+
+    @Test
+    @DisplayName("POST /api/webhooks/stripe - A call without a valid Stripe signature changes nothing")
+    void testUnsignedWebhookIsRefused() throws Exception {
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class)))
+                .thenThrow(new SignatureVerificationException("Missing Stripe-Signature header", null));
+
+        mockMvc.perform(post("/api/webhooks/stripe")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"checkout.session.completed\",\"data\":{\"object\":{\"id\":\"cs_fake\","
+                                + "\"metadata\":{\"tenantId\":\"kebab\",\"orderId\":\"ORD-101\",\"type\":\"RESTAURANT_ORDER\"}}}}"))
+                .andExpect(status().isBadRequest());
+
+        verify(orderCheckoutService, never()).confirm(org.mockito.ArgumentMatchers.any());
+        verify(stripeService, never()).retrieveSession(org.mockito.ArgumentMatchers.any());
+        verify(tenantSignupService, never()).registerTenant(anyString(), anyString(), anyString(), anyString());
     }
 }

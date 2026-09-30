@@ -17,6 +17,10 @@ spring:
       # Schemas are created by TenantSchemaInitializer; demo content comes from kebab_demo.zip.
       mode: never
   jpa:
+    # One database session per service call, not per web request. A request-long session stays on the
+    # schema the request started with, so work for another restaurant (Stripe webhooks, the owner
+    # console) would silently run in the wrong schema. It also gives connections back sooner.
+    open-in-view: false
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: ${DDL_AUTO:update}
@@ -121,6 +125,10 @@ fastbite:
 
 stripe:
   secret:
-    key: ${STRIPE_SECRET_KEY_SANDBOX:}
+    key: ${STRIPE_SECRET_KEY:${STRIPE_SECRET_KEY_SANDBOX:}}
   webhook:
-    secret: ${STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX:}
+    # Signing secret of the Stripe webhook endpoint that calls /api/webhooks/stripe
+    secret: ${STRIPE_CONNECT_WEBHOOK_SECRET:${STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX:}}
+  # Order payments of restaurants that have not connected their own Stripe account go to this one.
+  # Leave it empty in production to keep those payments on the platform account.
+  connected-account: ${STRIPE_CONNECTED_ACCOUNT:}
