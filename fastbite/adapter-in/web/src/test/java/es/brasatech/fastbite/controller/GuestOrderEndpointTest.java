@@ -104,14 +104,21 @@ class GuestOrderEndpointTest {
         return items.getValue();
     }
 
+    /** A guest whose session the QR code of a table bound to it. */
+    private static MockHttpSession atTable(String tableId) {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("tableNumber", tableId);
+        return session;
+    }
+
     @Test
     void theOrderIsSavedWithCatalogPricesAndNames() throws Exception {
-        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(tamperedCart("Table 1", 2)))
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(tamperedCart("Table 1", 2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
 
-        assertThat(savedItems("t1")).singleElement().satisfies(item -> {
+        assertThat(savedItems("t2")).singleElement().satisfies(item -> {
             assertThat(item.name()).isEqualTo("Kebab");
             assertThat(item.price()).isEqualByComparingTo("6.50");
             assertThat(item.totalPrice()).isEqualByComparingTo("13.00");
@@ -119,15 +126,14 @@ class GuestOrderEndpointTest {
     }
 
     @Test
-    void theTableFromTheGuestsQrCodeWinsOverTheForm() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("tableNumber", "t2");
-
-        mockMvc.perform(post("/kebab/api/create-order").session(session).with(csrf())
+    void aTableNumberTypedIntoTheFormDoesNotMakeATableOrder() throws Exception {
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(tamperedCart("Table 1", 2)))
-                .andExpect(jsonPath("$.status").value("success"));
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("Scan the QR code on your table to order"));
 
-        savedItems("t2");
+        verify(orderService, never()).createOrderForTable(any(), anyInt(), any(), any(), any());
+        verify(orderNumberService, never()).next();
     }
 
     // ---- takeaway: no table, and paid online before the kitchen sees it
@@ -173,7 +179,7 @@ class GuestOrderEndpointTest {
         mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content(takeawayCart("Marta")))
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("This restaurant is not taking takeaway orders online"));
+                .andExpect(jsonPath("$.message").value("Scan the QR code on your table to order"));
 
         when(orderCheckoutService.isAvailable()).thenReturn(true);
         mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -187,10 +193,8 @@ class GuestOrderEndpointTest {
     @Test
     void aGuestAtATableCannotTurnTheirOrderIntoTakeaway() throws Exception {
         takeawayCanBePaidOnline();
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("tableNumber", "t2");
 
-        mockMvc.perform(post("/kebab/api/create-order").session(session).with(csrf())
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(takeawayCart("Ana")))
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.payFirst").value(false));
@@ -200,28 +204,32 @@ class GuestOrderEndpointTest {
     }
 
     @Test
-    void guestsCannotOrderToATableWhenTableServiceIsOff() throws Exception {
+    void withTableServiceOffAGuestAtATableOrdersTakeaway() throws Exception {
         when(settingsService.get()).thenReturn(new RestaurantSettings(false, true, 0, 0));
+        takeawayCanBePaidOnline();
 
-        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(tamperedCart("Table 1", 2)))
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("This restaurant is not taking table orders"));
-
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(takeawayCart("Ana")))
+                .andExpect(jsonPath("$.payFirst").value(true));
         verify(orderService, never()).createOrderForTable(any(), anyInt(), any(), any(), any());
+
+        when(orderCheckoutService.isAvailable()).thenReturn(false);
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(takeawayCart("Ana")))
+                .andExpect(jsonPath("$.message").value("This restaurant is not taking orders online right now"));
     }
 
     @Test
     void aRejectedOrderTakesNoOrderNumber() throws Exception {
-        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(tamperedCart("Table 9", 2)))
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("Table 9")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(tamperedCart("Table 1", 2)))
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Table does not exist"));
-        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"items\":[],\"customerName\":\"Ana\",\"tableNumber\":\"Table 1\"}"))
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"items\":[],\"customerName\":\"Ana\"}"))
                 .andExpect(jsonPath("$.status").value("error"));
-        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(tamperedCart("Table 1", -2)))
+        mockMvc.perform(post("/kebab/api/create-order").session(atTable("t2")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(tamperedCart("Table 1", -2)))
                 .andExpect(jsonPath("$.status").value("error"));
 
         verify(orderNumberService, never()).next();

@@ -287,6 +287,10 @@
                 </div>
             </div>
             <div class="btn-group">
+                <button class="btn btn-sm btn-outline-dark" th:data-id="${table.id}" title="QR code"
+                    onclick="openTableQr(this.dataset.id)">
+                    <i class="fas fa-qrcode"></i>
+                </button>
                 <button class="btn btn-sm btn-outline-primary" th:data-id="${table.id}"
                     onclick="editTable(this.dataset.id)">
                     <i class="fas fa-edit"></i>

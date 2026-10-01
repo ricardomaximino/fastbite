@@ -485,25 +485,14 @@ function proceedToCheckout() {
         confirmationSection.innerHTML = html;
         document.getElementById('cartSection').style.display = 'none';
         confirmationSection.style.display = 'block';
-        showServiceType();
         updateStep(3);
     }).catch(error => showToast(error.message));
 }
 
-// How the guest wants the order: the table's QR code decides, otherwise the choice on the form
+// How the order is served, as the server decided it: at the table the QR code named, or takeaway
 function selectedServiceType() {
-    const choice = document.querySelector('input[name="serviceType"]:checked')
-        || document.querySelector('input[name="serviceType"][type="hidden"]');
-    return choice ? choice.value : 'DINE_IN';
-}
-
-// A table and the way to pay are only asked for table orders; takeaway is always paid online first
-function showServiceType() {
-    const takeaway = selectedServiceType() === 'TAKEAWAY';
-    const dineInFields = document.getElementById('dineInFields');
-    const takeawayFields = document.getElementById('takeawayFields');
-    if (dineInFields) dineInFields.style.display = takeaway ? 'none' : '';
-    if (takeawayFields) takeawayFields.style.display = takeaway ? '' : 'none';
+    const serviceType = document.querySelector('input[name="serviceType"]');
+    return serviceType ? serviceType.value : 'TAKEAWAY';
 }
 
 function disableNonCustomizableEditButtons() {
@@ -540,12 +529,10 @@ function backToCart() {
 // Submit order
 function submitOrder() {
     const customerNameInput = document.getElementById('customerName');
-    const tableNumberInput = document.getElementById('tableNumber');
     const customerName = customerNameInput ? customerNameInput.value.trim() : '';
-    const tableNumber = tableNumberInput ? tableNumberInput.value.trim() : '';
     const paymentMethodEl = document.querySelector('input[name="paymentMethod"]:checked');
-    const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'store';
-    const serviceType = selectedServiceType();
+    // Takeaway has no choice: it is paid online
+    const paymentMethod = selectedServiceType() === 'DINE_IN' && paymentMethodEl ? paymentMethodEl.value : 'online';
     const messages = document.getElementById('orderDetails')?.dataset || {};
 
     if (!customerName) {
@@ -553,18 +540,11 @@ function submitOrder() {
         if (customerNameInput) customerNameInput.focus();
         return;
     }
-    if (serviceType === 'DINE_IN' && !tableNumber) {
-        showToast(messages.messageTable);
-        if (tableNumberInput) tableNumberInput.focus();
-        return;
-    }
 
     const payload = {
         items: cart,
         customerName: customerName,
-        tableNumber: serviceType === 'DINE_IN' ? tableNumber : null,
-        paymentMethod: paymentMethod,
-        serviceType: serviceType
+        paymentMethod: paymentMethod
     };
 
     // Show loading state

@@ -94,8 +94,8 @@ class MenuControllerTest {
                                 .thenReturn(new MenuData(new HashMap<>(), List.of(), "", dictionary, List.of(), ""));
 
                 // Mock TableSignatureUtil to return true for standard signatures
-                org.mockito.Mockito.when(tableSignatureUtil.isValid(any(), any())).thenReturn(true);
-                org.mockito.Mockito.when(tableSignatureUtil.generateSignature(any())).thenReturn("val_sig");
+                org.mockito.Mockito.when(tableSignatureUtil.isValid(any(), any(), any())).thenReturn(true);
+                org.mockito.Mockito.when(tableSignatureUtil.generateSignature(any(), any())).thenReturn("val_sig");
                 when(settingsService.get()).thenReturn(es.brasatech.fastbite.domain.settings.RestaurantSettings.DEFAULTS);
                 // Pricing has its own tests; here the catalog agrees with the request
                 org.mockito.Mockito.when(orderPricingService.price(any(), any())).thenAnswer(call -> call.getArgument(0));

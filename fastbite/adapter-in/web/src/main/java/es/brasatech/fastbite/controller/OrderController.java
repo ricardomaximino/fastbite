@@ -47,19 +47,20 @@ public class OrderController {
     public record CreateOrderRequest(
         List<CartItem> items,
         String customerName,
-        String tableNumber,
-        String paymentMethod,
-        String serviceType
+        String paymentMethod
     ) {}
 
+    /**
+     * How a guest is served is not theirs to choose: a guest whose session a table's QR code bound
+     * to that table orders for it; everyone else orders takeaway, paid online first.
+     */
     @ResponseBody
     @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
         try {
-            // A guest whose QR code bound this session to a table orders for that table, whatever the form says
             String boundTable = (String) session.getAttribute("tableNumber");
-            boolean takeaway = boundTable == null && ServiceType.TAKEAWAY.name().equalsIgnoreCase(request.serviceType());
-            Order order = takeaway ? takeawayOrder(request, locale) : tableOrder(request, boundTable, locale);
+            boolean atTable = boundTable != null && settingsService.get().dineIn();
+            Order order = atTable ? tableOrder(request, boundTable, locale) : takeawayOrder(request, locale);
 
             session.setAttribute("cart", order.items());
             session.setAttribute("orderNumber", order.orderNumber());
@@ -72,12 +73,8 @@ public class OrderController {
     }
 
     private Order tableOrder(CreateOrderRequest request, String boundTable, Locale locale) {
-        if (!settingsService.get().dineIn()) {
-            throw new IllegalArgumentException("This restaurant is not taking table orders");
-        }
         List<CartItem> items = pricedItems(request, OrderChannel.TABLE);
-        String table = boundTable != null ? boundTable : request.tableNumber();
-        String tableId = tableService.findTableByNameOrId(table).map(Table::id)
+        String tableId = tableService.findTableByNameOrId(boundTable).map(Table::id)
                 .orElseThrow(() -> new IllegalArgumentException("Table does not exist"));
         return orderService.createOrderForTable(items, orderNumberService.next(), tableId, locale.getLanguage(),
                 request.customerName());
@@ -85,8 +82,11 @@ public class OrderController {
 
     /** Saved now, but held back from the kitchen until the guest has paid online. */
     private Order takeawayOrder(CreateOrderRequest request, Locale locale) {
-        if (!settingsService.get().takeaway() || !orderCheckoutService.isAvailable()) {
-            throw new IllegalArgumentException("This restaurant is not taking takeaway orders online");
+        var settings = settingsService.get();
+        if (!settings.takeaway() || !orderCheckoutService.isAvailable()) {
+            throw new IllegalArgumentException(settings.dineIn()
+                    ? "Scan the QR code on your table to order"
+                    : "This restaurant is not taking orders online right now");
         }
         if (request.customerName() == null || request.customerName().isBlank()) {
             throw new IllegalArgumentException("Tell us your name so we can call you when the order is ready");

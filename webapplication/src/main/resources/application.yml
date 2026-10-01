@@ -117,8 +117,9 @@ fastbite:
     # Tax rate percentage applied to orders (e.g. 10.0 for 10%)
     percentage: 10.0
   table:
-    # Secret key used for cryptographic table signature generation
-    secret: "SuperSecretKeyForTableOrderingSignatures!!!"
+    # Signs the QR codes printed on tables. Set TABLE_QR_SECRET in production before printing any:
+    # changing it later makes every printed code stop working.
+    secret: ${TABLE_QR_SECRET:local-development-only-table-secret}
   orders:
     # Order numbers restart at 1 at midnight in this time zone
     time-zone: ${ORDERS_TIME_ZONE:Europe/Madrid}

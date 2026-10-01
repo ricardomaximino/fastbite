@@ -118,38 +118,43 @@ class GuestCartPricingTest {
                 .andExpect(status().isOk());
     }
 
+    private static final String TAKEAWAY = "type=\"hidden\" name=\"serviceType\" value=\"TAKEAWAY\"";
+    private static final String AT_TABLE = "type=\"hidden\" name=\"serviceType\" value=\"DINE_IN\"";
+
     @Test
-    void aGuestWithoutATableChoosesBetweenTakeawayAndATable() throws Exception {
+    void aGuestWithoutATableQrCodeOrdersTakeawayAndIsToldHowToOrderToATable() throws Exception {
         checkoutStep(new MockHttpSession())
-                .andExpect(content().string(containsString("id=\"serviceTakeaway\"")))
-                .andExpect(content().string(containsString("id=\"serviceDineIn\"")))
+                .andExpect(content().string(containsString(TAKEAWAY)))
+                .andExpect(content().string(not(containsString("id=\"tableNumber\""))))
+                .andExpect(content().string(containsString("id=\"takeawayFields\"")))
+                .andExpect(content().string(containsString("fa-qrcode")))
                 .andExpect(content().string(containsString("data-can-order=\"true\"")));
     }
 
     @Test
-    void aGuestWhoScannedATableIsNotAskedHowToBeServed() throws Exception {
+    void aGuestWhoScannedATableOrdersForThatTable() throws Exception {
         MockHttpSession atTable = new MockHttpSession();
         atTable.setAttribute("tableNumber", "t2");
         atTable.setAttribute("tableName", "Table 2");
 
         checkoutStep(atTable)
-                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))))
-                .andExpect(content().string(containsString("type=\"hidden\" name=\"serviceType\" value=\"DINE_IN\"")))
+                .andExpect(content().string(containsString(AT_TABLE)))
                 .andExpect(content().string(containsString("value=\"Table 2\"")))
-                .andExpect(content().string(containsString("readonly")));
+                .andExpect(content().string(containsString("readonly")))
+                .andExpect(content().string(not(containsString("id=\"takeawayFields\""))));
     }
 
     @Test
-    void takeawayIsNotOfferedWhenItIsOffOrCannotBePaidOnline() throws Exception {
+    void withoutTakeawayOnlyAGuestWithATableQrCodeCanOrder() throws Exception {
         when(orderCheckoutService.isAvailable()).thenReturn(false);
         checkoutStep(new MockHttpSession())
-                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))))
-                .andExpect(content().string(containsString("id=\"serviceDineIn\"")));
+                .andExpect(content().string(containsString("data-can-order=\"false\"")))
+                .andExpect(content().string(not(containsString("id=\"customerName\""))));
 
         when(orderCheckoutService.isAvailable()).thenReturn(true);
         when(settingsService.get()).thenReturn(new RestaurantSettings(true, false, 0, 0));
         checkoutStep(new MockHttpSession())
-                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))));
+                .andExpect(content().string(containsString("data-can-order=\"false\"")));
     }
 
     @Test

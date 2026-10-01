@@ -1044,6 +1044,12 @@ function manageTableTranslations(tableId) {
 
 // === TABLES MANAGEMENT ===
 
+/** Printable QR codes: one table's, or all active tables' when no id is given. */
+function openTableQr(tableId) {
+    const url = getTenantPrefix() + '/backoffice/tables/qr-codes' + (tableId ? `?table=${encodeURIComponent(tableId)}` : '');
+    window.open(url, '_blank');
+}
+
 async function renderTablesList() {
     const list = document.getElementById('tables-list');
     if (!list) return;

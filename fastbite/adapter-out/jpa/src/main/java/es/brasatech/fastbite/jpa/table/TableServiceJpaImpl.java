@@ -3,6 +3,7 @@ package es.brasatech.fastbite.jpa.table;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.table.Table;
 import es.brasatech.fastbite.domain.table.TableStatus;
+import es.brasatech.fastbite.domain.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -146,7 +147,7 @@ public class TableServiceJpaImpl implements TableService {
         if (opt.isPresent()) {
             var foundTable = opt.get();
             // Cryptographic validation of signed URL parameter
-            if (tokenParam == null || !tableSignatureUtil.isValid(foundTable.id(), tokenParam)) {
+            if (!tableSignatureUtil.isValid(TenantContext.getCurrentTenant(), foundTable.id(), tokenParam)) {
                 throw new IllegalArgumentException("Invalid or missing secure table token. Scan the QR code at your table.");
             }
 

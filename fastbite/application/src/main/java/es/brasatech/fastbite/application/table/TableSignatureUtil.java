@@ -6,56 +6,54 @@ import org.springframework.stereotype.Component;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import java.util.Locale;
+import java.util.logging.Logger;
 
+/**
+ * Signs the links printed as QR codes on tables, so a guest can only order to a table by being at it.
+ * A signature names both the restaurant and the table: one restaurant's code never opens another's table.
+ */
 @Component
 public class TableSignatureUtil {
 
-    private final String secret;
+    /** Used when TABLE_QR_SECRET is not set; fine on a laptop, never for printed codes. */
+    public static final String DEVELOPMENT_SECRET = "local-development-only-table-secret";
 
-    public TableSignatureUtil(@Value("${fastbite.table.secret:SuperSecretKeyForTableOrderingSignatures!!!}") String secret) {
-        this.secret = secret;
+    private static final Logger LOGGER = Logger.getLogger(TableSignatureUtil.class.getName());
+
+    private final SecretKeySpec key;
+
+    public TableSignatureUtil(@Value("${fastbite.table.secret:" + DEVELOPMENT_SECRET + "}") String secret) {
+        this.key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        if (DEVELOPMENT_SECRET.equals(secret)) {
+            LOGGER.warning("Table QR codes are signed with the development secret. Set TABLE_QR_SECRET before printing any.");
+        }
     }
 
-    /**
-     * Generates a signature for a given table identifier.
-     */
-    public String generateSignature(String tableId) {
-        if (tableId == null) {
-            return "";
-        }
+    public String generateSignature(String tenantId, String tableId) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            mac.init(secretKeySpec);
-            byte[] hmacBytes = mac.doFinal(tableId.getBytes(StandardCharsets.UTF_8));
-            return bytesToHex(hmacBytes);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("Error computing signature", e);
+            mac.init(key);
+            byte[] signature = mac.doFinal(signed(tenantId, tableId).getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(signature);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("Error computing signature", e);
         }
     }
 
-    /**
-     * Validates a signature against a table identifier.
-     */
-    public boolean isValid(String tableId, String token) {
-        if (tableId == null || token == null) {
+    public boolean isValid(String tenantId, String tableId, String token) {
+        if (tenantId == null || tableId == null || token == null) {
             return false;
         }
-        String computed = generateSignature(tableId);
-        return computed.equalsIgnoreCase(token);
+        byte[] expected = generateSignature(tenantId, tableId).getBytes(StandardCharsets.UTF_8);
+        byte[] given = token.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, given);
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(2 * bytes.length);
-        for (byte b : bytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
+    private static String signed(String tenantId, String tableId) {
+        return (tenantId == null ? "" : tenantId.toLowerCase(Locale.ROOT)) + ":" + tableId;
     }
 }

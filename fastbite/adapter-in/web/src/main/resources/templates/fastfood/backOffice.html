@@ -349,9 +349,15 @@
                     <div id="tables-section" class="section-content" style="display: none;">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h3><i class="fas fa-table"></i> <span>Tables Management</span></h3>
-                            <button class="btn btn-primary" onclick="showTableForm()">
-                                <i class="fas fa-plus"></i> <span>New Table</span>
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-dark" onclick="openTableQr()"
+                                    title="Printable QR codes for all active tables">
+                                    <i class="fas fa-qrcode"></i> <span>QR codes</span>
+                                </button>
+                                <button class="btn btn-primary" onclick="showTableForm()">
+                                    <i class="fas fa-plus"></i> <span>New Table</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div id="table-form-container">

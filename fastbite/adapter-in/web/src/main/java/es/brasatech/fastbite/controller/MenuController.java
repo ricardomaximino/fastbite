@@ -88,11 +88,14 @@ public class MenuController {
             Model model) {
         String tableId = (String) session.getAttribute("tableNumber");
         calculate(cartItems, couponCode, tableId, model);
-        // How this guest can be served: at the table their QR code named, or whatever the restaurant offers
+        // How this guest is served: at the table their QR code named, otherwise takeaway (paid online)
         var settings = settingsService.get();
-        model.addAttribute("tableBound", tableId != null);
-        model.addAttribute("dineInOffered", settings.dineIn());
-        model.addAttribute("takeawayOffered", settings.takeaway() && orderCheckoutService.isAvailable());
+        boolean atTable = tableId != null && settings.dineIn();
+        boolean takeawayOffered = settings.takeaway() && orderCheckoutService.isAvailable();
+        model.addAttribute("atTable", atTable);
+        model.addAttribute("canOrder", atTable || takeawayOffered);
+        // A guest without a QR code could order to a table by scanning one
+        model.addAttribute("scanHint", tableId == null && settings.dineIn());
         return "fastfood/fragments/menu :: #confirmation";
     }
 
