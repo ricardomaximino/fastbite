@@ -106,4 +106,25 @@ class ResultsOutliveTheirTransactionIntegrationTest {
         assertThat(orders.getAllOrder()).singleElement()
                 .satisfies(order -> assertThat(order.total()).isEqualByComparingTo("13.00"));
     }
+
+    @Test
+    void anOnlineTakeawayOrderReachesStaffOnlyOncePaidAndIsNeverPaidAtPickup() {
+        provisioner.provisionTenant("prepaid");
+        TenantContext.setCurrentTenant("prepaid");
+        List<CartItem> items = List.of(new CartItem(null, "kebab", "Kebab", "Beef kebab", "/k.webp", 1, List.of(),
+                new BigDecimal("6.50")));
+        String atPickup = orders.createOrder(items, 1, OrderPaymentStatus.UNPAID, OrderChannel.COUNTER, "en", "cashier",
+                "Pedro", ServiceType.TAKEAWAY).id();
+        String online = orders.createOrder(items, 2, OrderPaymentStatus.UNPAID, OrderChannel.ONLINE, "en", null,
+                "Marta", ServiceType.TAKEAWAY).id();
+
+        assertThat(orders.getAllOrder()).extracting(Order::id).containsExactly(atPickup);
+        assertThat(orders.findTakeawayAwaitingPayment()).extracting(Order::id).containsExactly(atPickup);
+
+        orders.markOrderPaid(online);
+
+        assertThat(orders.getAllOrder()).extracting(Order::id).containsExactlyInAnyOrder(atPickup, online);
+        assertThat(orders.findTakeawayAwaitingPayment()).extracting(Order::id).containsExactly(atPickup);
+        assertThat(orders.findById(online).orElseThrow().status()).isEqualTo(OrderStatus.CREATED);
+    }
 }

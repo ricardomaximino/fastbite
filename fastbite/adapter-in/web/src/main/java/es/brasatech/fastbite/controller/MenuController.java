@@ -3,6 +3,7 @@ package es.brasatech.fastbite.controller;
 import es.brasatech.fastbite.application.discount.DiscountService;
 import es.brasatech.fastbite.application.order.OrderPricingService;
 import es.brasatech.fastbite.application.order.OrderService;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
 import es.brasatech.fastbite.application.table.TableService;
 import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.OrderChannel;
@@ -33,7 +34,9 @@ public class MenuController {
     private final DiscountService discountService;
     private final OrderPricingService orderPricingService;
     private final OrderService orderService;
-    
+    private final RestaurantSettingsService settingsService;
+    private final OrderCheckoutService orderCheckoutService;
+
     @Value("${fastbite.tax.percentage:0.0}")
     private double taxPercentage;
 
@@ -85,6 +88,11 @@ public class MenuController {
             Model model) {
         String tableId = (String) session.getAttribute("tableNumber");
         calculate(cartItems, couponCode, tableId, model);
+        // How this guest can be served: at the table their QR code named, or whatever the restaurant offers
+        var settings = settingsService.get();
+        model.addAttribute("tableBound", tableId != null);
+        model.addAttribute("dineInOffered", settings.dineIn());
+        model.addAttribute("takeawayOffered", settings.takeaway() && orderCheckoutService.isAvailable());
         return "fastfood/fragments/menu :: #confirmation";
     }
 
@@ -107,6 +115,7 @@ public class MenuController {
         model.addAttribute("subtotal", order.get().subtotal());
         model.addAttribute("discount", order.get().subtotal().subtract(order.get().total()).max(BigDecimal.ZERO));
         model.addAttribute("tipPercents", OrderCheckoutService.TIP_PERCENTS);
+        model.addAttribute("payFirst", order.get().heldUntilPaid());
         return "fastfood/paymentSelection";
     }
 

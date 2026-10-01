@@ -12,16 +12,21 @@ import es.brasatech.fastbite.controller.MenuController;
 import es.brasatech.fastbite.domain.customization.CustomizationDto;
 import es.brasatech.fastbite.domain.customization.CustomizationOptionDto;
 import es.brasatech.fastbite.domain.product.ProductDto;
+import es.brasatech.fastbite.application.settings.RestaurantSettingsService;
+import es.brasatech.fastbite.domain.settings.RestaurantSettings;
 import es.brasatech.fastbite.dto.office.MenuDataService;
 import es.brasatech.fastbite.security.SecurityConfig;
+import es.brasatech.fastbite.service.OrderCheckoutService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -66,9 +71,15 @@ class GuestCartPricingTest {
     private TenantLocationService tenantLocationService;
     @MockitoBean
     private es.brasatech.fastbite.application.order.OrderService orderService;
+    @MockitoBean
+    private RestaurantSettingsService settingsService;
+    @MockitoBean
+    private OrderCheckoutService orderCheckoutService;
 
     @BeforeEach
     void setUp() {
+        when(settingsService.get()).thenReturn(RestaurantSettings.DEFAULTS);
+        when(orderCheckoutService.isAvailable()).thenReturn(true);
         when(productService.findById("kebab")).thenReturn(Optional.of(new ProductDto("kebab", "Kebab",
                 new BigDecimal("6.50"), "Beef kebab", "/kebab.webp", Set.of("toppings"), true)));
         when(productService.findById("gone")).thenReturn(Optional.empty());
@@ -97,6 +108,58 @@ class GuestCartPricingTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("total", new BigDecimal("14.00")))
                 .andExpect(content().string(not(containsString("Hacked"))));
+    }
+
+    // ---- how the guest can be served
+
+    private ResultActions checkoutStep(MockHttpSession session) throws Exception {
+        return mockMvc.perform(post("/kebab/api/calculate-confirmation").session(session).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(TAMPERED_CART))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void aGuestWithoutATableChoosesBetweenTakeawayAndATable() throws Exception {
+        checkoutStep(new MockHttpSession())
+                .andExpect(content().string(containsString("id=\"serviceTakeaway\"")))
+                .andExpect(content().string(containsString("id=\"serviceDineIn\"")))
+                .andExpect(content().string(containsString("data-can-order=\"true\"")));
+    }
+
+    @Test
+    void aGuestWhoScannedATableIsNotAskedHowToBeServed() throws Exception {
+        MockHttpSession atTable = new MockHttpSession();
+        atTable.setAttribute("tableNumber", "t2");
+        atTable.setAttribute("tableName", "Table 2");
+
+        checkoutStep(atTable)
+                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))))
+                .andExpect(content().string(containsString("type=\"hidden\" name=\"serviceType\" value=\"DINE_IN\"")))
+                .andExpect(content().string(containsString("value=\"Table 2\"")))
+                .andExpect(content().string(containsString("readonly")));
+    }
+
+    @Test
+    void takeawayIsNotOfferedWhenItIsOffOrCannotBePaidOnline() throws Exception {
+        when(orderCheckoutService.isAvailable()).thenReturn(false);
+        checkoutStep(new MockHttpSession())
+                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))))
+                .andExpect(content().string(containsString("id=\"serviceDineIn\"")));
+
+        when(orderCheckoutService.isAvailable()).thenReturn(true);
+        when(settingsService.get()).thenReturn(new RestaurantSettings(true, false, 0, 0));
+        checkoutStep(new MockHttpSession())
+                .andExpect(content().string(not(containsString("id=\"serviceTakeaway\""))));
+    }
+
+    @Test
+    void withNothingOnOfferTheGuestCannotSubmit() throws Exception {
+        when(settingsService.get()).thenReturn(new RestaurantSettings(false, false, 0, 0));
+
+        checkoutStep(new MockHttpSession())
+                .andExpect(content().string(containsString("data-can-order=\"false\"")))
+                .andExpect(content().string(not(containsString("id=\"customerName\""))))
+                .andExpect(content().string(containsString("disabled")));
     }
 
     @Test

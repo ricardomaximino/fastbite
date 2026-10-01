@@ -93,8 +93,11 @@ public interface OrderService {
         publishEvent(new es.brasatech.fastbite.domain.event.OrderPaymentStatusChangedEvent(paidOrder));
     }
 
+    /** The orders staff work with: everything except online orders still waiting to be paid. */
     default List<Order> getAllOrder() {
-        return findAll();
+        return findAll().stream()
+                .filter(order -> !order.heldUntilPaid())
+                .toList();
     }
 
 }

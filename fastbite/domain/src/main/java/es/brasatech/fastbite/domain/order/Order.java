@@ -78,6 +78,15 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
                 paymentStatus, orderChannel, orderLanguage, userId, customerName, serviceType);
     }
 
+    /**
+     * A takeaway order placed online has to be paid before anyone prepares it: until then it is
+     * kept away from the kitchen and the counter.
+     */
+    public boolean heldUntilPaid() {
+        return serviceType == ServiceType.TAKEAWAY && orderChannel == OrderChannel.ONLINE
+                && paymentStatus == OrderPaymentStatus.UNPAID;
+    }
+
     /** What the lines add up to, before discounts. */
     public BigDecimal subtotal() {
         return subtotal(items);

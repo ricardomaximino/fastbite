@@ -485,8 +485,25 @@ function proceedToCheckout() {
         confirmationSection.innerHTML = html;
         document.getElementById('cartSection').style.display = 'none';
         confirmationSection.style.display = 'block';
+        showServiceType();
         updateStep(3);
     }).catch(error => showToast(error.message));
+}
+
+// How the guest wants the order: the table's QR code decides, otherwise the choice on the form
+function selectedServiceType() {
+    const choice = document.querySelector('input[name="serviceType"]:checked')
+        || document.querySelector('input[name="serviceType"][type="hidden"]');
+    return choice ? choice.value : 'DINE_IN';
+}
+
+// A table and the way to pay are only asked for table orders; takeaway is always paid online first
+function showServiceType() {
+    const takeaway = selectedServiceType() === 'TAKEAWAY';
+    const dineInFields = document.getElementById('dineInFields');
+    const takeawayFields = document.getElementById('takeawayFields');
+    if (dineInFields) dineInFields.style.display = takeaway ? 'none' : '';
+    if (takeawayFields) takeawayFields.style.display = takeaway ? '' : 'none';
 }
 
 function disableNonCustomizableEditButtons() {
@@ -528,14 +545,16 @@ function submitOrder() {
     const tableNumber = tableNumberInput ? tableNumberInput.value.trim() : '';
     const paymentMethodEl = document.querySelector('input[name="paymentMethod"]:checked');
     const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'store';
+    const serviceType = selectedServiceType();
+    const messages = document.getElementById('orderDetails')?.dataset || {};
 
     if (!customerName) {
-        showToast("Por favor, introduce tu nombre.");
+        showToast(messages.messageName);
         if (customerNameInput) customerNameInput.focus();
         return;
     }
-    if (!tableNumber) {
-        showToast("Por favor, introduce tu número de mesa.");
+    if (serviceType === 'DINE_IN' && !tableNumber) {
+        showToast(messages.messageTable);
         if (tableNumberInput) tableNumberInput.focus();
         return;
     }
@@ -543,8 +562,9 @@ function submitOrder() {
     const payload = {
         items: cart,
         customerName: customerName,
-        tableNumber: tableNumber,
-        paymentMethod: paymentMethod
+        tableNumber: serviceType === 'DINE_IN' ? tableNumber : null,
+        paymentMethod: paymentMethod,
+        serviceType: serviceType
     };
 
     // Show loading state
@@ -565,7 +585,8 @@ function submitOrder() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            if (paymentMethod === 'online') {
+            // An order that must be paid first goes to the payment page whatever was chosen
+            if (data.payFirst || paymentMethod === 'online') {
                 window.location.assign(getTenantPrefix() + '/select-payment');
             } else {
                 window.location.assign(getOrderConfirmationUrl());

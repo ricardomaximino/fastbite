@@ -13,6 +13,7 @@ import es.brasatech.fastbite.domain.order.CartItem;
 import es.brasatech.fastbite.domain.order.Order;
 import es.brasatech.fastbite.domain.order.OrderChannel;
 import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
+import es.brasatech.fastbite.domain.order.ServiceType;
 import es.brasatech.fastbite.domain.product.ProductDto;
 import es.brasatech.fastbite.domain.settings.RestaurantSettings;
 import es.brasatech.fastbite.domain.table.Table;
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -126,6 +128,75 @@ class GuestOrderEndpointTest {
                 .andExpect(jsonPath("$.status").value("success"));
 
         savedItems("t2");
+    }
+
+    // ---- takeaway: no table, and paid online before the kitchen sees it
+
+    private static String takeawayCart(String customerName) {
+        return """
+                {"items":[{"id":"l1","itemId":"kebab","quantity":2,"price":0.01,"customizations":[]}],
+                 "customerName":"%s","tableNumber":null,"paymentMethod":"table","serviceType":"TAKEAWAY"}""".formatted(customerName);
+    }
+
+    private void takeawayCanBePaidOnline() {
+        when(orderCheckoutService.isAvailable()).thenReturn(true);
+        when(orderService.createOrder(any(), anyInt(), any(), any(), any(), any(), any(), any())).thenAnswer(call ->
+                new Order(call.getArgument(0), call.getArgument(1), call.getArgument(2), call.getArgument(3),
+                        call.getArgument(4), call.getArgument(5), call.getArgument(6), call.getArgument(7)));
+    }
+
+    @Test
+    void aGuestWithoutATableOrdersTakeawayAndHasToPayFirst() throws Exception {
+        takeawayCanBePaidOnline();
+
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(takeawayCart("Marta")))
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.payFirst").value(true));
+
+        verify(orderService).createOrder(any(), eq(12), eq(OrderPaymentStatus.UNPAID), eq(OrderChannel.ONLINE), any(),
+                isNull(), eq("Marta"), eq(ServiceType.TAKEAWAY));
+        verify(orderService, never()).createOrderForTable(any(), anyInt(), any(), any(), any());
+        verify(tableService, never()).findTableByNameOrId(any());
+    }
+
+    @Test
+    void takeawayIsRefusedWhenItIsOffOrCannotBePaidOnline() throws Exception {
+        takeawayCanBePaidOnline();
+        when(settingsService.get()).thenReturn(new RestaurantSettings(true, false, 0, 0));
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(takeawayCart("Marta")))
+                .andExpect(jsonPath("$.status").value("error"));
+
+        when(settingsService.get()).thenReturn(RestaurantSettings.DEFAULTS);
+        when(orderCheckoutService.isAvailable()).thenReturn(false);
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(takeawayCart("Marta")))
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("This restaurant is not taking takeaway orders online"));
+
+        when(orderCheckoutService.isAvailable()).thenReturn(true);
+        mockMvc.perform(post("/kebab/api/create-order").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(takeawayCart(" ")))
+                .andExpect(jsonPath("$.status").value("error"));
+
+        verify(orderNumberService, never()).next();
+        verify(orderService, never()).createOrder(any(), anyInt(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aGuestAtATableCannotTurnTheirOrderIntoTakeaway() throws Exception {
+        takeawayCanBePaidOnline();
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("tableNumber", "t2");
+
+        mockMvc.perform(post("/kebab/api/create-order").session(session).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(takeawayCart("Ana")))
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.payFirst").value(false));
+
+        savedItems("t2");
+        verify(orderService, never()).createOrder(any(), anyInt(), any(), any(), any(), any(), any(), any());
     }
 
     @Test

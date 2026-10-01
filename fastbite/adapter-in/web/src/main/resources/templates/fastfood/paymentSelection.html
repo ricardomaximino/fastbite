@@ -38,10 +38,16 @@
                     <h3 class="mb-4" th:text="#{label.select.payment.method}">Select Payment Method</h3>
 
                     <form id="paymentForm">
+                        <!-- An online takeaway order is only prepared once it is paid -->
+                        <div class="alert alert-info" th:if="${payFirst}">
+                            <i class="fas fa-shopping-bag me-2"></i>
+                            <span th:text="#{message.takeaway.pay.first}">Takeaway orders are paid online. We start preparing yours as soon as the payment goes through.</span>
+                        </div>
+
                         <!-- Payment Options - Logo Style -->
                         <div class="row g-3 mb-4">
                             <!-- Pay online with Stripe -->
-                            <div class="col-md-6">
+                            <div th:class="${payFirst} ? 'col-12' : 'col-md-6'">
                                 <input type="radio" class="btn-check" name="paymentMethod" id="stripe"
                                     value="stripe-checkout" checked>
                                 <label class="card product-card h-100 text-center p-4" for="stripe"
@@ -56,7 +62,7 @@
                             </div>
 
                             <!-- Pay in person -->
-                            <div class="col-md-6">
+                            <div class="col-md-6" th:unless="${payFirst}">
                                 <input type="radio" class="btn-check" name="paymentMethod" id="local" value="local">
                                 <label class="card product-card h-100 text-center p-4" for="local"
                                     style="cursor: pointer;">

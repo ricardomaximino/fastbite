@@ -33,8 +33,13 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
+    /** Whether guests can pay online at all. */
+    public boolean isConfigured() {
+        return secretKey != null && !secretKey.isBlank();
+    }
+
     private void requireSecretKey() {
-        if (secretKey == null || secretKey.isBlank()) {
+        if (!isConfigured()) {
             throw new IllegalStateException("Online payment is not set up: STRIPE_SECRET_KEY is missing.");
         }
     }

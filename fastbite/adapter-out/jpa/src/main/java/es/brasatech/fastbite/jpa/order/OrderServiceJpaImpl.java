@@ -125,6 +125,8 @@ public class OrderServiceJpaImpl implements OrderService {
                         OrderPaymentStatus.UNPAID, List.of(OrderStatus.COMPLETE, OrderStatus.CANCELLED))
                 .stream()
                 .map(this::toOrderWithTranslation)
+                // Online orders are paid online, not at pickup; until then they are nobody's to collect
+                .filter(order -> !order.heldUntilPaid())
                 .toList();
     }
 

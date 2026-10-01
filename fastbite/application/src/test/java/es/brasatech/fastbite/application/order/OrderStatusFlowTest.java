@@ -7,12 +7,21 @@ import es.brasatech.fastbite.domain.order.OrderPaymentStatus;
 import es.brasatech.fastbite.domain.order.OrderStatus;
 import es.brasatech.fastbite.domain.order.ServiceType;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class OrderStatusFlowTest {
 
@@ -83,6 +92,42 @@ class OrderStatusFlowTest {
         assertThat(edited.subtotal()).isEqualByComparingTo("21.50");
         assertThat(edited.status()).isEqualTo(OrderStatus.ACCEPTED);
         assertThat(edited.paymentStatus()).isEqualTo(OrderPaymentStatus.UNPAID);
+    }
+
+    private static Order order(ServiceType serviceType, OrderChannel channel, OrderPaymentStatus payment) {
+        return new Order(List.of(item("6.50", 1)), 3, payment, channel, "en", null, "Marta", serviceType);
+    }
+
+    @Test
+    void onlyAnUnpaidOnlineTakeawayOrderIsHeldBackFromTheKitchen() {
+        assertThat(order(ServiceType.TAKEAWAY, OrderChannel.ONLINE, OrderPaymentStatus.UNPAID).heldUntilPaid()).isTrue();
+
+        assertThat(order(ServiceType.TAKEAWAY, OrderChannel.ONLINE, OrderPaymentStatus.PAID).heldUntilPaid()).isFalse();
+        assertThat(order(ServiceType.TAKEAWAY, OrderChannel.COUNTER, OrderPaymentStatus.UNPAID).heldUntilPaid())
+                .as("pay at pickup, entered by staff").isFalse();
+        assertThat(order(ServiceType.DINE_IN, OrderChannel.TABLE, OrderPaymentStatus.UNPAID).heldUntilPaid())
+                .as("a table order is prepared and paid afterwards").isFalse();
+    }
+
+    @Test
+    void staffOnlySeeAnOnlineTakeawayOrderOnceItIsPaid() {
+        Order table = order(ServiceType.DINE_IN, OrderChannel.TABLE, OrderPaymentStatus.UNPAID);
+        Order pickup = order(ServiceType.TAKEAWAY, OrderChannel.COUNTER, OrderPaymentStatus.UNPAID);
+        Order online = order(ServiceType.TAKEAWAY, OrderChannel.ONLINE, OrderPaymentStatus.UNPAID);
+        OrderService orders = mock(OrderService.class, CALLS_REAL_METHODS);
+        doReturn(List.of(table, pickup, online)).when(orders).findAll();
+        doReturn(Optional.of(online)).when(orders).findById(online.id());
+        doReturn(Optional.of(online)).when(orders).update(any(), any());
+        doNothing().when(orders).publishEvent(any());
+
+        assertThat(orders.getAllOrder()).containsExactly(table, pickup);
+
+        orders.markOrderPaid(online.id());
+
+        ArgumentCaptor<Order> saved = ArgumentCaptor.forClass(Order.class);
+        verify(orders).update(eq(online.id()), saved.capture());
+        assertThat(saved.getValue().heldUntilPaid()).isFalse();
+        assertThat(saved.getValue().status()).as("enters the kitchen as a new order").isEqualTo(OrderStatus.CREATED);
     }
 
     @Test

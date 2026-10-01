@@ -44,6 +44,11 @@ public class OrderCheckoutService {
         this.defaultConnectedAccount = defaultConnectedAccount;
     }
 
+    /** Whether guests of this installation can pay online. */
+    public boolean isAvailable() {
+        return stripeService.isConfigured();
+    }
+
     /**
      * Starts a checkout for the order's saved total plus the chosen tip.
      *

@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = OrderController.class)
@@ -92,6 +93,23 @@ class OrderStatusEndpointTest {
         mockMvc.perform(get("/kebab/order-confirmation"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("id=\"paymentResult\""))));
+    }
+
+    @Test
+    void anOnlineTakeawayOrderIsNotConfirmedUntilItIsPaid() throws Exception {
+        Order takeaway = new Order(List.of(), 8, OrderPaymentStatus.UNPAID, OrderChannel.ONLINE, "en", null, "Marta",
+                ServiceType.TAKEAWAY);
+        when(orderService.findById("order-8")).thenReturn(Optional.of(takeaway));
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("orderId", "order-8");
+
+        mockMvc.perform(get("/kebab/order-confirmation").session(session))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/select-payment"));
+
+        when(orderService.findById("order-8")).thenReturn(Optional.of(takeaway.setPaymentStatus(OrderPaymentStatus.PAID)));
+        mockMvc.perform(get("/kebab/order-confirmation").session(session))
+                .andExpect(status().isOk());
     }
 
     @Test
