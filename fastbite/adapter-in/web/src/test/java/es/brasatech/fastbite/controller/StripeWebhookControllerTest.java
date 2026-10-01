@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import es.brasatech.fastbite.application.tenant.OwnerSetupService;
+import es.brasatech.fastbite.application.tenant.OwnerSetupPort;
+import java.util.Map;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -53,7 +55,7 @@ class StripeWebhookControllerTest {
     private OrderCheckoutService orderCheckoutService;
 
     @MockitoBean
-    private PasswordEncoder passwordEncoder;
+    private OwnerSetupService ownerSetupService;
 
     @Autowired
     private tools.jackson.databind.ObjectMapper objectMapper;
@@ -61,7 +63,6 @@ class StripeWebhookControllerTest {
     @Test
     @DisplayName("POST /api/webhooks/stripe - Platform level event should auto-provision tenant")
     void testHandleStripeWebhookPlatformLevel() throws Exception {
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded_pass");
         String payload = """
             {
               "id": "evt_test_123",
@@ -84,7 +85,11 @@ class StripeWebhookControllerTest {
 
         Event mockEvent = Event.GSON.fromJson(payload, Event.class);
         when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(mockEvent);
-        when(tenantLocationService.getLocation("stripeburger")).thenReturn(Optional.empty());
+        Session paid = new Session();
+        paid.setPaymentStatus("paid");
+        paid.setCustomerEmail("owner@example.test");
+        paid.setMetadata(Map.of("tenantId", "stripeburger", "username", "stripeadmin", "fullName", "Stripe Owner", "type", "PLATFORM_SUBSCRIPTION"));
+        when(stripeService.retrieveSession("cs_test_999")).thenReturn(paid);
 
         mockMvc.perform(post("/api/webhooks/stripe")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,12 +98,8 @@ class StripeWebhookControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(tenantSignupService).registerTenant(
-                eq("stripeburger"),
-                eq("stripeadmin"),
-                anyString(),
-                eq("Stripe Owner")
-        );
+        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_test_999", "stripeburger", "stripeadmin", "Stripe Owner", "owner@example.test", "Standard Plan"));
+        verify(tenantSignupService, never()).registerTenant(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -155,4 +156,33 @@ class StripeWebhookControllerTest {
         verify(stripeService, never()).retrieveSession(org.mockito.ArgumentMatchers.any());
         verify(tenantSignupService, never()).registerTenant(anyString(), anyString(), anyString(), anyString());
     }
+    private void platformEvent(String type, String paymentStatus) throws Exception {
+        String payload = "{\"type\":\"" + type + "\",\"data\":{\"object\":{\"id\":\"cs_setup\",\"metadata\":{\"type\":\"PLATFORM_SUBSCRIPTION\"}}}}";
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class)))
+                .thenReturn(Event.GSON.fromJson(payload, Event.class));
+        Session paid = new Session();
+        paid.setPaymentStatus(paymentStatus);
+        paid.setCustomerEmail("owner@example.test");
+        paid.setMetadata(Map.of("type", "PLATFORM_SUBSCRIPTION", "tenantId", "fresh", "username", "newowner"));
+        when(stripeService.retrieveSession("cs_setup")).thenReturn(paid);
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isOk());
+    }
+
+    @Test void unpaidCheckoutDoesNotProvisionAnOwner() throws Exception {
+        platformEvent("checkout.session.completed", "unpaid");
+        org.mockito.Mockito.verifyNoInteractions(ownerSetupService);
+    }
+
+    @Test void subscriptionCreatedDoesNotProvisionAnOwner() throws Exception {
+        platformEvent("customer.subscription.created", "paid");
+        org.mockito.Mockito.verifyNoInteractions(ownerSetupService);
+        verify(stripeService, never()).retrieveSession(anyString());
+    }
+
+    @Test void delayedPaymentSuccessCanSendTheSetupLink() throws Exception {
+        platformEvent("checkout.session.async_payment_succeeded", "paid");
+        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_setup", "fresh", "newowner", "Restaurant Owner", "owner@example.test", "Standard Plan"));
+    }
+
 }

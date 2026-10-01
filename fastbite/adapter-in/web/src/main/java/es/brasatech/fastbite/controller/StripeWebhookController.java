@@ -10,7 +10,8 @@ import es.brasatech.fastbite.service.StripeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import es.brasatech.fastbite.application.tenant.OwnerSetupService;
+import es.brasatech.fastbite.application.tenant.OwnerSetupPort;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,7 +31,7 @@ public class StripeWebhookController {
     private final TenantSignupService tenantSignupService;
     private final TenantLocationService tenantLocationService;
     private final OrderCheckoutService orderCheckoutService;
-    private final PasswordEncoder passwordEncoder;
+    private final OwnerSetupService ownerSetupService;
     private final ObjectMapper objectMapper;
 
     @PostMapping("/api/webhooks/stripe")
@@ -50,7 +51,7 @@ public class StripeWebhookController {
             log.info("Processing verified Stripe event type: {}", eventType);
 
             if ("checkout.session.completed".equals(eventType) || "checkout.session.async_payment_succeeded".equals(eventType)
-                    || "customer.subscription.created".equals(eventType)) {
+                   ) {
                 Session session = null;
                 if (event != null) {
                     try {
@@ -112,29 +113,32 @@ public class StripeWebhookController {
                 } 
                 // ===== LEVEL 1: PLATFORM LEVEL PAYMENT (OWNER SUBSCRIPTION / LOCATION PROVISIONING) =====
                 else {
-                    if (tenantId.isEmpty()) {
-                        log.warn("Stripe webhook event does not contain tenantId / client_reference_id!");
-                        return ResponseEntity.badRequest().body("Missing tenant identifier");
+                    // Re-read the paid checkout, including its customer email and metadata, from Stripe.
+                    // Subscription objects alone are not proof of a completed checkout.
+                    if (checkoutSessionId == null || checkoutSessionId.isBlank()) {
+                        return ResponseEntity.badRequest().body("Missing checkout session");
                     }
-
-                    String ownerUsername = metadata.getOrDefault("ownerUsername", "");
-                    String plan = metadata.getOrDefault("plan", "Standard Plan");
-
-                    if (!ownerUsername.isEmpty() && tenantLocationService.getLocation(tenantId).isEmpty()) {
-                        log.info("Auto-registering additional location: {} for owner: {}", tenantId, ownerUsername);
-                        tenantSignupService.registerAdditionalLocation(tenantId, ownerUsername, plan);
-                    } else if (tenantLocationService.getLocation(tenantId).isEmpty()) {
-                        String username = metadata.getOrDefault("username", "admin");
-                        String fullName = metadata.getOrDefault("fullName", "Restaurant Owner");
-
-                        String temporaryPassword = "Temp" + tenantId + "2026!";
-                        String encodedPassword = passwordEncoder.encode(temporaryPassword);
-
-                        log.info("Auto-provisioning tenant: {} via Stripe billing event", tenantId);
-                        tenantSignupService.registerTenant(tenantId, username, encodedPassword, fullName);
-                        log.info("Successfully provisioned tenant: {} with temp password", tenantId);
+                    Session paid = stripeService.retrieveSession(checkoutSessionId);
+                    if (!"paid".equals(paid.getPaymentStatus())) {
+                        return ResponseEntity.ok("Awaiting payment");
+                    }
+                    Map<String, String> paidMetadata = paid.getMetadata();
+                    if (paidMetadata == null || !"PLATFORM_SUBSCRIPTION".equals(paidMetadata.get("type"))) {
+                        return ResponseEntity.badRequest().body("Invalid platform checkout");
+                    }
+                    String paidTenant = paidMetadata.getOrDefault("tenantId", "");
+                    String ownerUsername = paidMetadata.getOrDefault("ownerUsername", "");
+                    String plan = paidMetadata.getOrDefault("plan", "Standard Plan");
+                    if (!ownerUsername.isBlank()) {
+                        if (tenantLocationService.getLocation(paidTenant).isEmpty()) {
+                            tenantSignupService.registerAdditionalLocation(paidTenant, ownerUsername, plan);
+                        }
                     } else {
-                        log.info("Tenant location {} is already provisioned", tenantId);
+                        String email = paid.getCustomerDetails() != null ? paid.getCustomerDetails().getEmail() : null;
+                        if (email == null || email.isBlank()) email = paid.getCustomerEmail();
+                        ownerSetupService.invite(new OwnerSetupPort.Invitation(checkoutSessionId, paidTenant,
+                                paidMetadata.getOrDefault("username", ""),
+                                paidMetadata.getOrDefault("fullName", "Restaurant Owner"), email, plan));
                     }
                 }
             }
@@ -144,8 +148,8 @@ public class StripeWebhookController {
             log.warn("Refused Stripe webhook: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Invalid signature");
         } catch (Exception e) {
-            log.error("Failed to process Stripe webhook payload: ", e);
-            return ResponseEntity.status(500).body("Error processing webhook: " + e.getMessage());
+            log.error("Stripe webhook processing failed ({})", e.getClass().getSimpleName());
+            return ResponseEntity.status(500).body("Error processing webhook");
         }
     }
 }

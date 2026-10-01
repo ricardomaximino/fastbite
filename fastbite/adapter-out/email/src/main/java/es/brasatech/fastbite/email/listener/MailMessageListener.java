@@ -21,6 +21,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@org.springframework.context.annotation.Profile("legacy-mail")
 @RequiredArgsConstructor
 public class MailMessageListener {
 

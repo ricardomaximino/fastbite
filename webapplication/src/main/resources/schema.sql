@@ -212,3 +212,15 @@ CREATE TABLE IF NOT EXISTS restaurant_settings (
     kds_yellow_minutes INT NOT NULL,
     kds_red_minutes INT NOT NULL
 );
+
+-- Platform-only, deliberately qualified: never included in tenant backup/restore.
+CREATE TABLE IF NOT EXISTS public.owner_setup_tokens (
+    checkout_id VARCHAR(255) PRIMARY KEY,
+    tenant_id VARCHAR(63) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    token_hash VARCHAR(64) UNIQUE,
+    expires_at BIGINT NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+);

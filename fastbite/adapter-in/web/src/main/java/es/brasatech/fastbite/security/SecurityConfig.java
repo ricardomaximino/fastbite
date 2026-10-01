@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/*/menu/**", "/*/api/calculate-cart", "/*/api/calculate-confirmation", "/*/api/toast",
                                 "/*/api/create-order", "/*/api/order-status", "/*/order-confirmation/**", "/*/select-payment", "/*/api/stripe/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
-                        .requestMatchers("/login", "/error", "/*/login").permitAll()
+                        .requestMatchers("/login", "/error", "/*/login", "/set-password").permitAll()
 
                         // Owner Console access (strictly Tenant Owners)
                         .requestMatchers("/owner/**").hasRole("OWNER")

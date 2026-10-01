@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
+@org.springframework.context.annotation.Profile({"local", "demo"})
 @RequiredArgsConstructor
 @Slf4j
 @org.springframework.core.annotation.Order(2)

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
+@org.springframework.context.annotation.Profile({"local", "demo"})
 @Slf4j
 @org.springframework.core.annotation.Order(1)
 public class DemoDataInitializer implements CommandLineRunner {

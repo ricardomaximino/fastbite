@@ -26,6 +26,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
+@org.springframework.context.annotation.Profile("legacy-mail")
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
