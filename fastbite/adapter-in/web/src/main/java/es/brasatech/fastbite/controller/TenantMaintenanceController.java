@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -26,16 +25,30 @@ public class TenantMaintenanceController {
     @GetMapping("/backup")
     public void downloadBackup(@PathVariable String tenantId, HttpServletResponse response) {
         log.info("Requested database and media backup for tenant: {}", tenantId);
-        response.setContentType("application/zip");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + tenantId + "_backup.zip");
-
-        try (BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream())) {
-            tenantBackupRestorePort.exportBackup(tenantId, bos);
-            bos.flush();
+        java.nio.file.Path archive = null;
+        try {
+            // Complete the archive before committing HTTP headers: a failed export must not look
+            // like a successful download containing a truncated ZIP.
+            archive = java.nio.file.Files.createTempFile("fastbite-backup-", ".zip");
+            try (var output = java.nio.file.Files.newOutputStream(archive)) {
+                tenantBackupRestorePort.exportBackup(tenantId, output);
+            }
+            response.setContentType("application/zip");
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + tenantId + "_backup.zip");
+            response.setContentLengthLong(java.nio.file.Files.size(archive));
+            java.nio.file.Files.copy(archive, response.getOutputStream());
             log.info("Backup successfully streamed for tenant: {}", tenantId);
         } catch (Exception e) {
             log.error("Failed to stream backup for tenant: " + tenantId, e);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            if (!response.isCommitted()) {
+                response.reset();
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            }
+        } finally {
+            if (archive != null) {
+                try { java.nio.file.Files.deleteIfExists(archive); }
+                catch (java.io.IOException e) { log.warn("Could not remove temporary backup archive", e); }
+            }
         }
     }
 
