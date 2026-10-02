@@ -115,6 +115,9 @@ public class MenuController {
             return "redirect:" + (prefix != null ? prefix : "") + "/menu";
         }
         model.addAttribute("order", order.get());
+        if (order.get().status() == es.brasatech.fastbite.domain.order.OrderStatus.CANCELLED) {
+            return "fastfood/orderCancelled";
+        }
         model.addAttribute("subtotal", order.get().subtotal());
         model.addAttribute("discount", order.get().subtotal().subtract(order.get().total()).max(BigDecimal.ZERO));
         model.addAttribute("tipPercents", OrderCheckoutService.TIP_PERCENTS);

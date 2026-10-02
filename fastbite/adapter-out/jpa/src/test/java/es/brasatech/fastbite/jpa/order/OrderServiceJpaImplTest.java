@@ -122,7 +122,7 @@ class OrderServiceJpaImplTest {
                 1, OrderPaymentStatus.PAID, OrderChannel.WAITER, DEFAULT_LANG
         );
         OrderEntity entity = createOrderEntity(order);
-        when(repository.findById("order-1")).thenReturn(Optional.of(entity));
+        when(repository.findForUpdate("order-1")).thenReturn(Optional.of(entity));
 
         // When
         Optional<Order> result = service.findById("order-1");
@@ -145,7 +145,7 @@ class OrderServiceJpaImplTest {
                 1, OrderPaymentStatus.PAID, OrderChannel.WAITER, "es"
         );
         OrderEntity entity = createOrderEntity(order);
-        when(repository.findById("order-1")).thenReturn(Optional.of(entity));
+        when(repository.findForUpdate("order-1")).thenReturn(Optional.of(entity));
 
         when(optionRepository.findById(OPTION_ID)).thenReturn(Optional.of(option("Cheese", Map.of("es", Map.of("name", "Queso")))));
 
@@ -169,7 +169,7 @@ class OrderServiceJpaImplTest {
                 1, OrderPaymentStatus.PAID, OrderChannel.WAITER, "pt"
         );
         OrderEntity entity = createOrderEntity(order);
-        when(repository.findById("order-1")).thenReturn(Optional.of(entity));
+        when(repository.findForUpdate("order-1")).thenReturn(Optional.of(entity));
 
         // No Portuguese translation on the option
         when(optionRepository.findById(OPTION_ID)).thenReturn(Optional.of(option("Cheese", Map.of("es", Map.of("name", "Queso")))));

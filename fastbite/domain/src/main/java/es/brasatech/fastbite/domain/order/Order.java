@@ -9,6 +9,13 @@ public record Order(List<CartItem> items, int orderNumber, String id, LocalDateT
         OrderStatus status, BigDecimal total, String cancelReason, OrderPaymentStatus paymentStatus,
         OrderChannel orderChannel, String orderLanguage, String userId, String customerName, ServiceType serviceType) {
 
+    public static final String PAYMENT_EXPIRED_REASON = "Online payment not received within one hour";
+
+    public boolean paymentExpired(LocalDateTime now) {
+        return heldUntilPaid() && status == OrderStatus.CREATED && createdAt != null
+                && !createdAt.plusHours(1).isAfter(now);
+    }
+
     /** The steps an order moves through from placed to closed. */
     private static final List<OrderStatus> FLOW = List.of(OrderStatus.CREATED, OrderStatus.ACCEPTED,
             OrderStatus.PROCESSING, OrderStatus.DONE, OrderStatus.DELIVERED, OrderStatus.COMPLETE);

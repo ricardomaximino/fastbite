@@ -62,6 +62,9 @@ public class OrderCheckoutService {
         if (order.status() == OrderStatus.CANCELLED) {
             throw new IllegalArgumentException("This order was cancelled");
         }
+        if (order.paymentExpired(java.time.LocalDateTime.now())) {
+            throw new IllegalArgumentException("This order expired. Please place a new order.");
+        }
         if (!TIP_PERCENTS.contains(tipPercent)) {
             throw new IllegalArgumentException("Choose one of the tips on offer");
         }

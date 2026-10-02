@@ -99,6 +99,18 @@ class OrderCheckoutServiceTest {
     // ---- confirming a payment
 
     @Test
+    void anExpiredOnlineOrderCannotStartAnotherCheckout() throws Exception {
+        var old = java.time.LocalDateTime.now().minusHours(2);
+        var expired = new Order(order.items(), 12, order.id(), old, old,
+                es.brasatech.fastbite.domain.order.OrderStatus.CREATED, order.total(), null,
+                OrderPaymentStatus.UNPAID, OrderChannel.ONLINE, "en", null, "Guest",
+                es.brasatech.fastbite.domain.order.ServiceType.TAKEAWAY);
+        assertThatThrownBy(() -> checkout.start("kebab", expired, 0, "a", "b"))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("expired");
+        verify(stripe, never()).createOrderCheckoutSession(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void aCheckoutPaidInFullMarksTheOrderPaid() {
         assertThat(checkout.confirm(session("paid", 1350, StripeService.RESTAURANT_ORDER))).isTrue();
         assertThat(checkout.confirm(session("paid", 1553, StripeService.RESTAURANT_ORDER))).as("with a tip").isTrue();

@@ -57,6 +57,7 @@ public class OrderServiceJpaImpl implements OrderService {
 
     @Override
     public List<Order> findAll() {
+        expireAbandonedPayments();
         return repository.findAll().stream()
                 .map(this::toOrderWithTranslation)
                 .toList();
@@ -64,8 +65,47 @@ public class OrderServiceJpaImpl implements OrderService {
 
     @Override
     public Optional<Order> findById(String id) {
-        return repository.findById(id)
+        return repository.findForUpdate(id)
+                .map(this::expirePayment)
                 .map(this::toOrderWithTranslation);
+    }
+
+    private void expireAbandonedPayments() {
+        repository.findExpiredPaymentIds(java.time.LocalDateTime.now().minusHours(1))
+                .forEach(id -> repository.findForUpdate(id).ifPresent(this::expirePayment));
+    }
+
+    private OrderEntity expirePayment(OrderEntity entity) {
+        var now = java.time.LocalDateTime.now();
+        if (entity.getServiceType() == ServiceType.TAKEAWAY
+                && entity.getOrderChannel() == es.brasatech.fastbite.domain.order.OrderChannel.ONLINE
+                && entity.getPaymentStatus() == OrderPaymentStatus.UNPAID
+                && entity.getStatus() == OrderStatus.CREATED && entity.getCreatedAt() != null
+                && !entity.getCreatedAt().plusHours(1).isAfter(now)) {
+            entity.setStatus(OrderStatus.CANCELLED);
+            entity.setCancelReason(Order.PAYMENT_EXPIRED_REASON);
+            entity.setUpdatedAt(now);
+        }
+        return entity;
+    }
+
+    /** Serialize payment with expiry, preserving saved prices and item identities. */
+    @Override
+    public void markOrderPaid(String id) {
+        var entity = repository.findForUpdate(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        if (entity.getPaymentStatus() == OrderPaymentStatus.PAID) {
+            return;
+        }
+        // Stripe may deliver a successful payment after on-access cleanup has run.
+        if (entity.getStatus() == OrderStatus.CANCELLED
+                && Order.PAYMENT_EXPIRED_REASON.equals(entity.getCancelReason())) {
+            entity.setStatus(OrderStatus.CREATED);
+            entity.setCancelReason(null);
+        }
+        entity.setPaymentStatus(OrderPaymentStatus.PAID);
+        entity.setUpdatedAt(java.time.LocalDateTime.now());
+        tableService.findTableByOrderId(id).ifPresent(table -> tableService.resetTableSessionIfAllPaid(table.id()));
+        publishEvent(new es.brasatech.fastbite.domain.event.OrderPaymentStatusChangedEvent(toOrderWithTranslation(entity)));
     }
 
     @Override

@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WithMockUser
-@WebMvcTest(controllers = MenuController.class, properties = "fastbite.tax.percentage=15.0")
+@WebMvcTest(controllers = MenuController.class, properties = {"fastbite.tax.percentage=15.0", "spring.messages.basename=i18n/messages"})
 @DisplayName("MenuController Tests")
 @ContextConfiguration(classes = {TestConfig.class, MenuController.class, es.brasatech.fastbite.security.SecurityConfig.class})
 class MenuControllerTest {
@@ -312,6 +312,21 @@ class MenuControllerTest {
                 mockMvc.perform(get("/default/select-payment").session(new MockHttpSession()).with(csrf()))
                                 .andExpect(status().isFound())
                                 .andExpect(redirectedUrl("/menu"));
+        }
+
+        @Test
+        void cancelledOrdersShowAnExplanationInsteadOfPaymentControls() throws Exception {
+                var cancelled = new es.brasatech.fastbite.domain.order.Order(testCartItems, 12,
+                                es.brasatech.fastbite.domain.order.OrderPaymentStatus.UNPAID,
+                                es.brasatech.fastbite.domain.order.OrderChannel.ONLINE, "en")
+                                .cancel(es.brasatech.fastbite.domain.order.Order.PAYMENT_EXPIRED_REASON);
+                when(orderService.findById("expired")).thenReturn(java.util.Optional.of(cancelled));
+                mockSession.setAttribute("orderId", "expired");
+                mockMvc.perform(get("/default/select-payment").session(mockSession).with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(view().name("fastfood/orderCancelled"))
+                                .andExpect(content().string(org.hamcrest.Matchers.containsString("Order cancelled")))
+                                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("id=\"paymentForm\""))));
         }
 
         @Test
