@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 @Component
+@org.springframework.context.annotation.DependsOn("tenantSchemaInitializer")
 public class TenantConnectionProvider implements MultiTenantConnectionProvider<String> {
 
     private final DataSource dataSource;

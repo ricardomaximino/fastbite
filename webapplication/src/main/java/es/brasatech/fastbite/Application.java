@@ -12,6 +12,10 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 public class Application {
 
     public static void main(String[] args) {
+        if (java.util.Arrays.asList(args).contains("--migration-job")) {
+            System.exit(MigrationJob.run(args));
+            return;
+        }
         SpringApplication.run(Application.class, args);
     }
 

@@ -14,7 +14,7 @@ spring:
       maximum-pool-size: 30
   sql:
     init:
-      # Schemas are created by TenantSchemaInitializer; demo content comes from kebab_demo.zip.
+      # Schemas are versioned by Flyway; demo content comes from kebab_demo.zip.
       mode: never
   jpa:
     # One database session per service call, not per web request. A request-long session stays on the
@@ -23,9 +23,9 @@ spring:
     open-in-view: false
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: none
     show-sql: false
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false
     properties:
       jakarta.persistence.jdbc.url: ${DB_URL:jdbc:h2:file:./data/fast_bite.db}
       jakarta.persistence.jdbc.user: ${DB_USER:sa}
@@ -41,7 +41,7 @@ spring:
   session:
     store-type: jdbc
     jdbc:
-      initialize-schema: always
+      initialize-schema: never
   h2:
     console:
       enabled: ${H2_CONSOLE_ENABLED:true}
@@ -137,4 +137,5 @@ stripe:
     secret: ${STRIPE_CONNECT_WEBHOOK_SECRET:${STRIPE_CONNECT_WEBHOOK_SECRET_SANDBOX:}}
   # Order payments of restaurants that have not connected their own Stripe account go to this one.
   # Leave it empty in production to keep those payments on the platform account.
-  connected-account: ${STRIPE_CONNECTED_ACCOUNT:}
+  connected-account: ${STRIPE_CONNECTED_ACCOUNT:}
+fastbite.migrations.mode: ${MIGRATION_MODE:validate}

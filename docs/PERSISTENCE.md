@@ -1,3 +1,5 @@
+> Current schema management uses Flyway for H2/PostgreSQL. Follow [database migrations](database-migrations.md); the older MySQL examples below are historical and unsupported by the migration runner. Hibernate schema updates are disabled.
+
 # Persistence Configuration Guide
 
 This document explains how to configure and use different persistence strategies for the FastBite BackOffice system.
@@ -143,7 +145,7 @@ export DB_USER=postgres
 export DB_PASSWORD=password
 export DB_DRIVER=org.postgresql.Driver
 export HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-export DDL_AUTO=update
+# Run the migration job before startup; Hibernate DDL is disabled.
 ```
 
 **Run Application**:
@@ -173,7 +175,7 @@ export DB_USER=root
 export DB_PASSWORD=password
 export DB_DRIVER=com.mysql.cj.jdbc.Driver
 export HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
-export DDL_AUTO=update
+# Run the migration job before startup; Hibernate DDL is disabled.
 ```
 
 **Docker MySQL**:

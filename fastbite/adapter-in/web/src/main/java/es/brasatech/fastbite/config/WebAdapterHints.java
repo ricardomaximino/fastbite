@@ -26,6 +26,7 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+        hints.resources().registerPattern("db/migration/*/*.sql");
         hints.resources().registerPattern("static/**");
         hints.resources().registerPattern("templates/**");
         hints.resources().registerPattern("schema.sql");

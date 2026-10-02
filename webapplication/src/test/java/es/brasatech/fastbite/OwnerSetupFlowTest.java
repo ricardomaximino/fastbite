@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
         "spring.jpa.properties.jakarta.persistence.jdbc.url=jdbc:h2:mem:owner-flow;DB_CLOSE_DELAY=-1",
         "spring.datasource.username=sa", "spring.datasource.password=",
         "fastbite.public-url=http://localhost:8080", "spring.mail.password=", "management.health.mail.enabled=false",
-        "stripe.secret.key=", "stripe.webhook.secret=", "stripe.connected-account="})
+        "fastbite.migrations.mode=migrate", "spring.jpa.hibernate.ddl-auto=none", "spring.session.jdbc.initialize-schema=never", "stripe.secret.key=", "stripe.webhook.secret=", "stripe.connected-account="})
 @ActiveProfiles("jpa")
 class OwnerSetupFlowTest {
     @Value("${local.server.port}") int port;

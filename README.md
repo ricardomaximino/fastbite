@@ -2,6 +2,10 @@
 
 FastBite is a high-performance fast-food ordering system featuring a schema-per-tenant database architecture (JPA/H2/PostgreSQL), dynamic database-level internationalization, multi-tenant subdomain routing, and multi-location management with single sign-on (SSO). It is fully optimized for GraalVM Native Image deployments.
 
+## Database upgrades
+
+Database schema changes are versioned with Flyway. Production startup validates migration history; run the migration job before deploying a new application version. The `local` and `demo` profiles migrate automatically. Existing databases require a backup and explicit adoption before their first Flyway run. See [database migrations](docs/database-migrations.md) for JVM job commands and the Cloud Run template.
+
 ---
 
 ## 🎯 FastBite Application Goal

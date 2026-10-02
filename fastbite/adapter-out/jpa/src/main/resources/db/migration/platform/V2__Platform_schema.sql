@@ -1,0 +1,60 @@
+-- Spring Session JDBC Tables for PostgreSQL/H2
+CREATE TABLE IF NOT EXISTS SPRING_SESSION (
+	PRIMARY_ID CHAR(36) NOT NULL,
+	SESSION_ID CHAR(36) NOT NULL,
+	CREATION_TIME BIGINT NOT NULL,
+	LAST_ACCESS_TIME BIGINT NOT NULL,
+	MAX_INACTIVE_INTERVAL INT NOT NULL,
+	EXPIRY_TIME BIGINT NOT NULL,
+	PRINCIPAL_NAME VARCHAR(100),
+	CONSTRAINT SPRING_SESSION_PK PRIMARY KEY (PRIMARY_ID)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS SPRING_SESSION_IX1 ON SPRING_SESSION (SESSION_ID);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX2 ON SPRING_SESSION (EXPIRY_TIME);
+CREATE INDEX IF NOT EXISTS SPRING_SESSION_IX3 ON SPRING_SESSION (PRINCIPAL_NAME);
+
+CREATE TABLE IF NOT EXISTS SPRING_SESSION_ATTRIBUTES (
+	SESSION_PRIMARY_ID CHAR(36) NOT NULL,
+	ATTRIBUTE_NAME VARCHAR(200) NOT NULL,
+	ATTRIBUTE_BYTES BYTEA NOT NULL,
+	CONSTRAINT SPRING_SESSION_ATTRIBUTES_PK PRIMARY KEY (SESSION_PRIMARY_ID, ATTRIBUTE_NAME),
+	CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION(PRIMARY_ID) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS tenant_locations (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    owner_username VARCHAR(255) NOT NULL,
+    tenant_id VARCHAR(255) NOT NULL UNIQUE,
+    plan VARCHAR(255) NOT NULL DEFAULT 'Free Demo',
+    custom_domain VARCHAR(255) UNIQUE,
+    stripe_account_id VARCHAR(255)
+);
+
+-- Platform-only, deliberately qualified: never included in tenant backup/restore.
+CREATE TABLE IF NOT EXISTS public.owner_setup_tokens (
+    checkout_id VARCHAR(255) PRIMARY KEY,
+    tenant_id VARCHAR(63) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    token_hash VARCHAR(64) UNIQUE,
+    expires_at BIGINT NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Registration claims survive partial DDL and serialize retries across application instances.
+CREATE TABLE IF NOT EXISTS public.tenant_lifecycle (
+    tenant_id VARCHAR(56) PRIMARY KEY,
+    operation_id VARCHAR(300) NOT NULL UNIQUE,
+    owner_username VARCHAR(100) NOT NULL,
+    state VARCHAR(30) NOT NULL,
+    updated_at BIGINT NOT NULL
+);
+
+-- Preserve the identity of existing paid owner setup operations during upgrade.
+INSERT INTO public.tenant_lifecycle (tenant_id, operation_id, owner_username, state, updated_at)
+SELECT t.tenant_id, 'setup:' || t.checkout_id, t.username,
+       CASE WHEN t.completed THEN 'ACTIVE' ELSE 'PROVISIONING' END, 0
+FROM public.owner_setup_tokens t
+WHERE NOT EXISTS (SELECT 1 FROM public.tenant_lifecycle l WHERE l.tenant_id = t.tenant_id);

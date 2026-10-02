@@ -1,0 +1,31 @@
+# Replace all uppercase placeholders before deployment. Use the JVM image for migrations.
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: fastbite-migrate
+  namespace: PROJECT_NUMBER
+spec:
+  template:
+    spec:
+      taskCount: 1
+      parallelism: 1
+      template:
+        spec:
+          serviceAccountName: MIGRATION_SERVICE_ACCOUNT
+          maxRetries: 0
+          timeoutSeconds: '900'
+          containers:
+            - image: REGION-docker.pkg.dev/PROJECT/REPOSITORY/fastbite:RELEASE
+              args: ['--migration-job']
+              env:
+                - name: DB_URL
+                  valueFrom:
+                    secretKeyRef: {name: fastbite-migration-db-url, key: latest}
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef: {name: fastbite-migration-db-user, key: latest}
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef: {name: fastbite-migration-db-password, key: latest}
+              resources:
+                limits: {cpu: '1', memory: 512Mi}
