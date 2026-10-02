@@ -10,7 +10,7 @@ A paid Stripe platform checkout for a new owner must have `type=PLATFORM_SUBSCRI
 
 The owner starts disabled in both the platform and restaurant schemas. The emailed link expires after 24 hours and works once. Passwords require at least 12 characters and must fit BCrypt's 72-byte limit. Setting the password enables both accounts in one database transaction.
 
-Stripe delivery retries before password setup issue a replacement link to the same recipient; only the latest link works. A failed SMTP send returns an error to Stripe so it retries. After setup, repeated checkout events neither change the password nor send email. To replace an expired setup link, an operator can resend the original checkout event from Stripe. There is no public resend endpoint yet.
+After successful email delivery, duplicate Stripe events retain the same valid link and do not send another email. A failed delivery or replay after link expiry issues a replacement link to the same recipient; only the latest link works. A failed SMTP send returns an error to Stripe so it retries. After setup, repeated checkout events neither change the password nor send email. To replace an expired setup link, an operator can resend the original checkout event from Stripe. There is no public resend endpoint yet.
 
 Additional locations for existing owners retain the existing owner account. `customer.subscription.created` alone no longer creates an owner; provisioning requires a paid checkout completion or asynchronous payment-success event.
 

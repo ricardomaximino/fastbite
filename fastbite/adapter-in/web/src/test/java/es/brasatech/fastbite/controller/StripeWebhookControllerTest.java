@@ -169,6 +169,24 @@ class StripeWebhookControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test void additionalLocationsUseCheckoutIdentityAndPropagateRetryableFailure() throws Exception {
+        String payload = "{\"type\":\"checkout.session.completed\",\"data\":{\"object\":{\"id\":\"cs_location\",\"metadata\":{\"type\":\"PLATFORM_SUBSCRIPTION\"}}}}";
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class)))
+                .thenReturn(Event.GSON.fromJson(payload, Event.class));
+        Session paid = new Session();
+        paid.setPaymentStatus("paid");
+        paid.setMetadata(Map.of("type", "PLATFORM_SUBSCRIPTION", "tenantId", "newlocation", "ownerUsername", "owner", "plan", "Pro"));
+        when(stripeService.retrieveSession("cs_location")).thenReturn(paid);
+        org.mockito.Mockito.doThrow(new IllegalStateException("Busy")).doNothing().when(tenantSignupService)
+                .registerAdditionalLocation("newlocation", "owner", "Pro", "checkout:cs_location");
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isInternalServerError());
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isOk());
+        verify(tenantSignupService, org.mockito.Mockito.times(2))
+                .registerAdditionalLocation("newlocation", "owner", "Pro", "checkout:cs_location");
+    }
+
     @Test void unpaidCheckoutDoesNotProvisionAnOwner() throws Exception {
         platformEvent("checkout.session.completed", "unpaid");
         org.mockito.Mockito.verifyNoInteractions(ownerSetupService);

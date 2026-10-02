@@ -13,23 +13,20 @@ import java.time.Instant;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.Locale;
-import java.util.Set;
 
 @Service
 public class OwnerSetupService {
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final Set<String> RESERVED_TENANTS = Set.of("default", "admin", "kebab", "signup", "login",
-            "logout", "owner", "menu", "dashboard", "counter", "backoffice", "api", "css", "js", "images",
-            "webjars", "stripe", "error", "actuator", "appspecific");
     private final OwnerSetupPort persistence;
+    private final TenantLifecyclePort lifecycle;
     private final TenantProvisionerPort provisioner;
     private final OwnerSetupMailPort mail;
     private final String publicUrl;
 
     public OwnerSetupService(OwnerSetupPort persistence, TenantProvisionerPort provisioner,
-            OwnerSetupMailPort mail, @Value("${fastbite.public-url:http://localhost:8080}") String publicUrl) {
+            OwnerSetupMailPort mail, TenantLifecyclePort lifecycle, @Value("${fastbite.public-url:http://localhost:8080}") String publicUrl) {
         this.persistence = persistence;
+        this.lifecycle = lifecycle;
         this.provisioner = provisioner;
         this.mail = mail;
         URI uri = URI.create(publicUrl);
@@ -43,10 +40,9 @@ public class OwnerSetupService {
     }
 
     public void invite(OwnerSetupPort.Invitation input) {
-        String tenant = input.tenantId() == null ? "" : input.tenantId().toLowerCase(Locale.ROOT);
+        String tenant = TenantRegistrationRules.tenantId(input.tenantId());
         // PostgreSQL identifiers are limited to 63 bytes, including the seven-byte tenant_ prefix.
-        if (!tenant.matches("[a-z0-9]{1,56}") || RESERVED_TENANTS.contains(tenant)
-                || input.checkoutId() == null || input.checkoutId().isBlank() || input.checkoutId().length() > 255
+        if (input.checkoutId() == null || input.checkoutId().isBlank() || input.checkoutId().length() > 255
                 || input.username() == null || !input.username().matches("[a-zA-Z0-9_.@-]{1,100}")
                 || input.email() == null || input.email().length() > 254
                 || !input.email().matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")
@@ -59,11 +55,14 @@ public class OwnerSetupService {
         byte[] random = new byte[32];
         RANDOM.nextBytes(random);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
-        provisioner.provisionTenant(tenant);
-        if (persistence.prepare(invitation, hash(token), Instant.now().plus(Duration.ofHours(24)))) {
-            // Persist before sending. A failed send propagates to Stripe, whose retry replaces the link.
-            mail.sendSetupLink(invitation.email(), invitation.username(), publicUrl + "/set-password?token=" + token);
-        }
+        lifecycle.register(tenant, "setup:" + input.checkoutId(), invitation.username(),
+                TenantLifecyclePort.State.AWAITING_OWNER, () -> {
+                    provisioner.provisionTenant(tenant);
+                    if (persistence.prepare(invitation, hash(token), Instant.now().plus(Duration.ofHours(24)))) {
+                        // Failure is retried with a new link. Successful delivery is not repeated by webhook replays.
+                        mail.sendSetupLink(invitation.email(), invitation.username(), publicUrl + "/set-password?token=" + token);
+                    }
+                });
     }
 
     public boolean isValid(String token) {

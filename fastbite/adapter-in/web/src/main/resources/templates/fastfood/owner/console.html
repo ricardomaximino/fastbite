@@ -99,12 +99,12 @@
                     <div class="row align-items-center">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <h5 class="text-white mb-1">
-                                <span th:text="${loc.tenantId}">pizza</span>.localhost:8080
+                                <span th:text="${loc.tenantId}">pizza</span>
                             </h5>
                             <span class="badge bg-success small py-1 px-2 mb-2" th:text="'Active Plan: ' + ${loc.plan}">Active Plan: Free Demo</span>
                             <div class="small text-muted-light">
                                 Menu URL: 
-                                <a th:href="${protocol} + '://' + ${loc.tenantId} + '.localhost:8080/menu'" target="_blank" class="text-danger fw-bold ms-1" th:text="${loc.tenantId} + '.localhost:8080/menu'">kebab.localhost:8080/menu</a>
+                                <a th:href="@{/{tenant}/menu(tenant=${loc.tenantId})}" target="_blank" class="text-danger fw-bold ms-1" th:text="'/' + ${loc.tenantId} + '/menu'">/restaurant/menu</a>
                             </div>
                             <div class="mt-2 small text-muted-light d-flex align-items-center flex-wrap gap-2">
                                 <span>Custom Domain:</span>
@@ -129,7 +129,7 @@
                         </div>
                         
                         <div class="col-md-6 text-md-end">
-                            <a th:href="${protocol} + '://' + ${loc.tenantId} + '.localhost:8080/dashboard'" target="_blank" class="btn btn-sm btn-theme px-3 py-2 me-1">
+                            <a th:href="@{/{tenant}/dashboard(tenant=${loc.tenantId})}" target="_blank" class="btn btn-sm btn-theme px-3 py-2 me-1">
                                 <i class="fas fa-external-link-alt me-1"></i> Open POS Dashboard
                             </a>
                             <button class="btn btn-sm btn-outline-info px-3 py-2" th:data-tenant="${loc.tenantId}" onclick="openStaffModal(this.getAttribute('data-tenant'))">
@@ -144,7 +144,7 @@
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             
                             <!-- Backup Download -->
-                            <a th:href="'http://' + ${loc.tenantId} + '.localhost:8080/api/backoffice/maintenance/backup'" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                            <a th:href="@{/{tenant}/api/backoffice/maintenance/backup(tenant=${loc.tenantId})}" class="btn btn-sm btn-outline-secondary py-1 px-2">
                                 <i class="fas fa-download me-1"></i> Export Backup ZIP
                             </a>
 
@@ -200,7 +200,7 @@
                             <div class="mb-3">
                                 <label class="form-label text-muted-light small">Restaurant URL Prefix</label>
                                 <input type="text" name="tenantId" id="newTenantId" class="form-control form-control-dark" placeholder="e.g. cafe, burger" required pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
-                                <div class="form-text text-muted small text-white-50 mt-1">URL: <code><span id="tenantUrlPreview">prefix</span>.localhost:8080</code></div>
+                                <div class="form-text text-muted small text-white-50 mt-1">URL: <code>/<span id="tenantUrlPreview">prefix</span>/menu</code></div>
                             </div>
 
                             <button type="button" class="btn btn-theme w-100 py-2 mt-3" onclick="nextWizardStep(2)">
@@ -367,19 +367,23 @@
                 return;
             }
 
-            fetch(`http://${tenantId}.localhost:8080/api/backoffice/maintenance/${action}`, {
+            fetch(`/${encodeURIComponent(tenantId)}/api/backoffice/maintenance/${action}`, {
                 method: 'POST',
                 headers: {
                     [csrfHeader]: csrfToken
                 }
             })
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'The operation failed.');
+                return data;
+            })
             .then(data => {
                 alert(data.message || 'Operation executed successfully!');
             })
             .catch(err => {
                 console.error(err);
-                alert('Operation completed. (Confirming schema schema mappings)');
+                alert('The operation failed. Please try again.');
             });
         }
 
@@ -398,11 +402,16 @@
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            fetch(`http://${tenantId}.localhost:8080/api/backoffice/maintenance/restore`, {
+            fetch(`/${encodeURIComponent(tenantId)}/api/backoffice/maintenance/restore`, {
                 method: 'POST',
+                headers: { [csrfHeader]: csrfToken },
                 body: formData
             })
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'The operation failed.');
+                return data;
+            })
             .then(data => {
                 alert(data.message || 'Backup successfully restored!');
                 fileInput.value = '';

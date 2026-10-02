@@ -57,7 +57,7 @@ class TenantBackupRestoreAdapterTest {
 
     @Test
     void testBackupCleanRestoreLifecycle() {
-        String testTenant = "backup_test_tenant";
+        String testTenant = "backuptesttenant";
         tenantProvisionerAdapter.provisionTenant(testTenant);
         TenantContext.setCurrentTenant(testTenant);
 

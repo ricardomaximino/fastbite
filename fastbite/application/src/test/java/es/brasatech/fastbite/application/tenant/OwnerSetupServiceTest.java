@@ -14,7 +14,8 @@ class OwnerSetupServiceTest {
     private final OwnerSetupPort persistence = mock(OwnerSetupPort.class);
     private final TenantProvisionerPort provisioner = mock(TenantProvisionerPort.class);
     private final OwnerSetupMailPort mail = mock(OwnerSetupMailPort.class);
-    private final OwnerSetupService service = new OwnerSetupService(persistence, provisioner, mail, "https://fastbite.example");
+    private final TenantLifecyclePort lifecycle = (tenant, operation, owner, state, work) -> work.run();
+    private final OwnerSetupService service = new OwnerSetupService(persistence, provisioner, mail, lifecycle, "https://fastbite.example");
     private final OwnerSetupPort.Invitation invitation = new OwnerSetupPort.Invitation("checkout", "burger", "bob", "Bob", "bob@example.test", "Pro");
 
     @Test void onlyTheHashIsStoredAndTheEmailUsesTheConfiguredOrigin() {
@@ -50,7 +51,7 @@ class OwnerSetupServiceTest {
 
     @Test void publicUrlRejectsInsecureOrInjectedOrigins() {
         for (String url : new String[]{"http://production.example", "https://example.test/?redirect=bad", "https://user@example.test", "https://example.test/#bad"}) {
-            assertThrows(IllegalArgumentException.class, () -> new OwnerSetupService(persistence, provisioner, mail, url));
+            assertThrows(IllegalArgumentException.class, () -> new OwnerSetupService(persistence, provisioner, mail, lifecycle, url));
         }
     }
 

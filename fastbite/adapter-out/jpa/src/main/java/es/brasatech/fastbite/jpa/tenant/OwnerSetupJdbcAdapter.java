@@ -63,6 +63,17 @@ public class OwnerSetupJdbcAdapter implements OwnerSetupPort {
     @Override
     public boolean complete(String tokenHash, String encodedPassword, Instant now) {
         return transaction(connection -> {
+            // Registration locks lifecycle before tokens; use the same order to avoid deadlocks.
+            String setupTenant;
+            try (var query = statement(connection, "SELECT tenant_id FROM public.owner_setup_tokens WHERE token_hash = ?", tokenHash);
+                 var rows = query.executeQuery()) {
+                if (!rows.next()) return false;
+                setupTenant = rows.getString(1);
+            }
+            try (var query = statement(connection, "SELECT tenant_id FROM public.tenant_lifecycle WHERE tenant_id = ? FOR UPDATE", setupTenant);
+                 var rows = query.executeQuery()) {
+                rows.next(); // Legacy invitations may not yet have a lifecycle record.
+            }
             try (var query = statement(connection, "SELECT checkout_id, tenant_id, user_id FROM public.owner_setup_tokens WHERE token_hash = ? AND completed = FALSE AND expires_at > ? FOR UPDATE", tokenHash, now.toEpochMilli());
                  var rows = query.executeQuery()) {
                 if (!rows.next()) return false;
@@ -75,6 +86,8 @@ public class OwnerSetupJdbcAdapter implements OwnerSetupPort {
                     if (updated != 1) throw new IllegalStateException("Pending owner account is missing or already enabled");
                 }
                 update(connection, "UPDATE public.owner_setup_tokens SET completed = TRUE, token_hash = NULL WHERE checkout_id = ?", checkoutId);
+                update(connection, "UPDATE public.tenant_lifecycle SET state = 'ACTIVE', updated_at = ? WHERE tenant_id = ? AND operation_id = ?",
+                        now.toEpochMilli(), tenant, "setup:" + checkoutId);
                 return true;
             }
         });

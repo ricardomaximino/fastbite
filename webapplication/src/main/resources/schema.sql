@@ -224,3 +224,19 @@ CREATE TABLE IF NOT EXISTS public.owner_setup_tokens (
     expires_at BIGINT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+-- Registration claims survive partial DDL and serialize retries across application instances.
+CREATE TABLE IF NOT EXISTS public.tenant_lifecycle (
+    tenant_id VARCHAR(56) PRIMARY KEY,
+    operation_id VARCHAR(300) NOT NULL UNIQUE,
+    owner_username VARCHAR(100) NOT NULL,
+    state VARCHAR(30) NOT NULL,
+    updated_at BIGINT NOT NULL
+);
+
+-- Preserve the identity of existing paid owner setup operations during upgrade.
+INSERT INTO public.tenant_lifecycle (tenant_id, operation_id, owner_username, state, updated_at)
+SELECT t.tenant_id, 'setup:' || t.checkout_id, t.username,
+       CASE WHEN t.completed THEN 'ACTIVE' ELSE 'PROVISIONING' END, 0
+FROM public.owner_setup_tokens t
+WHERE NOT EXISTS (SELECT 1 FROM public.tenant_lifecycle l WHERE l.tenant_id = t.tenant_id);

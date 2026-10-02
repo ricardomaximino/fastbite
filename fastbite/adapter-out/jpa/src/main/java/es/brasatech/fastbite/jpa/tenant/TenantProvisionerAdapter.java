@@ -21,17 +21,17 @@ public class TenantProvisionerAdapter implements TenantProvisionerPort {
 
     @Override
     public void provisionTenant(String tenantId) {
-        String schemaName = "tenant_" + tenantId.toLowerCase();
+        String schemaName = "tenant_" + es.brasatech.fastbite.application.tenant.TenantRegistrationRules.tenantId(tenantId);
         log.info("Provisioning database schema for tenant: {}", schemaName);
         try (Connection connection = dataSource.getConnection()) {
-            TenantSchemaUtils.createAndSwitchSchema(connection, schemaName);
-
-            Resource schemaResource = resourceLoader.getResource("classpath:schema.sql");
-            if (schemaResource.exists()) {
+            try {
+                TenantSchemaUtils.createAndSwitchSchema(connection, schemaName);
+                Resource schemaResource = resourceLoader.getResource("classpath:schema.sql");
+                if (!schemaResource.exists()) throw new IllegalStateException("Registration schema resource is missing");
                 ScriptUtils.executeSqlScript(connection, schemaResource);
                 log.info("Successfully executed schema.sql for tenant: {}", schemaName);
-            } else {
-                log.warn("schema.sql not found in classpath for provisioning!");
+            } finally {
+                TenantSchemaUtils.switchSchema(connection, TenantSchemaUtils.resolveDefaultSchemaName(connection));
             }
         } catch (Exception e) {
             log.error("Failed to provision schema for tenant: " + schemaName, e);

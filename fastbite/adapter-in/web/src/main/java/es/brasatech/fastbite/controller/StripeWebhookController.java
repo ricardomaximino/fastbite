@@ -3,7 +3,6 @@ package es.brasatech.fastbite.controller;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
-import es.brasatech.fastbite.application.tenant.TenantLocationService;
 import es.brasatech.fastbite.application.tenant.TenantSignupService;
 import es.brasatech.fastbite.service.OrderCheckoutService;
 import es.brasatech.fastbite.service.StripeService;
@@ -29,7 +28,6 @@ public class StripeWebhookController {
 
     private final StripeService stripeService;
     private final TenantSignupService tenantSignupService;
-    private final TenantLocationService tenantLocationService;
     private final OrderCheckoutService orderCheckoutService;
     private final OwnerSetupService ownerSetupService;
     private final ObjectMapper objectMapper;
@@ -130,9 +128,8 @@ public class StripeWebhookController {
                     String ownerUsername = paidMetadata.getOrDefault("ownerUsername", "");
                     String plan = paidMetadata.getOrDefault("plan", "Standard Plan");
                     if (!ownerUsername.isBlank()) {
-                        if (tenantLocationService.getLocation(paidTenant).isEmpty()) {
-                            tenantSignupService.registerAdditionalLocation(paidTenant, ownerUsername, plan);
-                        }
+                        tenantSignupService.registerAdditionalLocation(paidTenant, ownerUsername, plan,
+                                "checkout:" + checkoutSessionId);
                     } else {
                         String email = paid.getCustomerDetails() != null ? paid.getCustomerDetails().getEmail() : null;
                         if (email == null || email.isBlank()) email = paid.getCustomerEmail();
