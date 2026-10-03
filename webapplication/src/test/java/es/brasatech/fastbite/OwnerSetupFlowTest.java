@@ -65,7 +65,7 @@ class OwnerSetupFlowTest {
             assertTrue(rows.next());
             assertEquals(0, rows.getInt(1));
         }
-        setup.invite(new OwnerSetupPort.Invitation("flow-checkout", "flowtenant", "flowowner", "Flow Owner", "owner@example.test", "Pro"));
+        setup.invite(new OwnerSetupPort.Invitation("flow-checkout", "flowtenant", "flowowner", "Flow Owner", "owner@example.test", "RESTAURANT"));
         var email = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(sender).send(email.capture());
         assertArrayEquals(new String[]{"owner@example.test"}, email.getValue().getTo());
@@ -92,7 +92,7 @@ class OwnerSetupFlowTest {
             assertFalse(signedIn.headers().firstValue("Location").orElse("").contains("error"));
             assertEquals(200, get(owner, "/owner/console").statusCode());
         }
-        setup.invite(new OwnerSetupPort.Invitation("flow-checkout", "flowtenant", "flowowner", "Flow Owner", "owner@example.test", "Pro"));
+        setup.invite(new OwnerSetupPort.Invitation("flow-checkout", "flowtenant", "flowowner", "Flow Owner", "owner@example.test", "RESTAURANT"));
         verify(sender, times(1)).send(any(SimpleMailMessage.class));
     }
 }

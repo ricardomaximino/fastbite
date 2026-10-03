@@ -75,7 +75,7 @@ class OrderCheckoutServiceTest {
     @Test
     void theMoneyGoesToTheRestaurantsOwnStripeAccountWhenItHasOne() throws Exception {
         when(locations.getLocation("kebab")).thenReturn(Optional.of(
-                new TenantLocation("1", "owner", "kebab", "Pro", null, "acct_kebab")));
+                new TenantLocation("1", "owner", "kebab", "RESTAURANT", null, "acct_kebab")));
 
         checkout.start("kebab", order, 0, "https://ok", "https://back");
 

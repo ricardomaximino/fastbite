@@ -1,0 +1,53 @@
+package es.brasatech.fastbite.jpa.tenant;
+
+import es.brasatech.fastbite.application.tenant.BillingPort;
+import es.brasatech.fastbite.domain.tenant.BillingAccount;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import javax.sql.DataSource;
+import java.sql.*;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+import static es.brasatech.fastbite.jpa.tenant.RegistrationJdbc.*;
+
+@Component
+@Profile("jpa")
+public class BillingJdbcAdapter implements BillingPort {
+    private final DataSource source;
+    public BillingJdbcAdapter(DataSource source) { this.source = source; }
+    @Override public Optional<BillingAccount> find(String tenant) {
+        return transaction(source, c -> read(c, tenant));
+    }
+    @Override public BillingAccount updateLocked(String tenant, UnaryOperator<BillingAccount> action) {
+        return transaction(source, c -> {
+            try (var lock = statement(c, "SELECT tenant_id FROM public.tenant_billing WHERE tenant_id = ? FOR UPDATE", tenant);
+                    var rows = lock.executeQuery()) {
+                if (!rows.next()) throw new IllegalArgumentException("Billing is not available for this location.");
+            }
+            var before = read(c, tenant).orElseThrow();
+            var after = action.apply(before);
+            update(c, "UPDATE public.tenant_billing SET status=?, customer_id=?, subscription_id=?, period_end=?, stripe_trial_end=?, cancel_at_period_end=?, checkout_id=?, checkout_url=?, checkout_expires=?, checkout_attempt=? WHERE tenant_id=?",
+                    after.status(), after.customerId(), after.subscriptionId(), after.periodEnd(), after.stripeTrialEnd(), after.cancelAtPeriodEnd(), after.checkoutId(), after.checkoutUrl(), after.checkoutExpires(), after.attempt(), tenant);
+            return after;
+        });
+    }
+    private Optional<BillingAccount> read(Connection c, String tenant) throws SQLException {
+        try (var q = statement(c, "SELECT b.*, l.owner_username FROM public.tenant_billing b JOIN public.tenant_locations l ON l.tenant_id=b.tenant_id WHERE b.tenant_id=?", tenant);
+                var r = q.executeQuery()) {
+            if (!r.next()) return Optional.empty();
+            return Optional.of(new BillingAccount(tenant, r.getString("owner_username"), r.getString("billing_key"), r.getTimestamp("trial_started_at").toInstant(),
+                    r.getString("status"), r.getString("customer_id"), r.getString("subscription_id"), r.getLong("period_end"), r.getLong("stripe_trial_end"), r.getBoolean("cancel_at_period_end"),
+                    r.getString("checkout_id"), r.getString("checkout_url"), r.getLong("checkout_expires"), r.getInt("checkout_attempt")));
+        }
+    }
+    @Override public void requestGroupQuote(String owner, String email, int locations) {
+        transaction(source, c -> {
+            if (update(c, "UPDATE public.group_quote_requests SET email=?, locations=?, requested_at=CURRENT_TIMESTAMP WHERE owner_username=?", email, locations, owner) == 0)
+                update(c, "INSERT INTO public.group_quote_requests (owner_username,email,locations) VALUES (?,?,?)", owner, email, locations);
+            return null;
+        });
+    }
+    static void createTrial(Connection c, String tenant) throws SQLException {
+        update(c, "INSERT INTO public.tenant_billing (tenant_id,billing_key) SELECT ?,? WHERE NOT EXISTS (SELECT 1 FROM public.tenant_billing WHERE tenant_id=?)", tenant, java.util.UUID.randomUUID().toString(), tenant);
+    }
+}

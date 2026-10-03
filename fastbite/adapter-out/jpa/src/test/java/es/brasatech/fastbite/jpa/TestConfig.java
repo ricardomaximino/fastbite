@@ -21,6 +21,11 @@ public class TestConfig {
     }
 
     @Bean
+    public es.brasatech.fastbite.application.tenant.SubscriptionGateway subscriptionGateway() {
+        return org.mockito.Mockito.mock(es.brasatech.fastbite.application.tenant.SubscriptionGateway.class);
+    }
+
+    @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }

@@ -113,21 +113,21 @@ class TenantLifecycleIntegrationTest {
     @Test void additionalLocationCannotBeClaimedByAnotherOwnerOrCheckout() {
         signup.registerTenant("lifeprimary", "lifeprimaryowner", "hash", "Owner");
         signup.registerTenant("lifesecond", "lifesecondowner", "hash", "Owner");
-        signup.registerAdditionalLocation("LifeExtra", "lifeprimaryowner", "Pro", "checkout:lifeextra");
-        signup.registerAdditionalLocation("lifeextra", "lifeprimaryowner", "Pro", "checkout:lifeextra");
+        signup.registerAdditionalLocation("LifeExtra", "lifeprimaryowner", "RESTAURANT", "checkout:lifeextra");
+        signup.registerAdditionalLocation("lifeextra", "lifeprimaryowner", "RESTAURANT", "checkout:lifeextra");
         assertThat(locationCount("lifeextra")).isEqualTo(1);
-        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifeextra", "lifesecondowner", "Pro", "checkout:lifeextra"))
+        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifeextra", "lifesecondowner", "RESTAURANT", "checkout:lifeextra"))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifeextra", "lifeprimaryowner", "Pro", "checkout:different"))
+        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifeextra", "lifeprimaryowner", "RESTAURANT", "checkout:different"))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifenoowner", "missing", "Pro"))
+        assertThatThrownBy(() -> signup.registerAdditionalLocation("lifenoowner", "missing", "RESTAURANT"))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(locationCount("lifenoowner")).isZero();
     }
 
     @Test void mailFailureRetriesAndSuccessfulDuplicatesKeepTheSameLinkUntilExpiry() {
         reset(mail);
-        var invitation = new OwnerSetupPort.Invitation("lifemail", "lifemail", "lifemailowner", "Owner", "owner@example.test", "Pro");
+        var invitation = new OwnerSetupPort.Invitation("lifemail", "lifemail", "lifemailowner", "Owner", "owner@example.test", "RESTAURANT");
         doThrow(new IllegalStateException("SMTP unavailable")).doNothing().when(mail).sendSetupLink(anyString(), anyString(), anyString());
         assertThatThrownBy(() -> setup.invite(invitation)).isInstanceOf(IllegalStateException.class);
         assertThat(state("lifemail")).isEqualTo("FAILED");

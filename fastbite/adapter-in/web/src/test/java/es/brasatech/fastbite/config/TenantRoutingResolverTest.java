@@ -52,7 +52,7 @@ class TenantRoutingResolverTest {
     @Test
     void resolvesABoundCustomDomainAndCachesTheLookup() {
         when(tenantLocationService.getLocationByCustomDomain("orders.pizza.es"))
-                .thenReturn(Optional.of(new TenantLocation("1", "alice", "pizza", "Pro", "orders.pizza.es")));
+                .thenReturn(Optional.of(new TenantLocation("1", "alice", "pizza", "RESTAURANT", "orders.pizza.es")));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/menu");
         request.addHeader("Host", "orders.pizza.es");
 

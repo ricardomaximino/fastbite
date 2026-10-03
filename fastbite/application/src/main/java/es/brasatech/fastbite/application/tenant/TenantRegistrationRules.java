@@ -24,6 +24,6 @@ public final class TenantRegistrationRules {
     }
 
     public static void plan(String plan) {
-        if (plan == null || plan.isBlank() || plan.length() > 255) throw new IllegalArgumentException("Invalid restaurant plan.");
+        if (!java.util.Set.of("RESTAURANT", "Free Demo").contains(plan == null ? "" : plan)) throw new IllegalArgumentException("Invalid restaurant plan.");
     }
 }

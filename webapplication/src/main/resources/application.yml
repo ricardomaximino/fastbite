@@ -130,6 +130,11 @@ fastbite:
     time-zone: ${ORDERS_TIME_ZONE:Europe/Madrid}
 
 stripe:
+  restaurant-price-id: ${STRIPE_RESTAURANT_PRICE_ID:}
+  automatic-tax: ${STRIPE_AUTOMATIC_TAX_ENABLED:false}
+  platform:
+    webhook:
+      secret: ${STRIPE_PLATFORM_WEBHOOK_SECRET:}
   secret:
     key: ${STRIPE_SECRET_KEY:${STRIPE_SECRET_KEY_SANDBOX:}}
   webhook:

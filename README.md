@@ -135,3 +135,7 @@ Run all the steps before run the native pipeline
 # Run all unit and integration tests
 mvn clean install && cd webapplication && mvn -Pnative native:compile -Dspring-boot.run.profiles=jpa -DskipTests=true && cd .. && docker build -f docker/Dockerfile --tag ricardomaximino/fastbite-native . && docker push ricardomaximino/fastbite-native:latest
 ```
+
+## Restaurant subscriptions
+
+The launch offer is a 30-day no-card trial followed by EUR 49/month per location, excluding VAT and payment processing. See [subscription setup and rollout](docs/subscriptions.md) for Stripe Price, webhook, portal and tax configuration.

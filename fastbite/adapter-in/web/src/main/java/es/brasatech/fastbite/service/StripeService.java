@@ -25,6 +25,9 @@ public class StripeService {
     private final String secretKey;
     private final String webhookSecret;
 
+    @Value("${stripe.platform.webhook.secret:}")
+    private String platformWebhookSecret;
+
     public StripeService(
             @Value("${stripe.secret.key:}") String secretKey,
             @Value("${stripe.webhook.secret:}") String webhookSecret) {
@@ -42,46 +45,6 @@ public class StripeService {
         if (!isConfigured()) {
             throw new IllegalStateException("Online payment is not set up: STRIPE_SECRET_KEY is missing.");
         }
-    }
-
-    /**
-     * Level 1: Platform Level Checkout Session for Tenant Users / Restaurant Owners to purchase subscriptions or additional locations.
-     */
-    public Session createPlatformCheckoutSession(String tenantId, String ownerUsername, String plan, String successUrl, String cancelUrl) throws StripeException {
-        requireSecretKey();
-
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("tenantId", tenantId);
-        metadata.put("ownerUsername", ownerUsername != null ? ownerUsername : "");
-        metadata.put("plan", plan != null ? plan : "Pro Plan");
-        metadata.put("type", "PLATFORM_SUBSCRIPTION");
-
-        SessionCreateParams params = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(successUrl)
-                .setCancelUrl(cancelUrl)
-                .setClientReferenceId(tenantId)
-                .putAllMetadata(metadata)
-                .addLineItem(
-                        SessionCreateParams.LineItem.builder()
-                                .setQuantity(1L)
-                                .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency(CURRENCY)
-                                                .setUnitAmount(2900L) // €29.00 default subscription cost
-                                                .setProductData(
-                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("FastBite Platform Location Subscription - " + tenantId)
-                                                                .setDescription("Plan: " + (plan != null ? plan : "Standard Plan"))
-                                                                .build()
-                                                )
-                                                .build()
-                                )
-                                .build()
-                )
-                .build();
-
-        return Session.create(params);
     }
 
     /**
@@ -151,6 +114,10 @@ public class StripeService {
      * @throws SignatureVerificationException if the call is unsigned or the signature does not match
      */
     public Event constructEvent(String payload, String sigHeader) throws SignatureVerificationException {
+        if (platformWebhookSecret != null && !platformWebhookSecret.isBlank() && sigHeader != null) {
+            try { return Webhook.constructEvent(payload, sigHeader, platformWebhookSecret); }
+            catch (SignatureVerificationException ignored) { /* Try the restaurant endpoint secret below. */ }
+        }
         if (webhookSecret == null || webhookSecret.isBlank()) {
             throw new SignatureVerificationException("Webhooks are refused: STRIPE_CONNECT_WEBHOOK_SECRET is missing", sigHeader);
         }

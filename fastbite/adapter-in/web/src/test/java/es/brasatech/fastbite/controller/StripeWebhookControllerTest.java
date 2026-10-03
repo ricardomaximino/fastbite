@@ -39,6 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {TestConfig.class, StripeWebhookController.class, es.brasatech.fastbite.security.SecurityConfig.class})
 class StripeWebhookControllerTest {
 
+    @MockitoBean
+    private es.brasatech.fastbite.application.tenant.SubscriptionService subscriptions;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -98,7 +101,7 @@ class StripeWebhookControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_test_999", "stripeburger", "stripeadmin", "Stripe Owner", "owner@example.test", "Standard Plan"));
+        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_test_999", "stripeburger", "stripeadmin", "Stripe Owner", "owner@example.test", "RESTAURANT"));
         verify(tenantSignupService, never()).registerTenant(anyString(), anyString(), anyString(), anyString());
     }
 
@@ -175,16 +178,16 @@ class StripeWebhookControllerTest {
                 .thenReturn(Event.GSON.fromJson(payload, Event.class));
         Session paid = new Session();
         paid.setPaymentStatus("paid");
-        paid.setMetadata(Map.of("type", "PLATFORM_SUBSCRIPTION", "tenantId", "newlocation", "ownerUsername", "owner", "plan", "Pro"));
+        paid.setMetadata(Map.of("type", "PLATFORM_SUBSCRIPTION", "tenantId", "newlocation", "ownerUsername", "owner", "plan", "RESTAURANT"));
         when(stripeService.retrieveSession("cs_location")).thenReturn(paid);
         org.mockito.Mockito.doThrow(new IllegalStateException("Busy")).doNothing().when(tenantSignupService)
-                .registerAdditionalLocation("newlocation", "owner", "Pro", "checkout:cs_location");
+                .registerAdditionalLocation("newlocation", "owner", "RESTAURANT", "checkout:cs_location");
         mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload))
                 .andExpect(status().isInternalServerError());
         mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload))
                 .andExpect(status().isOk());
         verify(tenantSignupService, org.mockito.Mockito.times(2))
-                .registerAdditionalLocation("newlocation", "owner", "Pro", "checkout:cs_location");
+                .registerAdditionalLocation("newlocation", "owner", "RESTAURANT", "checkout:cs_location");
     }
 
     @Test void unpaidCheckoutDoesNotProvisionAnOwner() throws Exception {
@@ -200,7 +203,30 @@ class StripeWebhookControllerTest {
 
     @Test void delayedPaymentSuccessCanSendTheSetupLink() throws Exception {
         platformEvent("checkout.session.async_payment_succeeded", "paid");
-        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_setup", "fresh", "newowner", "Restaurant Owner", "owner@example.test", "Standard Plan"));
+        verify(ownerSetupService).invite(new OwnerSetupPort.Invitation("cs_setup", "fresh", "newowner", "Restaurant Owner", "owner@example.test", "RESTAURANT"));
     }
 
+
+    @Test void recurringCheckoutWithNoImmediatePaymentSynchronizesSubscriptionInsteadOfProvisioning() throws Exception {
+        String payload = "{\"type\":\"checkout.session.completed\",\"data\":{\"object\":{\"id\":\"subscription-checkout\",\"metadata\":{\"type\":\"PLATFORM_SUBSCRIPTION\"}}}}";
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(Event.GSON.fromJson(payload, Event.class));
+        var session=new Session();session.setMode("subscription");session.setPaymentStatus("no_payment_required");
+        when(stripeService.retrieveSession("subscription-checkout")).thenReturn(session);
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isOk());
+        verify(subscriptions).refreshCheckout("subscription-checkout");
+        verify(ownerSetupService,never()).invite(org.mockito.ArgumentMatchers.any());
+    }
+    @Test void subscriptionUpdatesRefetchCurrentStripeStateAndFailuresAreRetryable() throws Exception {
+        String payload = "{\"type\":\"customer.subscription.deleted\",\"data\":{\"object\":{\"id\":\"sub_example\"}}}";
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(Event.GSON.fromJson(payload, Event.class));
+        org.mockito.Mockito.doThrow(new IllegalStateException("Retry")).when(subscriptions).refreshSubscription("sub_example");
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isInternalServerError());
+        verify(subscriptions).refreshSubscription("sub_example");
+    }
+    @Test void invoiceFailureSynchronizesSubscriptionFromNewInvoiceShape() throws Exception {
+        String payload = "{\"type\":\"invoice.payment_failed\",\"data\":{\"object\":{\"parent\":{\"subscription_details\":{\"subscription\":\"sub_invoice\"}}}}}";
+        when(stripeService.constructEvent(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.nullable(String.class))).thenReturn(Event.GSON.fromJson(payload, Event.class));
+        mockMvc.perform(post("/api/webhooks/stripe").contentType(MediaType.APPLICATION_JSON).content(payload)).andExpect(status().isOk());
+        verify(subscriptions).refreshSubscription("sub_invoice");
+    }
 }

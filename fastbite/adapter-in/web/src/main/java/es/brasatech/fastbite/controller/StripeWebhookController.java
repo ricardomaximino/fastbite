@@ -27,6 +27,7 @@ import java.util.Map;
 public class StripeWebhookController {
 
     private final StripeService stripeService;
+    private final es.brasatech.fastbite.application.tenant.SubscriptionService subscriptions;
     private final TenantSignupService tenantSignupService;
     private final OrderCheckoutService orderCheckoutService;
     private final OwnerSetupService ownerSetupService;
@@ -47,6 +48,20 @@ public class StripeWebhookController {
                 eventType = root.path("type").asText();
             }
             log.info("Processing verified Stripe event type: {}", eventType);
+
+            if (eventType.startsWith("customer.subscription.")) {
+                String id = objectMapper.readTree(payload).path("data").path("object").path("id").asText();
+                if (id.isBlank()) return ResponseEntity.badRequest().body("Missing subscription");
+                subscriptions.refreshSubscription(id);
+                return ResponseEntity.ok("Subscription synchronized");
+            }
+            if ("invoice.paid".equals(eventType) || "invoice.payment_failed".equals(eventType)) {
+                JsonNode invoice = objectMapper.readTree(payload).path("data").path("object");
+                String id = invoice.path("subscription").asText("");
+                if (id.isBlank()) id = invoice.path("parent").path("subscription_details").path("subscription").asText("");
+                if (!id.isBlank()) subscriptions.refreshSubscription(id);
+                return ResponseEntity.ok("Invoice synchronized");
+            }
 
             if ("checkout.session.completed".equals(eventType) || "checkout.session.async_payment_succeeded".equals(eventType)
                    ) {
@@ -117,6 +132,10 @@ public class StripeWebhookController {
                         return ResponseEntity.badRequest().body("Missing checkout session");
                     }
                     Session paid = stripeService.retrieveSession(checkoutSessionId);
+                    if ("subscription".equals(paid.getMode())) {
+                        subscriptions.refreshCheckout(checkoutSessionId);
+                        return ResponseEntity.ok("Subscription checkout synchronized");
+                    }
                     if (!"paid".equals(paid.getPaymentStatus())) {
                         return ResponseEntity.ok("Awaiting payment");
                     }
@@ -126,7 +145,7 @@ public class StripeWebhookController {
                     }
                     String paidTenant = paidMetadata.getOrDefault("tenantId", "");
                     String ownerUsername = paidMetadata.getOrDefault("ownerUsername", "");
-                    String plan = paidMetadata.getOrDefault("plan", "Standard Plan");
+                    String plan = "RESTAURANT"; // Legacy one-time payments get a transition trial, never recurring paid status.
                     if (!ownerUsername.isBlank()) {
                         tenantSignupService.registerAdditionalLocation(paidTenant, ownerUsername, plan,
                                 "checkout:" + checkoutSessionId);

@@ -43,7 +43,8 @@ public class OwnerSetupJdbcAdapter implements OwnerSetupPort {
             createUser(connection, "public", userId, invitation);
             createUser(connection, schema, userId, invitation);
             update(connection, "INSERT INTO public.tenant_locations (id, owner_username, tenant_id, plan) VALUES (?, ?, ?, ?)",
-                    UUID.randomUUID().toString(), invitation.username(), invitation.tenantId(), invitation.plan());
+                    UUID.randomUUID().toString(), invitation.username(), invitation.tenantId(), "RESTAURANT");
+            BillingJdbcAdapter.createTrial(connection, invitation.tenantId());
             update(connection, "INSERT INTO public.owner_setup_tokens (checkout_id, tenant_id, username, email, user_id, token_hash, expires_at, completed) VALUES (?, ?, ?, ?, ?, ?, ?, FALSE)",
                     invitation.checkoutId(), invitation.tenantId(), invitation.username(), invitation.email(), userId, tokenHash, expiresAt.toEpochMilli());
             return true;

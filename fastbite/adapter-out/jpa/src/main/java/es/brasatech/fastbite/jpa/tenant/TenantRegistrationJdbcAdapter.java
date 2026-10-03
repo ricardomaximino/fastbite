@@ -45,7 +45,7 @@ public class TenantRegistrationJdbcAdapter implements TenantRegistrationPort {
                     update(connection, "INSERT INTO " + target + ".user_roles (user_id, role) VALUES (?, ?)", id, role);
                 }
             }
-            insertLocation(connection, tenant, username, "Free Demo");
+            insertLocation(connection, tenant, username, "RESTAURANT");
             return null;
         });
     }
@@ -80,6 +80,7 @@ public class TenantRegistrationJdbcAdapter implements TenantRegistrationPort {
 
     private static void insertLocation(Connection connection, String tenant, String owner, String plan) throws SQLException {
         update(connection, "INSERT INTO public.tenant_locations (id, owner_username, tenant_id, plan) VALUES (?, ?, ?, ?)",
-                UUID.randomUUID().toString(), owner, tenant, plan);
+                UUID.randomUUID().toString(), owner, tenant, "RESTAURANT");
+        BillingJdbcAdapter.createTrial(connection, tenant);
     }
 }

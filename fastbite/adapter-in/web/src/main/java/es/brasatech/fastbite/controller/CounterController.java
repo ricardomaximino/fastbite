@@ -56,6 +56,7 @@ public class CounterController {
     }
 
     @ResponseBody
+    @es.brasatech.fastbite.config.RequiresOrderingSubscription
     @PostMapping("/counter/api/order")
     public Map<String, Object> createOrder(
             @RequestBody CounterOrderRequest request,

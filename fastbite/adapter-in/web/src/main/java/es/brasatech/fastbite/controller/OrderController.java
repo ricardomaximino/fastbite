@@ -55,6 +55,7 @@ public class OrderController {
      * to that table orders for it; everyone else orders takeaway, paid online first.
      */
     @ResponseBody
+    @es.brasatech.fastbite.config.RequiresOrderingSubscription
     @PostMapping({"/{tenantId}/api/create-order", "/api/create-order"})
     public Map<String, Object> postOrder(@RequestBody CreateOrderRequest request, Locale locale, HttpSession session) {
         try {

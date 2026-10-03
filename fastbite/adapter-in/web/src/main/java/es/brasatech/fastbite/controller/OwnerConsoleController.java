@@ -44,7 +44,7 @@ public class OwnerConsoleController {
     @PostMapping("/owner/add-location")
     public String addLocation(
             @RequestParam String tenantId,
-            @RequestParam(defaultValue = "Free Demo") String plan,
+            @RequestParam(defaultValue = "RESTAURANT") String plan,
             Principal principal,
             Model model) {
         if (principal == null) {
@@ -52,7 +52,7 @@ public class OwnerConsoleController {
         }
         String ownerUsername = principal.getName();
         try {
-            tenantSignupService.registerAdditionalLocation(tenantId, ownerUsername, plan);
+            tenantSignupService.registerAdditionalLocation(tenantId, ownerUsername, "RESTAURANT");
             return "redirect:/owner/console";
         } catch (Exception e) {
             log.error("Failed to add location: " + tenantId, e);
@@ -75,8 +75,8 @@ public class OwnerConsoleController {
         }
         String ownerUsername = principal.getName();
         if (tenantLocationService.isOwnerOf(ownerUsername, tenantId)) {
-            tenantLocationService.removeLocation(tenantId);
-            log.info("Deleted location mapping for: {} by owner: {}", tenantId, ownerUsername);
+            // Keep the owner-to-location mapping so billing, cancellation and data export stay reachable.
+            return "redirect:/owner/billing/" + tenantId;
         }
         return "redirect:/owner/console";
     }

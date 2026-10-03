@@ -30,7 +30,7 @@ class OwnerSetupIntegrationTest {
         String suffix = UUID.randomUUID().toString().replace("-", "");
         String tenant = "setup" + suffix;
         provisioner.provisionTenant(tenant);
-        return new OwnerSetupPort.Invitation("checkout-" + suffix, tenant, "owner" + suffix, "Owner", "owner@example.test", "Pro");
+        return new OwnerSetupPort.Invitation("checkout-" + suffix, tenant, "owner" + suffix, "Owner", "owner@example.test", "RESTAURANT");
     }
 
     private Object value(String sql) throws Exception {
@@ -69,9 +69,9 @@ class OwnerSetupIntegrationTest {
         assertFalse(setup.isValid(old, Instant.now()));
         assertTrue(setup.isValid(fresh, Instant.now()));
         var other = invitation();
-        var collision = new OwnerSetupPort.Invitation(other.checkoutId(), other.tenantId(), invitation.username(), "Other", "other@example.test", "Pro");
+        var collision = new OwnerSetupPort.Invitation(other.checkoutId(), other.tenantId(), invitation.username(), "Other", "other@example.test", "RESTAURANT");
         assertThrows(IllegalStateException.class, () -> setup.prepare(collision, "collision-token", Instant.now().plusSeconds(60)));
-        var changedEmail = new OwnerSetupPort.Invitation(invitation.checkoutId(), invitation.tenantId(), invitation.username(), "Owner", "attacker@example.test", "Pro");
+        var changedEmail = new OwnerSetupPort.Invitation(invitation.checkoutId(), invitation.tenantId(), invitation.username(), "Owner", "attacker@example.test", "RESTAURANT");
         assertThrows(IllegalStateException.class, () -> setup.prepare(changedEmail, "bad-token", Instant.now().plusSeconds(60)));
     }
 

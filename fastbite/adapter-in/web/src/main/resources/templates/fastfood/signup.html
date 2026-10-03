@@ -1,78 +1,64 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastBite - Create Your Restaurant Account</title>
-    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start your free trial — FastBite</title>
+<link rel="stylesheet" href="/css/platform.css">
 </head>
-
-<body class="login-body">
-    <div class="login-card">
-        <div class="login-logo">
-            <i class="fas fa-store"></i>
-        </div>
-        <h3 class="login-title">Register Restaurant</h3>
-
-        <form th:action="@{/signup}" method="post">
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${error}">An error occurred.</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${success}">Tenant registered successfully.</span>
-                <div class="mt-2" th:if="${subdomainUrl != null}">
-                    <a th:href="${subdomainUrl}" class="btn btn-sm btn-success text-white px-3 py-1 rounded-pill mt-1">Go to Restaurant Dashboard</a>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label text-white small">Restaurant URL Prefix</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-globe text-muted"></i></span>
-                    <input type="text" name="tenantId" class="form-control" placeholder="restaurant-url-prefix" required autofocus pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters allowed">
-                </div>
-                <div class="form-text text-muted-light small text-white-50">Example: myburger (Access via /myburger/menu)</div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label text-white small">Full Name</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-id-card text-muted"></i></span>
-                    <input type="text" name="fullName" class="form-control" placeholder="Owner Name" required>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label text-white small">Admin Username</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-user text-muted"></i></span>
-                    <input type="text" name="username" class="form-control" placeholder="Admin Username" required>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label text-white small">Password</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-lock text-muted"></i></span>
-                    <input type="password" name="password" class="form-control" placeholder="Password" required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-login mt-3">Register & Provision</button>
-
-            <div class="back-link">
-                <a th:href="${tenantId != null ? '/' + tenantId + '/menu' : '/'}" href="/"><i class="fas fa-arrow-left me-1"></i> <span>Back to Main Menu</span></a>
-            </div>
-        </form>
-    </div>
-
-    <script src="/webjars/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<body>
+<header class="site-header">
+<a class="brand" href="/">
+<span class="brand-mark">f.</span>fastbite</a>
+<a class="text-link" href="/login">Already with us? Log in ↗</a>
+</header>
+<main class="wrap form-layout">
+<section>
+<p class="eyebrow">A LITTLE LESS ADMIN STARTS HERE</p>
+<h1>Your restaurant.<br>Your first <em>30 days, free.</em>
+</h1>
+<p>Set up your menu, bring your team together and try your first service. No card required.</p>
+<ul class="feature-list">
+<li>Table, takeaway and counter ordering</li>
+<li>Kitchen display and staff accounts</li>
+<li>€<span th:text="${monthlyPrice}">49</span>/month per location if you choose to continue</li>
+<li>No automatic charge when your trial ends</li>
+</ul>
+<p class="fine" th:if="${param.group != null}">Opening three locations or more? Start here with your first location. Request volume pricing from your owner console before subscribing.</p>
+<a class="text-link" href="/#pricing">Review the plan details ↗</a>
+</section>
+<section class="form-card">
+<div th:if="${error}" class="alert error" role="alert" th:text="${error}">
+</div>
+<div th:if="${success}" class="alert success" role="status">
+<p th:text="${success}">
+</p>
+<a class="button" th:href="${subdomainUrl}">Open your owner console ↗</a>
+</div>
+<form th:if="${success == null}" th:action="@{/signup}" method="post">
+<h2 style="font-size:27px">Let’s make it yours.</h2>
+<div class="field">
+<label for="tenantId">Restaurant web address</label>
+<input id="tenantId" name="tenantId" placeholder="yourcafe" pattern="[a-zA-Z0-9]{1,56}" maxlength="56" required autocomplete="off" aria-describedby="address-help">
+<small id="address-help">Letters and numbers only. Your menu will be at /yourcafe/menu.</small>
+</div>
+<div class="field">
+<label for="fullName">Your name</label>
+<input id="fullName" name="fullName" maxlength="255" autocomplete="name" required>
+</div>
+<div class="field">
+<label for="username">Owner username</label>
+<input id="username" name="username" maxlength="100" pattern="[a-zA-Z0-9_.@-]+" autocomplete="username" required>
+</div>
+<div class="field">
+<label for="password">Password</label>
+<input id="password" name="password" type="password" minlength="10" maxlength="72" autocomplete="new-password" required aria-describedby="password-help">
+<small id="password-help">Use at least 10 characters.</small>
+</div>
+<button class="button" type="submit">Create my free trial ↗</button>
+<p class="form-note">Your 30-day trial starts when your restaurant is created. Activate the €49/month plan when you’re ready; VAT and payment-processing fees are separate.</p>
+</form>
+</section>
+</main>
 </body>
-
 </html>

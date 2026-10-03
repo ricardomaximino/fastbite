@@ -16,7 +16,7 @@ class OwnerSetupServiceTest {
     private final OwnerSetupMailPort mail = mock(OwnerSetupMailPort.class);
     private final TenantLifecyclePort lifecycle = (tenant, operation, owner, state, work) -> work.run();
     private final OwnerSetupService service = new OwnerSetupService(persistence, provisioner, mail, lifecycle, "https://fastbite.example");
-    private final OwnerSetupPort.Invitation invitation = new OwnerSetupPort.Invitation("checkout", "burger", "bob", "Bob", "bob@example.test", "Pro");
+    private final OwnerSetupPort.Invitation invitation = new OwnerSetupPort.Invitation("checkout", "burger", "bob", "Bob", "bob@example.test", "RESTAURANT");
 
     @Test void onlyTheHashIsStoredAndTheEmailUsesTheConfiguredOrigin() {
         when(persistence.prepare(eq(invitation), anyString(), any())).thenReturn(true);
@@ -43,7 +43,7 @@ class OwnerSetupServiceTest {
     }
 
     @Test void invalidEmailAndMalformedTokensDoNotReachPersistence() {
-        assertThrows(IllegalArgumentException.class, () -> service.invite(new OwnerSetupPort.Invitation("checkout", "burger", "bob", "Bob", null, "Pro")));
+        assertThrows(IllegalArgumentException.class, () -> service.invite(new OwnerSetupPort.Invitation("checkout", "burger", "bob", "Bob", null, "RESTAURANT")));
         assertFalse(service.isValid("bad"));
         assertFalse(service.complete(null, "hash"));
         verifyNoInteractions(persistence, mail, provisioner);
@@ -58,7 +58,7 @@ class OwnerSetupServiceTest {
     @Test void reservedAndOverlongSchemaNamesNeverProvision() {
         for (String tenant : new String[]{"owner", "kebab", "default", "a".repeat(57), "bad-name"}) {
             assertThrows(IllegalArgumentException.class, () -> service.invite(
-                    new OwnerSetupPort.Invitation("checkout", tenant, "bob", "Bob", "bob@example.test", "Pro")));
+                    new OwnerSetupPort.Invitation("checkout", tenant, "bob", "Bob", "bob@example.test", "RESTAURANT")));
         }
         verifyNoInteractions(persistence, provisioner, mail);
     }

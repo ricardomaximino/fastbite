@@ -13,6 +13,7 @@ import java.util.Optional;
 public class TenantLocationRepositoryAdapter implements TenantLocationPort {
 
     private final TenantLocationJpaRepository repository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Override
     public List<TenantLocation> findByOwner(String ownerUsername) {
@@ -34,15 +35,18 @@ public class TenantLocationRepositoryAdapter implements TenantLocationPort {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void save(TenantLocation location) {
         TenantLocationEntity entity = repository.findByTenantId(location.tenantId())
                 .orElse(new TenantLocationEntity());
         entity.setOwnerUsername(location.ownerUsername());
         entity.setTenantId(location.tenantId());
-        entity.setPlan(location.plan());
+        entity.setPlan("RESTAURANT");
         entity.setCustomDomain(location.customDomain());
         entity.setStripeAccountId(location.stripeAccountId());
-        repository.save(entity);
+        repository.saveAndFlush(entity);
+        jdbc.update("INSERT INTO public.tenant_billing (tenant_id,billing_key) SELECT ?,? WHERE NOT EXISTS (SELECT 1 FROM public.tenant_billing WHERE tenant_id=?)",
+                location.tenantId(), java.util.UUID.randomUUID().toString(), location.tenantId());
     }
 
     @Override
