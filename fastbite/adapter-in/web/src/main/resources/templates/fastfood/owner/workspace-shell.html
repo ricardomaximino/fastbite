@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><body>
+<aside th:fragment="sidebar" class="workspace-sidebar">
+<a class="brand" href="/owner/console"><span class="brand-mark">f.</span>fastbite</a><p class="sidebar-caption">YOUR OWNER WORKSPACE</p>
+<nav aria-label="Workspace">
+<a th:href="@{/owner/console(location=${selected?.tenantId})}" th:classappend="${view=='overview'}?'active'" th:attr="aria-current=${view=='overview'?'page':null}"><span aria-hidden="true">◉</span> Overview</a>
+<a href="/owner/console?view=locations" th:classappend="${view=='locations'}?'active'" th:attr="aria-current=${view=='locations'?'page':null}"><span aria-hidden="true">▦</span> Locations</a>
+<a th:href="@{/owner/console(view='team',location=${selected?.tenantId})}" th:classappend="${view=='team'}?'active'" th:attr="aria-current=${view=='team'?'page':null}"><span aria-hidden="true">♧</span> Team</a>
+<a th:href="@{/owner/console(view='location-settings',location=${selected?.tenantId})}" th:classappend="${view=='location-settings'}?'active'" th:attr="aria-current=${view=='location-settings'?'page':null}"><span aria-hidden="true">⚙</span> Location settings</a>
+<a href="/owner/console?view=settings" th:classappend="${view=='settings'}?'active'" th:attr="aria-current=${view=='settings'?'page':null}"><span aria-hidden="true">◇</span> Account &amp; billing</a>
+</nav><div class="sidebar-footer"><p>A little more flow.<br>More time for your guests.</p><a href="/">Visit FastBite ↗</a></div></aside>
+<header th:fragment="topbar" class="workspace-topbar">
+<form method="get" action="/owner/console" class="location-switcher" th:if="${!#lists.isEmpty(locations)}">
+<input type="hidden" name="view" th:value="${view=='locations'||view=='settings'?'overview':view}">
+<label for="location-switch">Your location</label><div class="switch-row"><select id="location-switch" name="location"><option th:each="loc:${locations}" th:value="${loc.tenantId}" th:selected="${selected?.tenantId==loc.tenantId}" th:text="${loc.tenantId}"></option></select><button class="quiet-button" type="submit">Open</button></div>
+</form><span th:if="${#lists.isEmpty(locations)}">Your business starts here</span>
+<div class="owner-account"><span th:text="${ownerUsername}">Owner</span><form th:action="@{/logout}" method="post"><button class="quiet-button">Sign out</button></form></div>
+</header>
+</body></html>

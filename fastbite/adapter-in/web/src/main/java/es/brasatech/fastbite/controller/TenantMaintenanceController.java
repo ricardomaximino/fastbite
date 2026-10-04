@@ -98,14 +98,14 @@ public class TenantMaintenanceController {
                 java.nio.file.Path rootZip = java.nio.file.Paths.get("d:/git/fastbite/kebab_demo.zip");
                 if (java.nio.file.Files.exists(rootZip)) {
                     try (InputStream fis = java.nio.file.Files.newInputStream(rootZip)) {
-                        tenantBackupRestorePort.importRestore(tenantId, fis);
+                        tenantBackupRestorePort.importDemoTemplate(tenantId, fis);
                     }
                 } else {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND)
                             .body(Map.of("message", "Demo backup package not found on server."));
                 }
             } else {
-                tenantBackupRestorePort.importRestore(tenantId, is);
+                tenantBackupRestorePort.importDemoTemplate(tenantId, is);
             }
             log.info("Demo restore completed successfully for tenant: {}", tenantId);
             return ResponseEntity.ok(Map.of("status", "success", "message", "Restaurant template demo data successfully loaded."));

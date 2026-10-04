@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@ComponentScan(basePackages = {
+@ComponentScan(excludeFilters = @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE, classes = es.brasatech.fastbite.application.tenant.OwnerWorkspaceService.class), basePackages = {
     "es.brasatech.fastbite.jpa.tenant",
     "es.brasatech.fastbite.jpa.user",
     "es.brasatech.fastbite.application.tenant"

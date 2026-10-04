@@ -140,9 +140,24 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
 
     @Override
     public void importRestore(String tenantId, InputStream inputStream) {
+        restoreArchive(tenantId, inputStream, false);
+    }
+
+    @Override
+    public void importDemoTemplate(String tenantId, InputStream inputStream) {
+        restoreArchive(tenantId, inputStream, true);
+    }
+
+    private void restoreArchive(String tenantId, InputStream inputStream, boolean templateOnly) {
         Path destination = tenantMediaPath(tenantId);
         try (BackupMediaReplacement media = new BackupMediaReplacement(destination)) {
             TenantBackupData backupData = readArchive(inputStream, media.stagedMedia());
+            if (templateOnly) {
+                // A public template must never introduce sample credentials or old customer orders.
+                backupData.setUsers(java.util.List.of());
+                backupData.setOrders(java.util.List.of());
+                backupData.setOrderCounter(null);
+            }
             inTenantTransaction(tenantId, false, () -> {
                 cleanDatabase(tenantId);
                 restoreDatabase(tenantId, backupData);
@@ -154,6 +169,15 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
         } catch (Exception e) {
             throw new IllegalStateException("Restore backup failed", e);
         }
+    }
+
+    @Override
+    public es.brasatech.fastbite.application.tenant.TenantBackupRestorePort.BackupPreview previewBackup(String tenantId, InputStream inputStream) {
+        try (BackupMediaReplacement media = new BackupMediaReplacement(tenantMediaPath(tenantId))) {
+            var data = readArchive(inputStream, media.stagedMedia());
+            return new es.brasatech.fastbite.application.tenant.TenantBackupRestorePort.BackupPreview(
+                    data.getProducts()==null?0:data.getProducts().size(), data.getOrders()==null?0:data.getOrders().size(), data.getUsers()==null?0:data.getUsers().size());
+        } catch (Exception e) { throw new IllegalArgumentException("This file is not a supported FastBite backup. Choose an exported ZIP and try again."); }
     }
 
     private void restoreDatabase(String tenantId, TenantBackupData backupData) {
@@ -209,6 +233,8 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                         throw new IllegalArgumentException("Backup staff account conflicts with a protected platform account");
                     }
                 }
+                // Restored accounts belong to the destination restaurant, not the source archive.
+                user.setTenantId(tenantId);
                 replicateAll(List.of(user));
             }
         }

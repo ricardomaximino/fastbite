@@ -7,9 +7,10 @@ Migration sources live in `fastbite/adapter-out/jpa/src/main/resources/db/migrat
 - `restaurant/V1__Restaurant_schema.sql` runs in PUBLIC and each `tenant_*` schema.
 - `platform/V2__Platform_schema.sql` runs only in PUBLIC for sessions, locations, owner invitations and registration state.
 - `platform/V4__Restaurant_subscriptions.sql` adds per-location trials, billing state and volume-quote requests. See [subscription rollout](subscriptions.md) before migrating existing locations.
+- `platform/V5__Owner_onboarding.sql` adds persistent per-location setup progress. See [owner workspace](owner-workspace.md).
 - `V3__LegacyTranslations` is an explicitly registered Java migration. It copies legacy translation rows into their parent records and removes the old translation tables after copying.
 
-Every schema has its own `flyway_schema_history`. PUBLIC has versions 1, 2, 3 and 4; restaurant schemas have 1 and 3. Allocate globally unique version numbers for future changes. Never edit a released migration or its Java helper; add a new version. Flyway checks SQL checksums, and the Java migration declares its checksum explicitly.
+Every schema has its own `flyway_schema_history`. PUBLIC has versions 1, 2, 3, 4 and 5; restaurant schemas have 1 and 3. Allocate globally unique version numbers for future changes. Never edit a released migration or its Java helper; add a new version. Flyway checks SQL checksums, and the Java migration declares its checksum explicitly.
 
 New restaurant registration migrates the new schema before creating its owner. The runtime therefore still needs permission to create schemas and tables for registration. This release separates deployment upgrades from startup, but does not yet separate runtime and provisioning database privileges. Existing `tenant_kebab` schemas are preserved. There is no automatic clean, repair or schema deletion.
 

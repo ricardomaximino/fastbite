@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Restaurant billing — FastBite</title>
 <link rel="stylesheet" href="/css/platform.css">
+<link rel="stylesheet" href="/css/workspace.css">
 </head>
-<body>
-<header class="site-header">
-<a class="brand" href="/">
-<span class="brand-mark">f.</span>fastbite</a>
-<a class="text-link" href="/owner/console">← Your locations</a>
-</header>
-<main class="wrap billing-wrap">
+<body class="workspace"><a class="skip-link" href="#workspace-main">Skip to content</a>
+<aside th:replace="~{fastfood/owner/workspace-shell :: sidebar}"></aside>
+<div class="workspace-content"><header th:replace="~{fastfood/owner/workspace-shell :: topbar}"></header>
+<main class="workspace-main" id="workspace-main">
+<a class="text-link" href="/owner/console?view=settings">← Account &amp; billing</a>
 <p class="eyebrow">YOUR RESTAURANT SUBSCRIPTION</p>
 <h1>Simple, clear billing.</h1>
 <div th:if="${error}" class="alert error" role="alert" th:text="${error}">
@@ -28,12 +27,12 @@
 </div>
 <div>
 <dt>Free trial ends (UTC)</dt>
-<dd th:text="${billing.trialEndsAt()}">
+<dd th:text="${#temporals.format(billing.trialEndsAt(), 'd MMMM yyyy, HH:mm', 'UTC')}">
 </dd>
 </div>
 <div th:if="${billing.periodEnd > 0}">
 <dt>Current subscription period ends (UTC)</dt>
-<dd th:text="${T(java.time.Instant).ofEpochSecond(billing.periodEnd)}">
+<dd th:text="${#temporals.format(T(java.time.Instant).ofEpochSecond(billing.periodEnd), 'd MMMM yyyy, HH:mm', 'UTC')}">
 </dd>
 </div>
 </dl>
@@ -52,7 +51,8 @@
 </div>
 <p class="form-note">Activating a subscription starts paid billing immediately and ends your free trial. Stripe shows your total, applicable taxes and any approved promotion before you confirm. Payment-processing fees for customer orders are separate.</p>
 </section>
-<p class="fine">Subscriptions are billed separately for each location. For 3+ locations, request volume pricing in your owner console before you subscribe.</p>
+<p class="fine">Subscriptions are billed separately for each location. For 3+ locations, request volume pricing in Account &amp; billing before you subscribe.</p>
 </main>
+</div>
 </body>
 </html>

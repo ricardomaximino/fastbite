@@ -10,12 +10,17 @@ import java.security.Principal;
 @Controller
 public class BillingController {
     private final SubscriptionService subscriptions;
-    public BillingController(SubscriptionService subscriptions) { this.subscriptions=subscriptions; }
+    private final es.brasatech.fastbite.application.tenant.TenantLocationService locations;
+    public BillingController(SubscriptionService subscriptions, es.brasatech.fastbite.application.tenant.TenantLocationService locations) { this.subscriptions=subscriptions; this.locations=locations; }
     @GetMapping("/owner/billing/{tenant}")
     public String show(@PathVariable String tenant, Principal owner, Model model) {
         try { model.addAttribute("billing", subscriptions.account(tenant, owner.getName())); }
         catch (IllegalArgumentException e) { throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND); }
         model.addAttribute("billingConfigured", subscriptions.configured());
+        model.addAttribute("ownerUsername", owner.getName());
+        model.addAttribute("locations", locations.getLocationsByOwner(owner.getName()));
+        model.addAttribute("selected", locations.getLocation(tenant).orElseThrow());
+        model.addAttribute("view", "settings");
         return "fastfood/owner/billing";
     }
     @PostMapping("/owner/billing/{tenant}/{action}")
@@ -36,6 +41,6 @@ public class BillingController {
     public String groupQuote(@RequestParam String email, @RequestParam int locations, Principal owner, RedirectAttributes flash) {
         try { subscriptions.requestGroupQuote(owner.getName(), email, locations); flash.addFlashAttribute("notice", "Your group pricing request has been saved. We will use your email to follow up."); }
         catch (IllegalArgumentException e) { flash.addFlashAttribute("error", e.getMessage()); }
-        return "redirect:/owner/console";
+        return "redirect:/owner/console?view=settings";
     }
 }

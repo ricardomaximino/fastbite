@@ -56,6 +56,8 @@ public class OwnerStaffController {
 
         String ownerUsername = principal != null ? principal.getName() : null;
         try {
+            if (password.length() < 10 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+                throw new IllegalArgumentException("Use a password of at least 10 characters and at most 72 UTF-8 bytes.");
             String encodedPassword = passwordEncoder.encode(password);
             List<UserDto> users = ownerStaffService.createStaff(ownerUsername, tenantId, username, fullName, encodedPassword, role);
             model.addAttribute("users", users);

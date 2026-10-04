@@ -30,11 +30,12 @@ public class OwnerStaffService {
 
     public List<UserDto> listStaff(String ownerUsername, String tenantId) {
         checkOwnership(ownerUsername, tenantId);
+        String previousTenant = TenantContext.getCurrentTenant();
         try {
             TenantContext.setCurrentTenant(tenantId);
             return userService.findAll();
         } finally {
-            TenantContext.clear();
+            if (previousTenant == null) TenantContext.clear(); else TenantContext.setCurrentTenant(previousTenant);
         }
     }
 
@@ -43,6 +44,7 @@ public class OwnerStaffService {
         if (role == Role.OWNER) {
             throw new IllegalArgumentException("Owners are platform accounts and can't be added as staff.");
         }
+        String previousTenant = TenantContext.getCurrentTenant();
         try {
             TenantContext.setCurrentTenant(tenantId);
             // Saving upserts by username, so an existing name would overwrite that account.
@@ -62,18 +64,19 @@ public class OwnerStaffService {
             userService.save(newUser);
             return userService.findAll();
         } finally {
-            TenantContext.clear();
+            if (previousTenant == null) TenantContext.clear(); else TenantContext.setCurrentTenant(previousTenant);
         }
     }
 
     public List<UserDto> deleteStaff(String ownerUsername, String tenantId, String userId) {
         checkOwnership(ownerUsername, tenantId);
+        String previousTenant = TenantContext.getCurrentTenant();
         try {
             TenantContext.setCurrentTenant(tenantId);
             userService.delete(userId);
             return userService.findAll();
         } finally {
-            TenantContext.clear();
+            if (previousTenant == null) TenantContext.clear(); else TenantContext.setCurrentTenant(previousTenant);
         }
     }
 }

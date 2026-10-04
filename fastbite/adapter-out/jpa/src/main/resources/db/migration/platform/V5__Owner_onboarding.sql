@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS public.owner_onboarding (
+    tenant_id VARCHAR(255) PRIMARY KEY,
+    started BOOLEAN NOT NULL DEFAULT FALSE,
+    service_reviewed BOOLEAN NOT NULL DEFAULT FALSE,
+    preview_reviewed BOOLEAN NOT NULL DEFAULT FALSE,
+    dismissed BOOLEAN NOT NULL DEFAULT FALSE
+);

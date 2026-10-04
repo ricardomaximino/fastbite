@@ -2,18 +2,13 @@ package es.brasatech.fastbite.controller;
 
 import es.brasatech.fastbite.application.tenant.TenantLocationService;
 import es.brasatech.fastbite.application.tenant.TenantSignupService;
-import es.brasatech.fastbite.domain.tenant.TenantLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,45 +19,23 @@ public class OwnerConsoleController {
     private final TenantSignupService tenantSignupService;
     private final es.brasatech.fastbite.config.TenantRoutingResolver tenantResolver;
 
-    @Value("${fastbite.protocol:http}")
-    private String protocol;
-
-    @GetMapping("/owner/console")
-    public String getOwnerDashboard(Principal principal, Model model) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
-        String ownerUsername = principal.getName();
-        List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
-        
-        model.addAttribute("ownerUsername", ownerUsername);
-        model.addAttribute("locations", locations);
-        model.addAttribute("protocol", protocol);
-        return "fastfood/owner/console";
-    }
-
     @PostMapping("/owner/add-location")
     public String addLocation(
             @RequestParam String tenantId,
             @RequestParam(defaultValue = "RESTAURANT") String plan,
             Principal principal,
-            Model model) {
+            org.springframework.web.servlet.mvc.support.RedirectAttributes model) {
         if (principal == null) {
             return "redirect:/login";
         }
         String ownerUsername = principal.getName();
         try {
             tenantSignupService.registerAdditionalLocation(tenantId, ownerUsername, "RESTAURANT");
-            return "redirect:/owner/console";
+            return "redirect:/owner/console?location=" + tenantId.trim().toLowerCase(java.util.Locale.ROOT);
         } catch (Exception e) {
             log.error("Failed to add location: " + tenantId, e);
-            model.addAttribute("error", e.getMessage());
-            // Reload dashboard attributes for error view
-            List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
-            model.addAttribute("ownerUsername", ownerUsername);
-            model.addAttribute("locations", locations);
-            model.addAttribute("protocol", protocol);
-            return "fastfood/owner/console";
+            model.addFlashAttribute("error", e.getMessage());
+            return "redirect:/owner/console?view=locations";
         }
     }
 
@@ -78,7 +51,7 @@ public class OwnerConsoleController {
             // Keep the owner-to-location mapping so billing, cancellation and data export stay reachable.
             return "redirect:/owner/billing/" + tenantId;
         }
-        return "redirect:/owner/console";
+        return "redirect:/owner/console?view=locations";
     }
 
     @PostMapping("/owner/bind-domain")
@@ -86,12 +59,13 @@ public class OwnerConsoleController {
             @RequestParam String tenantId,
             @RequestParam(required = false) String customDomain,
             Principal principal,
-            Model model) {
+            org.springframework.web.servlet.mvc.support.RedirectAttributes model) {
         if (principal == null) {
             return "redirect:/login";
         }
         String ownerUsername = principal.getName();
         try {
+            if (!tenantLocationService.isOwnerOf(ownerUsername, tenantId)) throw new IllegalArgumentException("You do not own this location.");
             // Evict old cache key
             tenantLocationService.getLocation(tenantId).ifPresent(loc -> {
                 if (loc.customDomain() != null) {
@@ -107,15 +81,11 @@ public class OwnerConsoleController {
                 tenantResolver.evictCache(customDomain);
             }
             
-            return "redirect:/owner/console";
+            return "redirect:/owner/console?view=location-settings&section=domain&location=" + tenantId;
         } catch (Exception e) {
             log.error("Failed to bind custom domain: " + customDomain, e);
-            model.addAttribute("error", e.getMessage());
-            List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
-            model.addAttribute("ownerUsername", ownerUsername);
-            model.addAttribute("locations", locations);
-            model.addAttribute("protocol", protocol);
-            return "fastfood/owner/console";
+            model.addFlashAttribute("error", e.getMessage());
+            return "redirect:/owner/console?view=locations";
         }
     }
 
@@ -124,22 +94,18 @@ public class OwnerConsoleController {
             @RequestParam String tenantId,
             @RequestParam(required = false) String stripeAccountId,
             Principal principal,
-            Model model) {
+            org.springframework.web.servlet.mvc.support.RedirectAttributes model) {
         if (principal == null) {
             return "redirect:/login";
         }
         String ownerUsername = principal.getName();
         try {
             tenantLocationService.updateStripeAccountId(ownerUsername, tenantId, stripeAccountId);
-            return "redirect:/owner/console";
+            return "redirect:/owner/console?view=location-settings&section=payments&location=" + tenantId;
         } catch (Exception e) {
             log.error("Failed to update Stripe account ID for location: " + tenantId, e);
-            model.addAttribute("error", e.getMessage());
-            List<TenantLocation> locations = tenantLocationService.getLocationsByOwner(ownerUsername);
-            model.addAttribute("ownerUsername", ownerUsername);
-            model.addAttribute("locations", locations);
-            model.addAttribute("protocol", protocol);
-            return "fastfood/owner/console";
+            model.addFlashAttribute("error", e.getMessage());
+            return "redirect:/owner/console?view=locations";
         }
     }
 }
