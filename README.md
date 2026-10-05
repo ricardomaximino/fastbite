@@ -22,7 +22,7 @@ Before setting up and running FastBite locally, ensure your development environm
 
 *   **Java 25**: FastBite uses modern Java 25 features. A GraalVM JDK 25 (e.g., GraalVM Community Edition) is highly recommended, especially if you plan to compile native images.
 *   **Maven 3.9+**: For dependency management and builds.
-*   **Docker & Docker Compose**: Needed to run external services like PostgreSQL/pgvector and RabbitMQ.
+*   **Docker & Docker Compose**: Docker Desktop with Linux containers builds and runs the native application, PostgreSQL and Mailpit. The Docker workflow does not require Java or Maven on the host.
 
 ---
 
@@ -60,18 +60,20 @@ For production mail and owner invitation configuration, see [Owner account setup
 
 ---
 
-## 🐳 Running External Services with Docker Compose
+## 🐳 Native application with Docker Compose
 
-FastBite uses `docker-compose.yml` to define and launch companion services.
+See [Native Docker build on Windows](docs/docker-native.md) for prerequisites, port overrides and troubleshooting. Docker Desktop must use Linux containers; no host GraalVM installation is required.
 
 ### Start External Services
-To start PostgreSQL (with pgvector support) and RabbitMQ in the background, run:
+Build the native application, then start it with PostgreSQL and Mailpit:
 ```bash
+docker compose build fastbite
 docker compose up -d
 ```
 
-*   **RabbitMQ**: Accessible at `localhost:5672`. The management console runs at `http://localhost:15672` (default credentials: `guest`/`guest`).
-*   **PostgreSQL**: Accessible at `localhost:5432` (database: `fast_bite`).
+*   **FastBite**: http://localhost:8080
+*   **Mailpit inbox**: http://localhost:8025
+*   **PostgreSQL**: Accessible at `localhost:5433` (local database/user/password: `brasatech`).
 
 ### Stopping Services
 To stop and remove containers, run:
@@ -89,20 +91,21 @@ To compile the application to a standalone native binary, use the `native` Maven
 
 ```bash
 # Clean and compile the application to native binary
+mvn -DskipTests -pl webapplication -am install
 mvn native:compile -pl webapplication -Pnative -DskipTests=true
 ```
 
 This compiles a native executable in the target directory of the `webapplication` module:
-*   **Windows**: `webapplication/target/fastbite.exe`
-*   **Linux/macOS**: `webapplication/target/fastbite`
+*   **Windows**: `webapplication/target/webapplication.exe`
+*   **Linux/macOS**: `webapplication/target/webapplication`
 
 Run the compiled native binary directly:
 ```bash
 # Windows
-.\webapplication\target\fastbite.exe --spring.profiles.active=jpa
+.\webapplication\target\webapplication.exe --spring.profiles.active=jpa
 
 # Linux / macOS
-./webapplication/target/fastbite --spring.profiles.active=jpa
+./webapplication/target/webapplication --spring.profiles.active=jpa
 ```
 
 ---
@@ -133,7 +136,8 @@ Run all the steps before run the native pipeline
 
 ```bash
 # Run all unit and integration tests
-mvn clean install && cd webapplication && mvn -Pnative native:compile -Dspring-boot.run.profiles=jpa -DskipTests=true && cd .. && docker build -f docker/Dockerfile --tag ricardomaximino/fastbite-native . && docker push ricardomaximino/fastbite-native:latest
+mvn clean install
+docker compose build fastbite
 ```
 
 ## Restaurant subscriptions

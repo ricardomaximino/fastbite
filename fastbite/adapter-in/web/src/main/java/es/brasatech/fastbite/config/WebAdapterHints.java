@@ -31,7 +31,9 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.reflection().registerType(es.brasatech.fastbite.application.tenant.TenantBackupRestorePort.BackupPreview.class, org.springframework.aot.hint.MemberCategory.values());
         hints.reflection().registerType(es.brasatech.fastbite.domain.tenant.BillingAccount.class, MemberCategory.values());
         hints.reflection().registerType(es.brasatech.fastbite.domain.tenant.SubscriptionPlan.class, MemberCategory.values());
-        hints.resources().registerPattern("db/migration/*/*.sql");
+        // Include directory entries too, so native resource discovery can traverse each location.
+        hints.resources().registerPattern("db/migration/restaurant/**");
+        hints.resources().registerPattern("db/migration/platform/**");
         hints.resources().registerPattern("static/**");
         hints.resources().registerPattern("templates/**");
         hints.resources().registerPattern("schema.sql");

@@ -1,43 +1,61 @@
+# Local development stack. Production should run the migration job separately.
+x-database: &database
+  DB_URL: jdbc:postgresql://postgres:5432/brasatech
+  DB_USER: brasatech
+  DB_PASSWORD: brasatech
+  DB_DRIVER: org.postgresql.Driver
+  HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
 services:
-
-  vectorDB:
-    image: 'pgvector/pgvector:pg16'
-    restart: unless-stopped
-    container_name: vectorDB
+  postgres:
+    image: postgres:17
     environment:
-      POSTGRES_DB: fast_bite
-      POSTGRES_USER: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    labels:
-      - "org.springframework.boot.service-connection=postgres"
+      POSTGRES_DB: brasatech
+      POSTGRES_USER: brasatech
+      POSTGRES_PASSWORD: brasatech
     ports:
-      - "5432:5432"
+      - "${FASTBITE_DB_PORT:-5433}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brasatech -d brasatech"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+  # Catches local outgoing email at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:latest
     ports:
-      - "5672:5672"       # RabbitMQ messaging port
-      - "15672:15672"     # RabbitMQ management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      - "${FASTBITE_SMTP_PORT:-1025}:1025"
+      - "${FASTBITE_MAIL_UI_PORT:-8025}:8025"
 
   fastbite:
-    image: ricardomaximino/fastbite-non-native:latest
-    container_name: fastbite
-    ports:
-      - "8081:8080"
-    depends_on:
-      - rabbitmq
-
-  fastbite-native:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-Multi-Stage
     image: ricardomaximino/fastbite-native:latest
-    container_name: fastbite-native
     ports:
-      - "8082:8080"
+      - "${FASTBITE_PORT:-8080}:8080"
+    environment:
+      <<: *database
+      SPRING_PROFILES_ACTIVE: jpa
+      MIGRATION_MODE: migrate
+      H2_CONSOLE_ENABLED: "false"
+      IMAGE_UPLOAD_DIR: /storage/images
+      FASTBITE_PUBLIC_URL: http://localhost:${FASTBITE_PORT:-18080}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_AUTH: "false"
+      SMTP_STARTTLS: "false"
+    volumes:
+      - fastbite-storage:/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
 
 volumes:
-  postgres_data:
+  postgres-data:
+  fastbite-storage:

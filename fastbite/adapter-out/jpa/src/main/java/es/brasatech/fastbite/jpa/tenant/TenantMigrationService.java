@@ -46,7 +46,10 @@ public class TenantMigrationService {
                 ? new String[]{"classpath:db/migration/restaurant", "classpath:db/migration/platform"}
                 : new String[]{"classpath:db/migration/restaurant"};
         return Flyway.configure().dataSource(dataSource).defaultSchema(schema).schemas(schema)
-                .locations(locations).javaMigrations(new V3__LegacyTranslations())
+                .locations(locations).resourceProvider(new MigrationResourceProvider(locations))
+                // Java migrations are registered explicitly; avoid Flyway's native-incompatible scanner.
+                .javaMigrationClassProvider(java.util.List::of)
+                .javaMigrations(new V3__LegacyTranslations())
                 .baselineOnMigrate(adoptExisting).baselineVersion("0")
                 .cleanDisabled(true).failOnMissingLocations(true)
                 .ignoreMigrationPatterns(new String[0]).load();

@@ -1,0 +1,13 @@
+# Keep host build outputs, local databases and credentials out of Linux builds.
+.git
+.idea
+.vscode
+**/target
+**/data
+**/uploads
+**/logs
+.env
+.env.*
+*.log
+*.pem
+*.key
