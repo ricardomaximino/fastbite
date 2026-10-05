@@ -9,11 +9,13 @@ docker compose up -d
 
 Maven and GraalVM run inside the build container, so no Java, Maven or native compiler is needed on Windows. The result is a Linux native executable in a non-root runtime image. The first build downloads dependencies and native compilation can take several minutes and substantial memory. Subsequent builds reuse a Maven cache. Tests are skipped during image builds; run the test suite separately before release.
 
-- FastBite: http://localhost:18080
+- FastBite: http://localhost:8080
 - Mailpit inbox: http://localhost:8025 (SMTP on localhost:1025)
 - PostgreSQL: localhost:5433 (local database/user/password: `brasatech`)
 
 Compose configures database and SMTP connections, waits for PostgreSQL to be healthy and applies migrations automatically. PostgreSQL data persists in `postgres-data`; uploaded files persist in `fastbite-storage`. Register an owner and use the console onboarding to load a demo template; this stack does not seed demo accounts.
+
+Choose an available restaurant address such as `kebabcafe`. `kebab` remains reserved for legacy demo routing even without seeded data; it cannot be registered as a new tenant.
 
 If other applications use these ports, override them before starting:
 

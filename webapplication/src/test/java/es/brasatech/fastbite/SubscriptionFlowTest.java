@@ -8,10 +8,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import java.net.*;
-import java.net.http.*;
+
+import java.net.CookieManager;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties={
@@ -33,6 +39,14 @@ class SubscriptionFlowTest {
         var owner=client();
         var home=get(owner,"/");assertEquals(200,home.statusCode());assertTrue(home.body().contains("hospitality."));assertTrue(home.body().contains(">49</span>"));
         var signup=get(owner,"/signup");
+        var rejected=post(owner,"/signup","tenantId=kebab&username=billingflowowner&fullName=Test+Owner&password=local-test-password&_csrf="+csrf(signup.body()));
+        assertEquals(200,rejected.statusCode());
+        assertTrue(rejected.body().contains("is reserved"));
+        assertTrue(rejected.body().contains("value=\"kebab\""));
+        assertTrue(rejected.body().contains("value=\"billingflowowner\""));
+        assertTrue(rejected.body().contains("value=\"Test Owner\""));
+        assertFalse(rejected.body().contains("local-test-password"));
+        assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM public.tenant_locations WHERE tenant_id='kebab'",Integer.class));
         var created=post(owner,"/signup","tenantId=BillingCafe&username=billingflowowner&fullName=Test+Owner&password=local-test-password&_csrf="+csrf(signup.body()));
         assertEquals(200,created.statusCode());assertTrue(created.body().contains("successfully registered"));assertTrue(created.body().contains("/billingcafe/login"));
         var started=jdbc.queryForObject("SELECT trial_started_at FROM public.tenant_billing WHERE tenant_id='billingcafe'",java.sql.Timestamp.class);

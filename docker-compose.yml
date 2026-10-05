@@ -43,7 +43,7 @@ services:
       MIGRATION_MODE: migrate
       H2_CONSOLE_ENABLED: "false"
       IMAGE_UPLOAD_DIR: /storage/images
-      FASTBITE_PUBLIC_URL: http://localhost:${FASTBITE_PORT:-18080}
+      FASTBITE_PUBLIC_URL: http://localhost:${FASTBITE_PORT:-8080}
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
       SMTP_AUTH: "false"

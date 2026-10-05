@@ -39,16 +39,16 @@
 <h2 style="font-size:27px">Let’s make it yours.</h2>
 <div class="field">
 <label for="tenantId">Restaurant web address</label>
-<input id="tenantId" name="tenantId" placeholder="yourcafe" pattern="[a-zA-Z0-9]{1,56}" maxlength="56" required autocomplete="off" aria-describedby="address-help">
-<small id="address-help">Letters and numbers only. Your menu will be at /yourcafe/menu.</small>
+<input id="tenantId" name="tenantId" th:value="${tenantId}" placeholder="yourcafe" pattern="[a-zA-Z0-9]{1,56}" maxlength="56" required autocomplete="off" aria-describedby="address-help">
+<small id="address-help">Letters and numbers only. Your menu will be at /yourcafe/menu. System addresses, including kebab (the legacy demo), are reserved.</small>
 </div>
 <div class="field">
 <label for="fullName">Your name</label>
-<input id="fullName" name="fullName" maxlength="255" autocomplete="name" required>
+<input id="fullName" name="fullName" th:value="${fullName}" maxlength="255" autocomplete="name" required>
 </div>
 <div class="field">
 <label for="username">Owner username</label>
-<input id="username" name="username" maxlength="100" pattern="[a-zA-Z0-9_.@-]+" autocomplete="username" required>
+<input id="username" name="username" th:value="${username}" maxlength="100" pattern="[a-zA-Z0-9_.@\-]+" autocomplete="username" required>
 </div>
 <div class="field">
 <label for="password">Password</label>

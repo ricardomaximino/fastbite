@@ -31,6 +31,9 @@ public class SignupController {
             @RequestParam String fullName,
             jakarta.servlet.http.HttpServletRequest request,
             Model model) {
+        model.addAttribute("tenantId", tenantId);
+        model.addAttribute("username", username);
+        model.addAttribute("fullName", fullName);
         try {
             if (password.length() < 10 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
                 throw new IllegalArgumentException("Use a password of at least 10 characters and at most 72 UTF-8 bytes.");
