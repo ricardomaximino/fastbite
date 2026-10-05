@@ -53,13 +53,11 @@ public class DemoDataInitializer implements CommandLineRunner {
             if (count == 0 || !Files.exists(tenantComboPath)) {
                 log.info("Provisioning demo data template for tenant: {} (count={}, media_exists={})", 
                          tenantId, count, Files.exists(tenantComboPath));
-                try (InputStream is = getClass().getResourceAsStream("/kebab_demo.zip")) {
-                    if (is != null) {
-                        tenantBackupRestorePort.importRestore(tenantId, is);
-                        log.info("Successfully loaded default demo template for tenant: {}", tenantId);
-                    } else {
-                        log.warn("kebab_demo.zip template not found in classpath during startup initialization.");
-                    }
+                try {
+                    tenantBackupRestorePort.importDemoTemplate(tenantId, "kebab");
+                    log.info("Successfully loaded default demo template for tenant: {}", tenantId);
+                } catch (Exception e) {
+                    log.warn("Default demo template 'kebab' could not be loaded at startup: {}", e.getMessage());
                 }
             } else {
                 log.info("Demo data already loaded for tenant: {}", tenantId);

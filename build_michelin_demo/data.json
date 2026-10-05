@@ -1,0 +1,1110 @@
+{
+  "formatVersion": 1,
+  "groups": [
+    {
+      "id": "grp-michelin-experience",
+      "name": "Tasting Experiences",
+      "description": "Curated culinary journeys celebrating terroir, technique and sensory emotion.",
+      "icon": "⭐",
+      "products": [
+        "prod-michelin-menu-degustacion"
+      ]
+    },
+    {
+      "id": "grp-michelin-starters",
+      "name": "Amuse-Bouche & Starters",
+      "description": "Delicate ocean gems and tartares to open the senses.",
+      "icon": "🥢",
+      "products": [
+        "prod-michelin-tartar-atun",
+        "prod-michelin-carpaccio-wagyu",
+        "prod-michelin-vieira-braseada"
+      ]
+    },
+    {
+      "id": "grp-michelin-mains",
+      "name": "Haute Cuisine Mains (Sea & Land)",
+      "description": "Wild charcoal-grilled catches and long-matured heritage meats.",
+      "icon": "🥩",
+      "products": [
+        "prod-michelin-lubina-salvaje",
+        "prod-michelin-bogavante-azul",
+        "prod-michelin-solomillo-rubia",
+        "prod-michelin-pichon-bresse"
+      ]
+    },
+    {
+      "id": "grp-michelin-desserts",
+      "name": "Haute Pastry & Desserts",
+      "description": "Visual sculptures in chocolate and vibrant Mediterranean citrus.",
+      "icon": "🍨",
+      "products": [
+        "prod-michelin-esfera-chocolate",
+        "prod-michelin-texturas-citricas"
+      ]
+    },
+    {
+      "id": "grp-michelin-cellar",
+      "name": "Sommelier Cellar & Signatures",
+      "description": "World-class champagnes, Grand Cru wines and artisanal cocktails.",
+      "icon": "🍾",
+      "products": [
+        "prod-michelin-champagne-cup",
+        "prod-michelin-coctel-ahumado"
+      ]
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-michelin-tartar-atun",
+      "name": "Balfegó Bluefin Tuna Tartare & Oscietra Caviar",
+      "price": 32.0,
+      "description": "Wild Mediterranean bluefin tuna, yuzu kosho emulsion, Oscietra caviar and crispy nori coral.",
+      "image": "media/michelin/tartar-atun.webp",
+      "customizations": [
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-carpaccio-wagyu",
+      "name": "A5 Wagyu Kagoshima Carpaccio with Melanosporum Truffle",
+      "price": 36.0,
+      "description": "Delicate slices of A5 Wagyu, 36-month aged Parmigiano Reggiano crisps and winter black truffle.",
+      "image": "media/michelin/carpaccio-wagyu.webp",
+      "customizations": [
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-vieira-braseada",
+      "name": "Pan-Seared King Scallop & Cauliflower Silk",
+      "price": 28.0,
+      "description": "Caramelized King Scallop, velvety truffled cauliflower purée and Iberian acorn-fed ham crunch.",
+      "image": "media/michelin/vieira-braseada.webp",
+      "customizations": [
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-lubina-salvaje",
+      "name": "Wild Atlantic Sea Bass with Marine Plankton Emulsion",
+      "price": 42.0,
+      "description": "Line-caught sea bass roasted on charcoal, seaweed reduction, marine plankton froth and glasswort.",
+      "image": "media/michelin/lubina-salvaje.webp",
+      "customizations": [
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-bogavante-azul",
+      "name": "Roasted European Blue Lobster with Coral Bisque",
+      "price": 54.0,
+      "description": "Brittany blue lobster roasted in brown butter noisette, saffron lobster bisque and tender sea succulents.",
+      "image": "media/michelin/bogavante-azul.webp",
+      "customizations": [
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-solomillo-rubia",
+      "name": "Aged Rubia Gallega Beef Tenderloin & Robuchon Purée",
+      "price": 48.0,
+      "description": "60-day dry-aged Galician beef tenderloin, silky Robuchon potato purée, glazed shallots and Priorat wine jus.",
+      "image": "media/michelin/solomillo-rubia-gallega.webp",
+      "customizations": [
+        "cust-michelin-doneness",
+        "cust-michelin-luxury-extras"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-pichon-bresse",
+      "name": "Bresse Pigeon in Two Textures with Sour Cherries",
+      "price": 44.0,
+      "description": "Roasted supreme, confit leg, spiced sweet cherry reduction and pan-roasted escalope of duck foie gras.",
+      "image": "media/michelin/pichon-bresse.webp",
+      "customizations": [
+        "cust-michelin-doneness"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-menu-degustacion",
+      "name": "Signature 8-Course Michelin Tasting Experience",
+      "price": 145.0,
+      "description": "Complete gastronomic journey designed by the executive chef. Includes bread service, amuse-bouches, and petit fours.",
+      "image": "media/michelin/menu-degustacion.webp",
+      "customizations": [
+        "cust-michelin-pairing"
+      ],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-esfera-chocolate",
+      "name": "Valrhona Grand Cru Golden Chocolate Sphere",
+      "price": 20.0,
+      "description": "Guanaja 70% chocolate dome, molten passion fruit and mango core, hazelnut praline and warm chocolate ganache.",
+      "image": "media/michelin/esfera-chocolate.webp",
+      "customizations": [],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-texturas-citricas",
+      "name": "Mediterranean Citrus Textures with Basil Sorbet",
+      "price": 18.0,
+      "description": "Yuzu cloud, candied blood orange, calamansi gelée, and garden basil sorbet.",
+      "image": "media/michelin/texturas-citricas.webp",
+      "customizations": [],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-coctel-ahumado",
+      "name": "Smoked Truffle Old Fashioned",
+      "price": 22.0,
+      "description": "Aged Japanese whisky, black winter truffle essence, Angostura bitters and charred orange peel smoke.",
+      "image": "media/michelin/coctel-ahumado.webp",
+      "customizations": [],
+      "active": true
+    },
+    {
+      "id": "prod-michelin-champagne-cup",
+      "name": "Champagne Dom Pérignon Vintage Brut (Glass)",
+      "price": 38.0,
+      "description": "Iconic vintage champagne served in crystal flute. Fine bubbles, toasted brioche and white peach notes.",
+      "image": "media/michelin/champagne-domperignon.webp",
+      "customizations": [],
+      "active": true
+    }
+  ],
+  "customizations": [
+    {
+      "id": "cust-michelin-doneness",
+      "name": "Meat Doneness",
+      "type": "radio",
+      "usageCount": 0,
+      "options": [
+        {
+          "id": "opt-done-rare",
+          "name": "Rare (Poco Hecho)",
+          "price": 0.0,
+          "defaultValue": 0,
+          "optionIndex": 0,
+          "selectedByDefault": false
+        },
+        {
+          "id": "opt-done-medium-rare",
+          "name": "Medium Rare (Al Punto)",
+          "price": 0.0,
+          "defaultValue": 1,
+          "optionIndex": 1,
+          "selectedByDefault": true
+        },
+        {
+          "id": "opt-done-medium-well",
+          "name": "Medium Well (Hecho)",
+          "price": 0.0,
+          "defaultValue": 0,
+          "optionIndex": 2,
+          "selectedByDefault": false
+        }
+      ]
+    },
+    {
+      "id": "cust-michelin-luxury-extras",
+      "name": "Luxury Additions",
+      "type": "checkbox",
+      "usageCount": 0,
+      "options": [
+        {
+          "id": "opt-extra-caviar",
+          "name": "Oscietra Royal Caviar (10g)",
+          "price": 18.0,
+          "defaultValue": 0,
+          "optionIndex": 0,
+          "selectedByDefault": false
+        },
+        {
+          "id": "opt-extra-truffle",
+          "name": "Fresh Melanosporum Black Truffle Shavings",
+          "price": 14.0,
+          "defaultValue": 0,
+          "optionIndex": 1,
+          "selectedByDefault": false
+        },
+        {
+          "id": "opt-extra-foie",
+          "name": "Pan-seared Duck Foie Gras Escalope",
+          "price": 12.0,
+          "defaultValue": 0,
+          "optionIndex": 2,
+          "selectedByDefault": false
+        }
+      ]
+    },
+    {
+      "id": "cust-michelin-pairing",
+      "name": "Harmonized Wine Pairing",
+      "type": "radio",
+      "usageCount": 0,
+      "options": [
+        {
+          "id": "opt-pairing-none",
+          "name": "Without Wine Pairing",
+          "price": 0.0,
+          "defaultValue": 1,
+          "optionIndex": 0,
+          "selectedByDefault": true
+        },
+        {
+          "id": "opt-pairing-national",
+          "name": "Spanish Terroirs & Jewels Pairing",
+          "price": 65.0,
+          "defaultValue": 0,
+          "optionIndex": 1,
+          "selectedByDefault": false
+        },
+        {
+          "id": "opt-pairing-prestige",
+          "name": "Prestige International Grand Cru Pairing",
+          "price": 115.0,
+          "defaultValue": 0,
+          "optionIndex": 2,
+          "selectedByDefault": false
+        }
+      ]
+    }
+  ],
+  "customizationOptions": [
+    {
+      "id": "opt-done-rare",
+      "customization": {
+        "id": "cust-michelin-doneness",
+        "name": "Meat Doneness",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Rare (Poco Hecho)",
+      "price": 0.0,
+      "defaultValue": 0,
+      "optionIndex": 0,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-done-medium-rare",
+      "customization": {
+        "id": "cust-michelin-doneness",
+        "name": "Meat Doneness",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Medium Rare (Al Punto)",
+      "price": 0.0,
+      "defaultValue": 1,
+      "optionIndex": 1,
+      "selectedByDefault": true
+    },
+    {
+      "id": "opt-done-medium-well",
+      "customization": {
+        "id": "cust-michelin-doneness",
+        "name": "Meat Doneness",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Medium Well (Hecho)",
+      "price": 0.0,
+      "defaultValue": 0,
+      "optionIndex": 2,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-extra-caviar",
+      "customization": {
+        "id": "cust-michelin-luxury-extras",
+        "name": "Luxury Additions",
+        "type": "checkbox",
+        "usageCount": 0
+      },
+      "name": "Oscietra Royal Caviar (10g)",
+      "price": 18.0,
+      "defaultValue": 0,
+      "optionIndex": 0,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-extra-truffle",
+      "customization": {
+        "id": "cust-michelin-luxury-extras",
+        "name": "Luxury Additions",
+        "type": "checkbox",
+        "usageCount": 0
+      },
+      "name": "Fresh Melanosporum Black Truffle Shavings",
+      "price": 14.0,
+      "defaultValue": 0,
+      "optionIndex": 1,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-extra-foie",
+      "customization": {
+        "id": "cust-michelin-luxury-extras",
+        "name": "Luxury Additions",
+        "type": "checkbox",
+        "usageCount": 0
+      },
+      "name": "Pan-seared Duck Foie Gras Escalope",
+      "price": 12.0,
+      "defaultValue": 0,
+      "optionIndex": 2,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-pairing-none",
+      "customization": {
+        "id": "cust-michelin-pairing",
+        "name": "Harmonized Wine Pairing",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Without Wine Pairing",
+      "price": 0.0,
+      "defaultValue": 1,
+      "optionIndex": 0,
+      "selectedByDefault": true
+    },
+    {
+      "id": "opt-pairing-national",
+      "customization": {
+        "id": "cust-michelin-pairing",
+        "name": "Harmonized Wine Pairing",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Spanish Terroirs & Jewels Pairing",
+      "price": 65.0,
+      "defaultValue": 0,
+      "optionIndex": 1,
+      "selectedByDefault": false
+    },
+    {
+      "id": "opt-pairing-prestige",
+      "customization": {
+        "id": "cust-michelin-pairing",
+        "name": "Harmonized Wine Pairing",
+        "type": "radio",
+        "usageCount": 0
+      },
+      "name": "Prestige International Grand Cru Pairing",
+      "price": 115.0,
+      "defaultValue": 0,
+      "optionIndex": 2,
+      "selectedByDefault": false
+    }
+  ],
+  "tables": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Table 1 (Main Hall)",
+      "seats": 2,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Table 2 (Main Hall)",
+      "seats": 4,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "name": "Table 3 (Main Hall)",
+      "seats": 4,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "name": "Table 4 (Garden View)",
+      "seats": 2,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "name": "Chef's Table (Kitchen Pass)",
+      "seats": 6,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "name": "Private VIP Salon",
+      "seats": 8,
+      "status": "AVAILABLE",
+      "active": true,
+      "orderIds": []
+    }
+  ],
+  "discountRules": [],
+  "orders": [],
+  "users": [],
+  "paymentConfigs": [
+    {
+      "id": "default",
+      "activeModes": [
+        "CASH",
+        "CARD"
+      ],
+      "moneyDenominations": [
+        {
+          "value": 500.0,
+          "image": "/images/euro_50.png",
+          "type": "BANKNOTE"
+        },
+        {
+          "value": 200.0,
+          "image": "/images/euro_50.png",
+          "type": "BANKNOTE"
+        },
+        {
+          "value": 100.0,
+          "image": "/images/euro_50.png",
+          "type": "BANKNOTE"
+        },
+        {
+          "value": 50.0,
+          "image": "/images/euro_50.png",
+          "type": "BANKNOTE"
+        },
+        {
+          "value": 20.0,
+          "image": "/images/euro_20.png",
+          "type": "BANKNOTE"
+        },
+        {
+          "value": 10.0,
+          "image": "/images/euro_10.png",
+          "type": "BANKNOTE"
+        }
+      ],
+      "active": true
+    }
+  ],
+  "groupTranslations": [
+    {
+      "id": "gt-grp-michelin-experience-es",
+      "group": {
+        "id": "grp-michelin-experience"
+      },
+      "language": "es",
+      "name": "Menú Degustación Signature",
+      "description": "Recorridos gastronómicos completos que celebran la técnica, el producto y la emoción."
+    },
+    {
+      "id": "gt-grp-michelin-experience-pt",
+      "group": {
+        "id": "grp-michelin-experience"
+      },
+      "language": "pt",
+      "name": "Menus de Degustação",
+      "description": "Percursos gastronómicos completos que celebram o produto e a alta técnica culinária."
+    },
+    {
+      "id": "gt-grp-michelin-starters-es",
+      "group": {
+        "id": "grp-michelin-starters"
+      },
+      "language": "es",
+      "name": "Entrantes & Aperitivos de Autor",
+      "description": "Delicadas piezas de mar, carpaccios y tartares para abrir el apetito con excelencia."
+    },
+    {
+      "id": "gt-grp-michelin-starters-pt",
+      "group": {
+        "id": "grp-michelin-starters"
+      },
+      "language": "pt",
+      "name": "Entradas & Aperitivos de Autor",
+      "description": "Delicadezas do mar, carpaccios e tártaros para abrir os sentidos."
+    },
+    {
+      "id": "gt-grp-michelin-mains-es",
+      "group": {
+        "id": "grp-michelin-mains"
+      },
+      "language": "es",
+      "name": "Platos Principales (Mar & Tierra)",
+      "description": "Pescados salvajes a la brasa, mariscos nobles y cortes de carnes maduradas excepcionales."
+    },
+    {
+      "id": "gt-grp-michelin-mains-pt",
+      "group": {
+        "id": "grp-michelin-mains"
+      },
+      "language": "pt",
+      "name": "Pratos Principais (Mar & Terra)",
+      "description": "Peixes nobres da costa, lavagante azul e carnes maturadas de raça autóctone."
+    },
+    {
+      "id": "gt-grp-michelin-desserts-es",
+      "group": {
+        "id": "grp-michelin-desserts"
+      },
+      "language": "es",
+      "name": "Alta Repostería & Postres",
+      "description": "Esculturas en chocolate Grand Cru y composiciones cítricas refrescantes."
+    },
+    {
+      "id": "gt-grp-michelin-desserts-pt",
+      "group": {
+        "id": "grp-michelin-desserts"
+      },
+      "language": "pt",
+      "name": "Alta Pastelaria & Sobremesas",
+      "description": "Esculturas em chocolate Grand Cru e composições cítricas requintadas."
+    },
+    {
+      "id": "gt-grp-michelin-cellar-es",
+      "group": {
+        "id": "grp-michelin-cellar"
+      },
+      "language": "es",
+      "name": "Bodega del Sommelier & Coctelería",
+      "description": "Champagnes emblemáticos por copa, grandes reservas y coctelería de autor ahumada."
+    },
+    {
+      "id": "gt-grp-michelin-cellar-pt",
+      "group": {
+        "id": "grp-michelin-cellar"
+      },
+      "language": "pt",
+      "name": "Garrafeira do Sommelier & Cocktails",
+      "description": "Champagnes de prestígio em taça, vinhos premiados e cocktails de autor."
+    }
+  ],
+  "productTranslations": [
+    {
+      "id": "pt-prod-michelin-tartar-atun-es",
+      "product": {
+        "id": "prod-michelin-tartar-atun"
+      },
+      "language": "es",
+      "name": "Tartar de Atún Rojo Balfegó & Caviar Oscietra",
+      "description": "Atún rojo Balfegó salvaje, emulsión de yuzu kosho, caviar imperial Oscietra y coral crujiente de alga nori."
+    },
+    {
+      "id": "pt-prod-michelin-tartar-atun-pt",
+      "product": {
+        "id": "prod-michelin-tartar-atun"
+      },
+      "language": "pt",
+      "name": "Tártaro de Atum Rabilho Balfegó & Caviar Oscietra",
+      "description": "Atum rabilho selvagem, emulsão de yuzu kosho, caviar imperial Oscietra e crocante de nori."
+    },
+    {
+      "id": "pt-prod-michelin-carpaccio-wagyu-es",
+      "product": {
+        "id": "prod-michelin-carpaccio-wagyu"
+      },
+      "language": "es",
+      "name": "Carpaccio de Wagyu A5 Kagoshima & Trufa Negra",
+      "description": "Finas láminas de Wagyu A5 de Kagoshima, crujientes de Parmesano 36 meses y trufa negra melanosporum."
+    },
+    {
+      "id": "pt-prod-michelin-carpaccio-wagyu-pt",
+      "product": {
+        "id": "prod-michelin-carpaccio-wagyu"
+      },
+      "language": "pt",
+      "name": "Carpaccio de Wagyu A5 Kagoshima & Trufa Negra",
+      "description": "Finas fatias de Wagyu A5 de Kagoshima, crocante de Parmesão 36 meses e trufa negra de inverno."
+    },
+    {
+      "id": "pt-prod-michelin-vieira-braseada-es",
+      "product": {
+        "id": "prod-michelin-vieira-braseada"
+      },
+      "language": "es",
+      "name": "Vieira Braseada sobre Seda de Coliflor Trufada",
+      "description": "Vieira de concha caramelizada, puré sedoso de coliflor a la trufa y velo crujiente de jamón ibérico de bellota."
+    },
+    {
+      "id": "pt-prod-michelin-vieira-braseada-pt",
+      "product": {
+        "id": "prod-michelin-vieira-braseada"
+      },
+      "language": "pt",
+      "name": "Vieira Braseada com Creme Suave de Couve-Flor Trufada",
+      "description": "Vieira caramelizada, puré aveludado de couve-flor trufada e estaladiço de presunto ibérico de bolota."
+    },
+    {
+      "id": "pt-prod-michelin-lubina-salvaje-es",
+      "product": {
+        "id": "prod-michelin-lubina-salvaje"
+      },
+      "language": "es",
+      "name": "Lubina Salvaje a la Brasa con Emulsión de Plancton Marino",
+      "description": "Lubina de anzuelo asada a la brasa de encina, fondo marino de algas, emulsión de fitoplancton y salicornia fresca."
+    },
+    {
+      "id": "pt-prod-michelin-lubina-salvaje-pt",
+      "product": {
+        "id": "prod-michelin-lubina-salvaje"
+      },
+      "language": "pt",
+      "name": "Robalo Selvagem na Brasa com Emulsão de Plâncton Marinho",
+      "description": "Robalo de linha grelhado na brasa, caldo rico de algas marinhas, emulsão de plâncton e salicórnia."
+    },
+    {
+      "id": "pt-prod-michelin-bogavante-azul-es",
+      "product": {
+        "id": "prod-michelin-bogavante-azul"
+      },
+      "language": "es",
+      "name": "Bogavante Azul Asado con Bisque de sus Corales",
+      "description": "Bogavante azul asado a la mantequilla noisette, bisque concentrado de sus propios corales al azafrán."
+    },
+    {
+      "id": "pt-prod-michelin-bogavante-azul-pt",
+      "product": {
+        "id": "prod-michelin-bogavante-azul"
+      },
+      "language": "pt",
+      "name": "Lavagante Azul Assado com Bisque dos Seus Corais",
+      "description": "Lavagante azul assado com manteiga noisette, bisque perfumado de açafrão e suculentas marinhas."
+    },
+    {
+      "id": "pt-prod-michelin-solomillo-rubia-es",
+      "product": {
+        "id": "prod-michelin-solomillo-rubia"
+      },
+      "language": "es",
+      "name": "Solomillo de Vaca Rubia Gallega Madurada (60 Días)",
+      "description": "Solomillo de rubia gallega madurada a la brasa, puré de patata estilo Robuchon, chalotas glaseadas y reducción de vino Priorat."
+    },
+    {
+      "id": "pt-prod-michelin-solomillo-rubia-pt",
+      "product": {
+        "id": "prod-michelin-solomillo-rubia"
+      },
+      "language": "pt",
+      "name": "Lombo de Vaca Rubia Galega Maturada (60 Dias)",
+      "description": "Lombo de vaca rubia galega grelhado na brasa, puré cremoso Robuchon, chalotas caramelizadas e redução de vinho Priorat."
+    },
+    {
+      "id": "pt-prod-michelin-pichon-bresse-es",
+      "product": {
+        "id": "prod-michelin-pichon-bresse"
+      },
+      "language": "es",
+      "name": "Pichón de Bresse en Dos Cocciones & Cerezas al Oporto",
+      "description": "Suprema asada sangrante, muslito confitado, reducción especiada de cerezas al oporto y medallón de foie gras."
+    },
+    {
+      "id": "pt-prod-michelin-pichon-bresse-pt",
+      "product": {
+        "id": "prod-michelin-pichon-bresse"
+      },
+      "language": "pt",
+      "name": "Pombo de Bresse em Duas Cozeduras & Cerejas ao Vinho do Porto",
+      "description": "Suprema mal passada, coxa confitada, redução aromática de cerejas ao vinho do Porto e medalhão de foie gras."
+    },
+    {
+      "id": "pt-prod-michelin-menu-degustacion-es",
+      "product": {
+        "id": "prod-michelin-menu-degustacion"
+      },
+      "language": "es",
+      "name": "Menú Degustación Signature (8 Pases)",
+      "description": "Experiencia gastronómica integral diseñada por el chef. Incluye servicio de panes artesanos, aperitivos de bienvenida y mignardises."
+    },
+    {
+      "id": "pt-prod-michelin-menu-degustacion-pt",
+      "product": {
+        "id": "prod-michelin-menu-degustacion"
+      },
+      "language": "pt",
+      "name": "Menu Degustação Signature (8 Pratos)",
+      "description": "Experiência gastronómica completa criada pelo chef. Inclui serviço de pães artesanais, boas-vindas e petit fours."
+    },
+    {
+      "id": "pt-prod-michelin-esfera-chocolate-es",
+      "product": {
+        "id": "prod-michelin-esfera-chocolate"
+      },
+      "language": "es",
+      "name": "Esfera Dorada de Chocolate Valrhona Grand Cru",
+      "description": "Cúpula crujiente de chocolate Guanaja 70% con polvo de oro, núcleo fundente de maracuyá y praliné tostado de avellanas."
+    },
+    {
+      "id": "pt-prod-michelin-esfera-chocolate-pt",
+      "product": {
+        "id": "prod-michelin-esfera-chocolate"
+      },
+      "language": "pt",
+      "name": "Esfera Dourada de Chocolate Valrhona Grand Cru",
+      "description": "Cúpula de chocolate Guanaja 70% com detalhes dourados, recheio líquido de maracujá e praliné de avelãs."
+    },
+    {
+      "id": "pt-prod-michelin-texturas-citricas-es",
+      "product": {
+        "id": "prod-michelin-texturas-citricas"
+      },
+      "language": "es",
+      "name": "Texturas de Cítricos Mediterráneos con Sorbete de Albahaca",
+      "description": "Nube de yuzu, naranja sanguina confitada, gelée de calamansí y sorbete artesanal de albahaca fresca del huerto."
+    },
+    {
+      "id": "pt-prod-michelin-texturas-citricas-pt",
+      "product": {
+        "id": "prod-michelin-texturas-citricas"
+      },
+      "language": "pt",
+      "name": "Texturas de Cítricos Mediterrânicos com Sorvete de Manjericão",
+      "description": "Nuvem de yuzu, laranja sanguínea cristalizada, gelée de calamansi e sorvete fresco de manjericão."
+    },
+    {
+      "id": "pt-prod-michelin-coctel-ahumado-es",
+      "product": {
+        "id": "prod-michelin-coctel-ahumado"
+      },
+      "language": "es",
+      "name": "Old Fashioned Ahumado a la Trufa Negra",
+      "description": "Whisky japonés reserva, infusión de trufa negra melanosporum, bíter aromático y humo de piel de naranja quemada."
+    },
+    {
+      "id": "pt-prod-michelin-coctel-ahumado-pt",
+      "product": {
+        "id": "prod-michelin-coctel-ahumado"
+      },
+      "language": "pt",
+      "name": "Old Fashioned Fumado com Trufa Negra",
+      "description": "Whisky japonês envelhecido, infusão de trufa negra, bitters e fumo aromático de casca de laranja tostada."
+    },
+    {
+      "id": "pt-prod-michelin-champagne-cup-es",
+      "product": {
+        "id": "prod-michelin-champagne-cup"
+      },
+      "language": "es",
+      "name": "Copa de Champagne Dom Pérignon Vintage Brut",
+      "description": "Copa del emblemático champagne millésimé en copa de cristal fino. Burbuja delicada, brioche tostado y notas minerales."
+    },
+    {
+      "id": "pt-prod-michelin-champagne-cup-pt",
+      "product": {
+        "id": "prod-michelin-champagne-cup"
+      },
+      "language": "pt",
+      "name": "Taça de Champagne Dom Pérignon Vintage Brut",
+      "description": "Taça de prestígio do clássico millésimé em cristal fino. Bolha delicada, notas minerais e brioche tostado."
+    }
+  ],
+  "customizationTranslations": [
+    {
+      "id": "ct-cust-michelin-doneness-es",
+      "customization": {
+        "id": "cust-michelin-doneness"
+      },
+      "language": "es",
+      "name": "Punto de Cocción"
+    },
+    {
+      "id": "ct-cust-michelin-doneness-pt",
+      "customization": {
+        "id": "cust-michelin-doneness"
+      },
+      "language": "pt",
+      "name": "Ponto da Carne"
+    },
+    {
+      "id": "ct-cust-michelin-luxury-extras-es",
+      "customization": {
+        "id": "cust-michelin-luxury-extras"
+      },
+      "language": "es",
+      "name": "Suplementos de Alta Gastronomía"
+    },
+    {
+      "id": "ct-cust-michelin-luxury-extras-pt",
+      "customization": {
+        "id": "cust-michelin-luxury-extras"
+      },
+      "language": "pt",
+      "name": "Suplementos de Alta Gastronomia"
+    },
+    {
+      "id": "ct-cust-michelin-pairing-es",
+      "customization": {
+        "id": "cust-michelin-pairing"
+      },
+      "language": "es",
+      "name": "Armonía de Vinos"
+    },
+    {
+      "id": "ct-cust-michelin-pairing-pt",
+      "customization": {
+        "id": "cust-michelin-pairing"
+      },
+      "language": "pt",
+      "name": "Harmonização de Vinhos"
+    }
+  ],
+  "customizationOptionTranslations": [
+    {
+      "id": "cot-opt-done-rare-es",
+      "customizationOption": {
+        "id": "opt-done-rare"
+      },
+      "language": "es",
+      "name": "Poco hecho (Sangrante)"
+    },
+    {
+      "id": "cot-opt-done-rare-pt",
+      "customizationOption": {
+        "id": "opt-done-rare"
+      },
+      "language": "pt",
+      "name": "Mal passado"
+    },
+    {
+      "id": "cot-opt-done-medium-rare-es",
+      "customizationOption": {
+        "id": "opt-done-medium-rare"
+      },
+      "language": "es",
+      "name": "Al punto (Recomendado del chef)"
+    },
+    {
+      "id": "cot-opt-done-medium-rare-pt",
+      "customizationOption": {
+        "id": "opt-done-medium-rare"
+      },
+      "language": "pt",
+      "name": "Ao ponto (Recomendado do chef)"
+    },
+    {
+      "id": "cot-opt-done-medium-well-es",
+      "customizationOption": {
+        "id": "opt-done-medium-well"
+      },
+      "language": "es",
+      "name": "Hecho"
+    },
+    {
+      "id": "cot-opt-done-medium-well-pt",
+      "customizationOption": {
+        "id": "opt-done-medium-well"
+      },
+      "language": "pt",
+      "name": "Bem passado"
+    },
+    {
+      "id": "cot-opt-extra-caviar-es",
+      "customizationOption": {
+        "id": "opt-extra-caviar"
+      },
+      "language": "es",
+      "name": "Caviar Imperial Oscietra (10g)"
+    },
+    {
+      "id": "cot-opt-extra-caviar-pt",
+      "customizationOption": {
+        "id": "opt-extra-caviar"
+      },
+      "language": "pt",
+      "name": "Caviar Imperial Oscietra (10g)"
+    },
+    {
+      "id": "cot-opt-extra-truffle-es",
+      "customizationOption": {
+        "id": "opt-extra-truffle"
+      },
+      "language": "es",
+      "name": "Láminas de trufa negra fresca"
+    },
+    {
+      "id": "cot-opt-extra-truffle-pt",
+      "customizationOption": {
+        "id": "opt-extra-truffle"
+      },
+      "language": "pt",
+      "name": "Lâminas de trufa negra fresca"
+    },
+    {
+      "id": "cot-opt-extra-foie-es",
+      "customizationOption": {
+        "id": "opt-extra-foie"
+      },
+      "language": "es",
+      "name": "Escalope de Foie Gras a la plancha"
+    },
+    {
+      "id": "cot-opt-extra-foie-pt",
+      "customizationOption": {
+        "id": "opt-extra-foie"
+      },
+      "language": "pt",
+      "name": "Escalope de Foie Gras grelhado"
+    },
+    {
+      "id": "cot-opt-pairing-none-es",
+      "customizationOption": {
+        "id": "opt-pairing-none"
+      },
+      "language": "es",
+      "name": "Sin maridaje de vinos"
+    },
+    {
+      "id": "cot-opt-pairing-none-pt",
+      "customizationOption": {
+        "id": "opt-pairing-none"
+      },
+      "language": "pt",
+      "name": "Sem harmonização de vinhos"
+    },
+    {
+      "id": "cot-opt-pairing-national-es",
+      "customizationOption": {
+        "id": "opt-pairing-national"
+      },
+      "language": "es",
+      "name": "Maridaje Grandes Pagos de España"
+    },
+    {
+      "id": "cot-opt-pairing-national-pt",
+      "customizationOption": {
+        "id": "opt-pairing-national"
+      },
+      "language": "pt",
+      "name": "Harmonização Grandes Vinhos de Espanha"
+    },
+    {
+      "id": "cot-opt-pairing-prestige-es",
+      "customizationOption": {
+        "id": "opt-pairing-prestige"
+      },
+      "language": "es",
+      "name": "Maridaje Prestige Grand Cru Internacional"
+    },
+    {
+      "id": "cot-opt-pairing-prestige-pt",
+      "customizationOption": {
+        "id": "opt-pairing-prestige"
+      },
+      "language": "pt",
+      "name": "Harmonização Prestige Grand Cru Internacional"
+    }
+  ],
+  "discountRuleTranslations": [],
+  "tableTranslations": [
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000001-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000001"
+      },
+      "language": "es",
+      "name": "Mesa 1 (Salón Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000001-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000001"
+      },
+      "language": "pt",
+      "name": "Mesa 1 (Salão Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000002-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000002"
+      },
+      "language": "es",
+      "name": "Mesa 2 (Salón Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000002-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000002"
+      },
+      "language": "pt",
+      "name": "Mesa 2 (Salão Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000003-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000003"
+      },
+      "language": "es",
+      "name": "Mesa 3 (Salón Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000003-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000003"
+      },
+      "language": "pt",
+      "name": "Mesa 3 (Salão Principal)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000004-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000004"
+      },
+      "language": "es",
+      "name": "Mesa 4 (Vistas al Jardín)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000004-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000004"
+      },
+      "language": "pt",
+      "name": "Mesa 4 (Vista Jardim)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000005-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000005"
+      },
+      "language": "es",
+      "name": "Mesa del Chef (Pase de Cocina)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000005-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000005"
+      },
+      "language": "pt",
+      "name": "Mesa do Chef (Vista de Cozinha)"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000006-es",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000006"
+      },
+      "language": "es",
+      "name": "Reservado VIP"
+    },
+    {
+      "id": "tt-00000000-0000-0000-0000-000000000006-pt",
+      "table": {
+        "id": "00000000-0000-0000-0000-000000000006"
+      },
+      "language": "pt",
+      "name": "Sala Privada VIP"
+    }
+  ]
+}

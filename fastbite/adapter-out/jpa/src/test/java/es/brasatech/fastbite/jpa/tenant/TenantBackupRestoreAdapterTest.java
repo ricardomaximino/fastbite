@@ -126,4 +126,71 @@ class TenantBackupRestoreAdapterTest {
             return null;
         });
     }
+
+    @Test
+    void testAvailableTemplatesTrilingual() {
+        var enTemplates = backupRestoreAdapter.getAvailableTemplates(java.util.Locale.ENGLISH);
+        assertTrue(enTemplates.size() >= 2);
+        var cafeEn = enTemplates.stream().filter(t -> t.id().equals("cafe")).findFirst().orElseThrow();
+        assertEquals("Specialty Café & Bakery", cafeEn.name());
+
+        var esTemplates = backupRestoreAdapter.getAvailableTemplates(java.util.Locale.forLanguageTag("es"));
+        var cafeEs = esTemplates.stream().filter(t -> t.id().equals("cafe")).findFirst().orElseThrow();
+        assertEquals("Cafetería de Especialidad & Bakery", cafeEs.name());
+
+        var ptTemplates = backupRestoreAdapter.getAvailableTemplates(java.util.Locale.forLanguageTag("pt"));
+        var cafePt = ptTemplates.stream().filter(t -> t.id().equals("cafe")).findFirst().orElseThrow();
+        assertEquals("Cafetaria de Especialidade & Padaria", cafePt.name());
+    }
+
+    @Test
+    void testImportCafeDemoTemplate() {
+        String testTenant = "cafedemotenant";
+        tenantProvisionerAdapter.provisionTenant(testTenant);
+        TenantContext.setCurrentTenant(testTenant);
+
+        backupRestoreAdapter.importDemoTemplate(testTenant, "cafe");
+
+        TenantContext.setCurrentTenant(testTenant);
+        transactionTemplate.execute(status -> {
+            var products = productRepository.findAll();
+            assertTrue(products.size() >= 15);
+            boolean hasBombon = products.stream().anyMatch(p -> p.getName().toLowerCase().contains("bombón") || p.getName().toLowerCase().contains("bombon"));
+            assertTrue(hasBombon, "Should contain Café Bombón");
+
+            var groups = groupRepository.findAll();
+            assertTrue(groups.size() >= 5);
+
+            var customs = customizationRepository.findAll();
+            assertTrue(customs.size() >= 3);
+            return null;
+        });
+    }
+
+    @Test
+    void testImportMichelinDemoTemplate() {
+        String testTenant = "michelintenant";
+        tenantProvisionerAdapter.provisionTenant(testTenant);
+        TenantContext.setCurrentTenant(testTenant);
+
+        backupRestoreAdapter.importDemoTemplate(testTenant, "michelin");
+
+        TenantContext.setCurrentTenant(testTenant);
+        transactionTemplate.execute(status -> {
+            var products = productRepository.findAll();
+            assertTrue(products.size() >= 12);
+            boolean hasWagyu = products.stream().anyMatch(p -> p.getName().toLowerCase().contains("wagyu"));
+            assertTrue(hasWagyu, "Should contain A5 Wagyu Carpaccio");
+
+            boolean hasLobster = products.stream().anyMatch(p -> p.getName().toLowerCase().contains("lobster") || p.getName().toLowerCase().contains("bogavante"));
+            assertTrue(hasLobster, "Should contain Blue Lobster");
+
+            var groups = groupRepository.findAll();
+            assertEquals(5, groups.size());
+
+            var customs = customizationRepository.findAll();
+            assertTrue(customs.size() >= 3);
+            return null;
+        });
+    }
 }

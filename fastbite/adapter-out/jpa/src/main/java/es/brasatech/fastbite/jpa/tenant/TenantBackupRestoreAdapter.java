@@ -76,6 +76,7 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
     private final OrderJpaRepository orderJpaRepository;
     private final UserJpaRepository userJpaRepository;
     private final PaymentConfigJpaRepository paymentConfigJpaRepository;
+    private final DynamicDemoTemplateRegistry dynamicDemoTemplateRegistry;
 
     @Override
     public void exportBackup(String tenantId, OutputStream outputStream) {
@@ -135,6 +136,23 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
         } catch (Exception e) {
             log.error("Failed to export backup for tenant: " + tenantId, e);
             throw new RuntimeException("Export backup failed", e);
+        }
+    }
+
+    @Override
+    public List<DemoTemplateDescriptor> getAvailableTemplates(java.util.Locale locale) {
+        return dynamicDemoTemplateRegistry.discoverTemplates(locale);
+    }
+
+    @Override
+    public void importDemoTemplate(String tenantId, String templateId) {
+        String effectiveId = (templateId == null || templateId.isBlank()) ? "kebab" : templateId.trim();
+        java.io.InputStream is = dynamicDemoTemplateRegistry.openTemplateStream(effectiveId)
+                .orElseThrow(() -> new IllegalArgumentException("Requested demo template '" + effectiveId + "' not found."));
+        try (is) {
+            importDemoTemplate(tenantId, is);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Failed to read template: " + effectiveId, e);
         }
     }
 

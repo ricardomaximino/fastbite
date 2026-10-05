@@ -22,7 +22,8 @@ public class OwnerWorkspaceController {
     }
     @GetMapping("/owner/console")
     public String show(Principal owner,Model model,@RequestParam(defaultValue="overview") String view,
-            @RequestParam(required=false) String location,@RequestParam(defaultValue="general") String section) {
+            @RequestParam(required=false) String location,@RequestParam(defaultValue="general") String section,
+            Locale locale) {
         if(owner==null) return "redirect:/login";
         if(!Set.of("overview","locations","team","location-settings","settings").contains(view)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         if(!Set.of("general","payments","domain","backup","advanced").contains(section)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -30,6 +31,7 @@ public class OwnerWorkspaceController {
         var selected=location==null?(list.isEmpty()?null:list.getFirst()):list.stream().filter(l->l.tenantId().equals(location)).findFirst().orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("ownerUsername",owner.getName());model.addAttribute("locations",list);
         model.addAttribute("selected",selected);model.addAttribute("view",view);model.addAttribute("section",section);
+        model.addAttribute("demoTemplates",backups.getAvailableTemplates(locale!=null?locale:Locale.getDefault()));
         if(selected!=null) {
             model.addAttribute("setup",workspace.summary(owner.getName(),selected.tenantId()));
             model.addAttribute("billing",subscriptions.account(selected.tenantId(),owner.getName()));

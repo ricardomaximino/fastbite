@@ -88,27 +88,29 @@ public class TenantMaintenanceController {
         }
     }
 
+    @GetMapping("/templates")
+    @ResponseBody
+    public ResponseEntity<java.util.List<TenantBackupRestorePort.DemoTemplateDescriptor>> getDemoTemplates(
+            @PathVariable String tenantId,
+            java.util.Locale locale) {
+        return ResponseEntity.ok(tenantBackupRestorePort.getAvailableTemplates(locale));
+    }
+
     @PostMapping("/restore-demo")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> restoreDemo(@PathVariable String tenantId) {
-        log.info("Requested restore from built-in demo package for tenant: {}", tenantId);
-        try (InputStream is = getClass().getResourceAsStream("/kebab_demo.zip")) {
-            if (is == null) {
-                log.warn("Built-in kebab_demo.zip not found in classpath. Attempting project root fallback.");
-                java.nio.file.Path rootZip = java.nio.file.Paths.get("d:/git/fastbite/kebab_demo.zip");
-                if (java.nio.file.Files.exists(rootZip)) {
-                    try (InputStream fis = java.nio.file.Files.newInputStream(rootZip)) {
-                        tenantBackupRestorePort.importDemoTemplate(tenantId, fis);
-                    }
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(Map.of("message", "Demo backup package not found on server."));
-                }
-            } else {
-                tenantBackupRestorePort.importDemoTemplate(tenantId, is);
-            }
-            log.info("Demo restore completed successfully for tenant: {}", tenantId);
+    public ResponseEntity<Map<String, String>> restoreDemo(
+            @PathVariable String tenantId,
+            @RequestParam(value = "template", required = false) String template) {
+        String templateName = (template != null && !template.isBlank()) ? template : "kebab";
+        log.info("Requested restore from demo package '{}' for tenant: {}", templateName, tenantId);
+        try {
+            tenantBackupRestorePort.importDemoTemplate(tenantId, templateName);
+            log.info("Demo restore completed successfully for tenant: {} using template: {}", tenantId, templateName);
             return ResponseEntity.ok(Map.of("status", "success", "message", "Restaurant template demo data successfully loaded."));
+        } catch (IllegalArgumentException e) {
+            log.warn("Demo template not found for tenant: {}: {}", tenantId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Failed to restore demo for tenant: " + tenantId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

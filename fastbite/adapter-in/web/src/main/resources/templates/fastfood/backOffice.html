@@ -481,11 +481,22 @@
                             </div>
                             <div class="card-body">
                                 <p class="text-muted mb-3">
-                                    Quickly load the standard FastBite Kebab and Hamburgers template catalog, customization parameters, categories, discounts, and custom images to demonstrate storefront functionality.
+                                    Quickly load a sample restaurant template catalog, customization parameters, categories, discounts, and custom images to demonstrate storefront functionality.
                                 </p>
-                                <button class="btn btn-info text-white" onclick="triggerRestoreDemo()" id="restoreDemoBtn">
-                                    <i class="fas fa-play me-2"></i> Populate with Kebab Demo Data
-                                </button>
+                                <div class="row align-items-end g-3 mb-2">
+                                    <div class="col-md-6 col-lg-5">
+                                        <label for="demoTemplateSelect" class="form-label font-weight-bold">Select Demo Template:</label>
+                                        <select class="form-select" id="demoTemplateSelect">
+                                            <option value="kebab">Loading available templates...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 col-lg-7">
+                                        <button class="btn btn-info text-white" onclick="triggerRestoreDemo()" id="restoreDemoBtn">
+                                            <i class="fas fa-play me-2"></i> Load Selected Demo Data
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="demoTemplateDescription" class="small text-muted fst-italic"></div>
                             </div>
                         </div>
 

@@ -58,6 +58,7 @@ function loadI18n() {
 document.addEventListener('DOMContentLoaded', function () {
     loadI18n();
     loadData();
+    loadDemoTemplates();
 
     // Setup form handlers
     document.getElementById('groupFormElement').addEventListener('submit', handleGroupSubmit);
@@ -1532,8 +1533,39 @@ async function triggerRestoreBackup(event) {
     }
 }
 
+async function loadDemoTemplates() {
+    const select = document.getElementById('demoTemplateSelect');
+    const desc = document.getElementById('demoTemplateDescription');
+    if (!select) return;
+    try {
+        const response = await fetch(getTenantPrefix() + '/api/backoffice/maintenance/templates');
+        if (response.ok) {
+            const templates = await response.json();
+            select.innerHTML = '';
+            templates.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.icon ? t.icon + ' ' : ''}${t.name} (${t.productsCount} items)`;
+                opt.dataset.desc = t.description || '';
+                select.appendChild(opt);
+            });
+            const updateDesc = () => {
+                const selectedOpt = select.options[select.selectedIndex];
+                if (desc) desc.textContent = selectedOpt ? (selectedOpt.dataset.desc || '') : '';
+            };
+            select.onchange = updateDesc;
+            updateDesc();
+        }
+    } catch (e) {
+        console.error('Failed to load demo templates', e);
+    }
+}
+
 async function triggerRestoreDemo() {
-    if (confirm('Are you sure you want to load the demo template? This will overwrite all current configurations, categories, products, customizations, dining tables, and discounts.')) {
+    const select = document.getElementById('demoTemplateSelect');
+    const templateId = select ? select.value : 'kebab';
+    const templateName = select && select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : 'demo';
+    if (confirm(`Are you sure you want to load the ${templateName} template? This will overwrite all current configurations, categories, products, customizations, dining tables, and discounts.`)) {
         const submitBtn = document.getElementById('restoreDemoBtn');
         const originalBtnHtml = submitBtn.innerHTML;
         submitBtn.disabled = true;
@@ -1541,7 +1573,7 @@ async function triggerRestoreDemo() {
 
         try {
             const tenantPrefix = getTenantPrefix();
-            const response = await fetch(tenantPrefix + '/api/backoffice/maintenance/restore-demo', {
+            const response = await fetch(tenantPrefix + '/api/backoffice/maintenance/restore-demo?template=' + encodeURIComponent(templateId), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': getCsrfToken()
