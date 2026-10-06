@@ -26,6 +26,8 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+        hints.reflection().registerType(ThemeCatalog.Theme.class, MemberCategory.values());
+        hints.resources().registerPattern("themes/**");
         hints.reflection().registerType(es.brasatech.fastbite.domain.tenant.SetupProgress.class, org.springframework.aot.hint.MemberCategory.values());
         hints.reflection().registerType(es.brasatech.fastbite.application.tenant.OwnerWorkspaceService.Summary.class, org.springframework.aot.hint.MemberCategory.values());
         hints.reflection().registerType(es.brasatech.fastbite.application.tenant.TenantBackupRestorePort.BackupPreview.class, org.springframework.aot.hint.MemberCategory.values());
@@ -38,8 +40,10 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.resources().registerPattern("static/**");
         hints.resources().registerPattern("templates/**");
         hints.resources().registerPattern("schema.sql");
-        hints.resources().registerPattern("kebab_demo.zip");
-        hints.resources().registerPattern("cafe_demo.zip");
+        hints.resources().registerPattern("*_demo.zip");
+        hints.resources().registerPattern("demo-templates.list");
+        hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.DynamicDemoTemplateRegistry$TemplateManifest"), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.DynamicDemoTemplateRegistry$TemplateManifest$LocalizedText"), MemberCategory.values());
         hints.resources().registerPattern("*.zip");
         hints.resources().registerResourceBundle("i18n/messages");
 

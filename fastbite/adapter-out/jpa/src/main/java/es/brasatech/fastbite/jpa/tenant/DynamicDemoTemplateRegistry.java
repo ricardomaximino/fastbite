@@ -95,7 +95,11 @@ public class DynamicDemoTemplateRegistry {
         }
 
         // 2. Scan classpath archives (e.g. /cafe_demo.zip, /kebab_demo.zip, or classpath*:*.zip)
-        List<String> builtInNames = List.of("cafe_demo.zip", "kebab_demo.zip");
+        List<String> builtInNames;
+        try (var index=getClass().getResourceAsStream("/demo-templates.list")) {
+            builtInNames=index==null?List.of():new java.io.BufferedReader(new java.io.InputStreamReader(index,java.nio.charset.StandardCharsets.UTF_8))
+                    .lines().map(String::trim).filter(name->name.matches("[a-zA-Z0-9_-]+\\.zip")).toList();
+        } catch(IOException e) { throw new java.io.UncheckedIOException(e); }
         for (String builtIn : builtInNames) {
             String fallbackId = builtIn.replace("_demo.zip", "").replace(".zip", "");
             if (discovered.containsKey(fallbackId)) {

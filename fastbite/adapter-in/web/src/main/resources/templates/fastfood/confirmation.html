@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<html th:attr="data-theme=${locationTheme != null ? locationTheme.id : 'fastfood'}" lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
 
-<head>
+<head><link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{page.title}">FastBite - Order Online</title>
@@ -9,7 +9,7 @@
     <link href="/webjars/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 
-</head>
+<link th:if="${locationTheme != null}" rel="stylesheet" th:href="${locationTheme.stylesheet()}"></head>
 
 <body>
     <!-- Navigation -->
@@ -100,9 +100,7 @@
         </div>
     </div>
     <script>
-        // Restore theme preference
-        const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+
 
         // Live Order Progress Tracker JS (F-21)
         // Relative URL, so it resolves to /{tenant}/api/order-status on path-based pages and /api/order-status on tenant hosts.

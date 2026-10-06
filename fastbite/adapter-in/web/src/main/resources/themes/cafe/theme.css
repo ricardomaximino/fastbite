@@ -1,0 +1,2 @@
+/* Café: extend or override the shared restaurant styles here. */
+[data-theme="cafe"] { --primary-color: #6f4e37; --bg-color: #faf6f0; --text-color: #2d231e; }

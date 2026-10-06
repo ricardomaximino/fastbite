@@ -17,8 +17,11 @@ public class OwnerWorkspaceController {
     private final OwnerStaffService staff;
     private final SubscriptionService subscriptions;
     private final TenantBackupRestorePort backups;
-    public OwnerWorkspaceController(TenantLocationService locations,OwnerWorkspaceService workspace,OwnerStaffService staff,SubscriptionService subscriptions,TenantBackupRestorePort backups) {
+    private final AppearancePort appearance;
+    private final es.brasatech.fastbite.config.ThemeCatalog themes;
+    public OwnerWorkspaceController(TenantLocationService locations,OwnerWorkspaceService workspace,OwnerStaffService staff,SubscriptionService subscriptions,TenantBackupRestorePort backups,AppearancePort appearance,es.brasatech.fastbite.config.ThemeCatalog themes) {
         this.locations=locations;this.workspace=workspace;this.staff=staff;this.subscriptions=subscriptions;this.backups=backups;
+        this.appearance=appearance;this.themes=themes;
     }
     @GetMapping("/owner/console")
     public String show(Principal owner,Model model,@RequestParam(defaultValue="overview") String view,
@@ -26,13 +29,17 @@ public class OwnerWorkspaceController {
             Locale locale) {
         if(owner==null) return "redirect:/login";
         if(!Set.of("overview","locations","team","location-settings","settings").contains(view)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        if(!Set.of("general","payments","domain","backup","advanced").contains(section)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if(!Set.of("general","appearance","payments","domain","backup","advanced").contains(section)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         var list=locations.getLocationsByOwner(owner.getName()).stream().sorted(Comparator.comparing(es.brasatech.fastbite.domain.tenant.TenantLocation::tenantId)).toList();
         var selected=location==null?(list.isEmpty()?null:list.getFirst()):list.stream().filter(l->l.tenantId().equals(location)).findFirst().orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("ownerUsername",owner.getName());model.addAttribute("locations",list);
         model.addAttribute("selected",selected);model.addAttribute("view",view);model.addAttribute("section",section);
+        model.addAttribute("themes",themes.all());
+        model.addAttribute("ownerTheme",themes.resolve(appearance.ownerTheme(owner.getName())));
         model.addAttribute("demoTemplates",backups.getAvailableTemplates(locale!=null?locale:Locale.getDefault()));
         if(selected!=null) {
+            model.addAttribute("selectedTheme",themes.resolve(appearance.effectiveTheme(selected.tenantId())));
+            model.addAttribute("themeOverride",appearance.locationTheme(selected.tenantId()));
             model.addAttribute("setup",workspace.summary(owner.getName(),selected.tenantId()));
             model.addAttribute("billing",subscriptions.account(selected.tenantId(),owner.getName()));
             if(view.equals("team")) {

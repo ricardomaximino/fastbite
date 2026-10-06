@@ -67,3 +67,27 @@ if(backupForm){const fileInput=document.getElementById('backup-file');const resu
 function openSection(){if(location.hash==='#add-location'){const item=document.getElementById('add-location');if(item)item.open=true;}}
 window.addEventListener('hashchange',openSection);openSection();
 })();
+
+// Preview stays on the selected location's origin; no theme state is stored in the browser.
+(() => {
+ const dialog=document.getElementById('guest-preview-dialog');
+ if(!dialog)return;
+ const frame=document.getElementById('guest-preview-frame');
+ let trigger=null;
+ document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-guest-preview]');
+  if(!button)return;
+  event.preventDefault();trigger=button;
+  const url=new URL(button.dataset.url,window.location.origin);
+  if(url.origin!==window.location.origin)return;
+  document.getElementById('guest-preview-open').href=url.pathname;
+  url.searchParams.set('preview','guest');frame.src=url.pathname+url.search;
+  dialog.showModal();
+ });
+ document.getElementById('guest-preview-close').addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('close',()=>{frame.removeAttribute('src');trigger?.focus();});
+ dialog.querySelectorAll('[data-preview-width]').forEach(button=>button.addEventListener('click',()=>{
+  frame.classList.toggle('mobile',button.dataset.previewWidth==='mobile');
+  dialog.querySelectorAll('[data-preview-width]').forEach(option=>option.setAttribute('aria-pressed',String(option===button)));
+ }));
+})();

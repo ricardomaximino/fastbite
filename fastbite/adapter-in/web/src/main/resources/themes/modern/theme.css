@@ -1,0 +1,2 @@
+/* Modern Restaurant: extend or override the shared restaurant styles here. */
+[data-theme="modern"] { --primary-color: #1a1a1a; --bg-color: #f9fafb; --text-color: #111827; }

@@ -14,7 +14,7 @@
 
             <div class="collapse navbar-collapse" id="navbarContent">
                 <!-- Center Links: Role-based -->
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-2" sec:authorize="isAuthenticated()">
+                <ul th:if="${param.preview == null}" class="navbar-nav mx-auto mb-2 mb-lg-0 gap-2" sec:authorize="isAuthenticated()">
                     <!-- Menu Link (Everyone) -->
                     <li class="nav-item">
                         <a class="nav-link px-3 rounded-pill" th:href="${tenantId != null ? '/' + tenantId + '/menu' : '/menu'}" 
@@ -59,7 +59,7 @@
                     </button>
 
                     <!-- User Profile & Logout -->
-                    <div class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <div th:if="${param.preview == null}" class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link dropdown-toggle glass-bg px-3 py-1 rounded-pill d-flex align-items-center" 
                            href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle me-2"></i>
@@ -73,17 +73,14 @@
                                     </div>
                                     <div>
                                         <div class="small fw-bold" sec:authentication="name">Username</div>
-                                        <div class="smaller text-muted" sec:authentication="authorities">Roles</div>
+                                        <div class="smaller text-muted" sec:authorize="hasRole('OWNER')" th:text="#{label.role.owner}">Restaurant owner</div>
                                     </div>
                                 </div>
                             </li>
-                            <li class="px-3 py-2 border-bottom" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                                <label class="small text-muted mb-1" th:text="#{label.theme} ?: 'Theme'">Theme</label>
-                                <select class="form-select form-select-sm" id="navbarThemeSelector" onchange="switchTheme(this.value)">
-                                    <option value="fastfood">FastFood</option>
-                                    <option value="cafe">Cafe</option>
-                                    <option value="modern">Modern Restaurant</option>
-                                </select>
+                            <li sec:authorize="hasRole('OWNER')">
+                                <a class="dropdown-item py-2" th:href="@{/owner/console(location=${tenantId})}">
+                                    <i class="fas fa-store me-2" aria-hidden="true"></i> <span th:text="#{label.ownerWorkspace}">Owner workspace</span>
+                                </a>
                             </li>
                             <li>
                                 <form th:action="${tenantId != null ? '/' + tenantId + '/logout' : '/logout'}" method="post" class="m-0">
@@ -104,16 +101,4 @@
             </div>
         </div>
     </nav>
-    <script>
-        function switchTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('fastbite-theme', theme);
-            const selector = document.getElementById('navbarThemeSelector');
-            if (selector) selector.value = theme;
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('fastbite-theme') || 'fastfood';
-            switchTheme(savedTheme);
-        });
-    </script>
 </th:block>

@@ -1,5 +1,7 @@
 # Owner workspace
 
+Appearance preferences, theme packages, the platform favicon and the inline live guest preview are described in [Themes and guest preview](themes.md).
+
 The owner console now has a shared sidebar, a location selector and addressable Overview, Locations, Team, Location settings and Account & billing pages. Existing counter, kitchen and menu tools remain linked from Overview. Locations is the portfolio view; future aggregate reporting can add an All locations scope when real metrics are implemented. Insights and Marketing are intentionally not shown before they exist.
 
 New restaurants can load the bundled sample restaurant, restore a FastBite ZIP or start their own menu. The opening checklist derives menu readiness from actual products. Service review is recorded only after a successful settings save. Guest-menu review is an explicit owner acknowledgement, not an inferred page visit. Dismiss/resume and review state persist per location in public.owner_onboarding (platform migration V5), independently of browser sessions and restaurant backups. Owners may always reopen the checklist. Staff setup is optional.

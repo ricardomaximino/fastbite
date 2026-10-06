@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:attr="data-theme=${locationTheme != null ? locationTheme.id : 'fastfood'}" lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<head>
+<head><link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{page.title}">FastBite - Order Online</title>
@@ -11,7 +11,7 @@
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 
-</head>
+<link th:if="${locationTheme != null}" rel="stylesheet" th:href="${locationTheme.stylesheet()}"></head>
 
 <body>
     <!-- Navigation -->
