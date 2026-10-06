@@ -143,4 +143,4 @@ stripe:
   # Order payments of restaurants that have not connected their own Stripe account go to this one.
   # Leave it empty in production to keep those payments on the platform account.
   connected-account: ${STRIPE_CONNECTED_ACCOUNT:}
-fastbite.migrations.mode: ${MIGRATION_MODE:validate}
+fastbite.migrations.mode: ${MIGRATION_MODE:migrate}
