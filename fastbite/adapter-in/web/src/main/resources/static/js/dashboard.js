@@ -576,6 +576,9 @@ function startRealtimeUpdates() {
                     if (data && data.orderNumber) {
                         showToast(`Order #${data.orderNumber} status changed: ${data.status}`);
                     }
+                    if (window.kitchenChime && (!data || !data.status || data.status === 'CREATED' || data.status === 'ACCEPTED')) {
+                        window.kitchenChime.play();
+                    }
                 } catch (e) {
                     console.debug('SSE event parse error', e);
                 }

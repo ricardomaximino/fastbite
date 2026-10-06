@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showTableCount();
     renderTables();
     refreshPickupCount();
+    startRealtimeOrderUpdates();
     await data;
     setupEventListeners();
 });
@@ -1056,4 +1057,46 @@ function resetPaymentModal() {
     // Hide details section just in case
     const details = document.getElementById('invoice-details');
     if (details) details.style.display = 'none';
+}
+
+function startRealtimeOrderUpdates() {
+    function getTenantPrefix() {
+        const path = window.location.pathname;
+        const segments = path.split('/');
+        if (segments.length > 1) {
+            const firstSegment = segments[1];
+            const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation", ".well-known", "appspecific"];
+            if (firstSegment && !reserved.includes(firstSegment)) {
+                return '/' + firstSegment;
+            }
+        }
+        return '';
+    }
+
+    const sseUrl = getTenantPrefix() + '/api/orders/live';
+    if (window.EventSource) {
+        try {
+            const sseSource = new EventSource(sseUrl);
+            sseSource.addEventListener('order-update', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.orderNumber) {
+                        showToast(`Order #${data.orderNumber} updated: ${data.status}`);
+                    }
+                    if (window.kitchenChime && (!data || !data.status || data.status === 'CREATED' || data.status === 'ACCEPTED')) {
+                        window.kitchenChime.play();
+                    }
+                } catch (e) {
+                    console.debug('SSE event parse error in counter', e);
+                }
+                showTableCount();
+                refreshPickupCount();
+                if (selectedTable) {
+                    loadOrders();
+                }
+            });
+        } catch (e) {
+            console.warn('Counter SSE failed', e);
+        }
+    }
 }

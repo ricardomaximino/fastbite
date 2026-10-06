@@ -58,6 +58,15 @@
                         <span class="cart-badge bg-white text-primary fw-bold ms-2" id="cartCount">0</span>
                     </button>
 
+                    <!-- Kitchen Audio Chime Toggle (Staff on Dashboard/Counter) -->
+                    <button th:if="${activeTab == 'dashboard' || activeTab == 'counter'}" 
+                            class="btn btn-glass py-2 px-3 rounded-pill shadow-sm d-flex align-items-center" 
+                            id="kitchenAudioToggleBtn" type="button" title="Toggle Kitchen Audio Chime"
+                            onclick="toggleKitchenAudio()">
+                        <i class="fas fa-bell-slash me-1" id="kitchenAudioIcon"></i>
+                        <span class="d-none d-md-inline small fw-bold" id="kitchenAudioText">Chime Off</span>
+                    </button>
+
                     <!-- User Profile & Logout -->
                     <div th:if="${param.preview == null}" class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link dropdown-toggle glass-bg px-3 py-1 rounded-pill d-flex align-items-center" 
