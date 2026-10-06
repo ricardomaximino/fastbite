@@ -60,7 +60,7 @@
       "name": "Balfegó Bluefin Tuna Tartare & Oscietra Caviar",
       "price": 32.0,
       "description": "Wild Mediterranean bluefin tuna, yuzu kosho emulsion, Oscietra caviar and crispy nori coral.",
-      "image": "media/michelin/tartar-atun.webp",
+      "image": "/user-images/kebab/michelin/tartar-atun.webp",
       "customizations": [
         "cust-michelin-luxury-extras"
       ],
@@ -71,7 +71,7 @@
       "name": "A5 Wagyu Kagoshima Carpaccio with Melanosporum Truffle",
       "price": 36.0,
       "description": "Delicate slices of A5 Wagyu, 36-month aged Parmigiano Reggiano crisps and winter black truffle.",
-      "image": "media/michelin/carpaccio-wagyu.webp",
+      "image": "/user-images/kebab/michelin/carpaccio-wagyu.webp",
       "customizations": [
         "cust-michelin-luxury-extras"
       ],
@@ -82,7 +82,7 @@
       "name": "Pan-Seared King Scallop & Cauliflower Silk",
       "price": 28.0,
       "description": "Caramelized King Scallop, velvety truffled cauliflower purée and Iberian acorn-fed ham crunch.",
-      "image": "media/michelin/vieira-braseada.webp",
+      "image": "/user-images/kebab/michelin/vieira-braseada.webp",
       "customizations": [
         "cust-michelin-luxury-extras"
       ],
@@ -93,7 +93,7 @@
       "name": "Wild Atlantic Sea Bass with Marine Plankton Emulsion",
       "price": 42.0,
       "description": "Line-caught sea bass roasted on charcoal, seaweed reduction, marine plankton froth and glasswort.",
-      "image": "media/michelin/lubina-salvaje.webp",
+      "image": "/user-images/kebab/michelin/lubina-salvaje.webp",
       "customizations": [
         "cust-michelin-luxury-extras"
       ],
@@ -104,7 +104,7 @@
       "name": "Roasted European Blue Lobster with Coral Bisque",
       "price": 54.0,
       "description": "Brittany blue lobster roasted in brown butter noisette, saffron lobster bisque and tender sea succulents.",
-      "image": "media/michelin/bogavante-azul.webp",
+      "image": "/user-images/kebab/michelin/bogavante-azul.webp",
       "customizations": [
         "cust-michelin-luxury-extras"
       ],
@@ -115,7 +115,7 @@
       "name": "Aged Rubia Gallega Beef Tenderloin & Robuchon Purée",
       "price": 48.0,
       "description": "60-day dry-aged Galician beef tenderloin, silky Robuchon potato purée, glazed shallots and Priorat wine jus.",
-      "image": "media/michelin/solomillo-rubia-gallega.webp",
+      "image": "/user-images/kebab/michelin/solomillo-rubia-gallega.webp",
       "customizations": [
         "cust-michelin-doneness",
         "cust-michelin-luxury-extras"
@@ -127,7 +127,7 @@
       "name": "Bresse Pigeon in Two Textures with Sour Cherries",
       "price": 44.0,
       "description": "Roasted supreme, confit leg, spiced sweet cherry reduction and pan-roasted escalope of duck foie gras.",
-      "image": "media/michelin/pichon-bresse.webp",
+      "image": "/user-images/kebab/michelin/pichon-bresse.webp",
       "customizations": [
         "cust-michelin-doneness"
       ],
@@ -138,7 +138,7 @@
       "name": "Signature 8-Course Michelin Tasting Experience",
       "price": 145.0,
       "description": "Complete gastronomic journey designed by the executive chef. Includes bread service, amuse-bouches, and petit fours.",
-      "image": "media/michelin/menu-degustacion.webp",
+      "image": "/user-images/kebab/michelin/menu-degustacion.webp",
       "customizations": [
         "cust-michelin-pairing"
       ],
@@ -149,7 +149,7 @@
       "name": "Valrhona Grand Cru Golden Chocolate Sphere",
       "price": 20.0,
       "description": "Guanaja 70% chocolate dome, molten passion fruit and mango core, hazelnut praline and warm chocolate ganache.",
-      "image": "media/michelin/esfera-chocolate.webp",
+      "image": "/user-images/kebab/michelin/esfera-chocolate.webp",
       "customizations": [],
       "active": true
     },
@@ -158,7 +158,7 @@
       "name": "Mediterranean Citrus Textures with Basil Sorbet",
       "price": 18.0,
       "description": "Yuzu cloud, candied blood orange, calamansi gelée, and garden basil sorbet.",
-      "image": "media/michelin/texturas-citricas.webp",
+      "image": "/user-images/kebab/michelin/texturas-citricas.webp",
       "customizations": [],
       "active": true
     },
@@ -167,7 +167,7 @@
       "name": "Smoked Truffle Old Fashioned",
       "price": 22.0,
       "description": "Aged Japanese whisky, black winter truffle essence, Angostura bitters and charred orange peel smoke.",
-      "image": "media/michelin/coctel-ahumado.webp",
+      "image": "/user-images/kebab/michelin/coctel-ahumado.webp",
       "customizations": [],
       "active": true
     },
@@ -176,7 +176,7 @@
       "name": "Champagne Dom Pérignon Vintage Brut (Glass)",
       "price": 38.0,
       "description": "Iconic vintage champagne served in crystal flute. Fine bubbles, toasted brioche and white peach notes.",
-      "image": "media/michelin/champagne-domperignon.webp",
+      "image": "/user-images/kebab/michelin/champagne-domperignon.webp",
       "customizations": [],
       "active": true
     }

@@ -494,6 +494,9 @@ public class TenantBackupRestoreAdapter implements TenantBackupRestorePort {
                 return "/user-images/" + newTenantId + remainder.substring(nextSlash);
             }
         }
+        if (originalUrl.startsWith("media/")) {
+            return "/user-images/" + newTenantId + "/" + originalUrl.substring("media/".length());
+        }
         return originalUrl;
     }
 }

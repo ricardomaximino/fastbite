@@ -206,7 +206,7 @@ products_def = [
         "name": "Balfegó Bluefin Tuna Tartare & Oscietra Caviar",
         "description": "Wild Mediterranean bluefin tuna, yuzu kosho emulsion, Oscietra caviar and crispy nori coral.",
         "price": 32.0,
-        "image": "media/michelin/tartar-atun.webp",
+        "image": "/user-images/kebab/michelin/tartar-atun.webp",
         "customizations": ["cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Tartar de Atún Rojo Balfegó & Caviar Oscietra", "Atún rojo Balfegó salvaje, emulsión de yuzu kosho, caviar imperial Oscietra y coral crujiente de alga nori."),
@@ -218,7 +218,7 @@ products_def = [
         "name": "A5 Wagyu Kagoshima Carpaccio with Melanosporum Truffle",
         "description": "Delicate slices of A5 Wagyu, 36-month aged Parmigiano Reggiano crisps and winter black truffle.",
         "price": 36.0,
-        "image": "media/michelin/carpaccio-wagyu.webp",
+        "image": "/user-images/kebab/michelin/carpaccio-wagyu.webp",
         "customizations": ["cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Carpaccio de Wagyu A5 Kagoshima & Trufa Negra", "Finas láminas de Wagyu A5 de Kagoshima, crujientes de Parmesano 36 meses y trufa negra melanosporum."),
@@ -230,7 +230,7 @@ products_def = [
         "name": "Pan-Seared King Scallop & Cauliflower Silk",
         "description": "Caramelized King Scallop, velvety truffled cauliflower purée and Iberian acorn-fed ham crunch.",
         "price": 28.0,
-        "image": "media/michelin/vieira-braseada.webp",
+        "image": "/user-images/kebab/michelin/vieira-braseada.webp",
         "customizations": ["cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Vieira Braseada sobre Seda de Coliflor Trufada", "Vieira de concha caramelizada, puré sedoso de coliflor a la trufa y velo crujiente de jamón ibérico de bellota."),
@@ -242,7 +242,7 @@ products_def = [
         "name": "Wild Atlantic Sea Bass with Marine Plankton Emulsion",
         "description": "Line-caught sea bass roasted on charcoal, seaweed reduction, marine plankton froth and glasswort.",
         "price": 42.0,
-        "image": "media/michelin/lubina-salvaje.webp",
+        "image": "/user-images/kebab/michelin/lubina-salvaje.webp",
         "customizations": ["cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Lubina Salvaje a la Brasa con Emulsión de Plancton Marino", "Lubina de anzuelo asada a la brasa de encina, fondo marino de algas, emulsión de fitoplancton y salicornia fresca."),
@@ -254,7 +254,7 @@ products_def = [
         "name": "Roasted European Blue Lobster with Coral Bisque",
         "description": "Brittany blue lobster roasted in brown butter noisette, saffron lobster bisque and tender sea succulents.",
         "price": 54.0,
-        "image": "media/michelin/bogavante-azul.webp",
+        "image": "/user-images/kebab/michelin/bogavante-azul.webp",
         "customizations": ["cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Bogavante Azul Asado con Bisque de sus Corales", "Bogavante azul asado a la mantequilla noisette, bisque concentrado de sus propios corales al azafrán."),
@@ -266,7 +266,7 @@ products_def = [
         "name": "Aged Rubia Gallega Beef Tenderloin & Robuchon Purée",
         "description": "60-day dry-aged Galician beef tenderloin, silky Robuchon potato purée, glazed shallots and Priorat wine jus.",
         "price": 48.0,
-        "image": "media/michelin/solomillo-rubia-gallega.webp",
+        "image": "/user-images/kebab/michelin/solomillo-rubia-gallega.webp",
         "customizations": ["cust-michelin-doneness", "cust-michelin-luxury-extras"],
         "translations": {
             "es": ("Solomillo de Vaca Rubia Gallega Madurada (60 Días)", "Solomillo de rubia gallega madurada a la brasa, puré de patata estilo Robuchon, chalotas glaseadas y reducción de vino Priorat."),
@@ -278,7 +278,7 @@ products_def = [
         "name": "Bresse Pigeon in Two Textures with Sour Cherries",
         "description": "Roasted supreme, confit leg, spiced sweet cherry reduction and pan-roasted escalope of duck foie gras.",
         "price": 44.0,
-        "image": "media/michelin/pichon-bresse.webp",
+        "image": "/user-images/kebab/michelin/pichon-bresse.webp",
         "customizations": ["cust-michelin-doneness"],
         "translations": {
             "es": ("Pichón de Bresse en Dos Cocciones & Cerezas al Oporto", "Suprema asada sangrante, muslito confitado, reducción especiada de cerezas al oporto y medallón de foie gras."),
@@ -290,7 +290,7 @@ products_def = [
         "name": "Signature 8-Course Michelin Tasting Experience",
         "description": "Complete gastronomic journey designed by the executive chef. Includes bread service, amuse-bouches, and petit fours.",
         "price": 145.0,
-        "image": "media/michelin/menu-degustacion.webp",
+        "image": "/user-images/kebab/michelin/menu-degustacion.webp",
         "customizations": ["cust-michelin-pairing"],
         "translations": {
             "es": ("Menú Degustación Signature (8 Pases)", "Experiencia gastronómica integral diseñada por el chef. Incluye servicio de panes artesanos, aperitivos de bienvenida y mignardises."),
@@ -302,7 +302,7 @@ products_def = [
         "name": "Valrhona Grand Cru Golden Chocolate Sphere",
         "description": "Guanaja 70% chocolate dome, molten passion fruit and mango core, hazelnut praline and warm chocolate ganache.",
         "price": 20.0,
-        "image": "media/michelin/esfera-chocolate.webp",
+        "image": "/user-images/kebab/michelin/esfera-chocolate.webp",
         "customizations": [],
         "translations": {
             "es": ("Esfera Dorada de Chocolate Valrhona Grand Cru", "Cúpula crujiente de chocolate Guanaja 70% con polvo de oro, núcleo fundente de maracuyá y praliné tostado de avellanas."),
@@ -314,7 +314,7 @@ products_def = [
         "name": "Mediterranean Citrus Textures with Basil Sorbet",
         "description": "Yuzu cloud, candied blood orange, calamansi gelée, and garden basil sorbet.",
         "price": 18.0,
-        "image": "media/michelin/texturas-citricas.webp",
+        "image": "/user-images/kebab/michelin/texturas-citricas.webp",
         "customizations": [],
         "translations": {
             "es": ("Texturas de Cítricos Mediterráneos con Sorbete de Albahaca", "Nube de yuzu, naranja sanguina confitada, gelée de calamansí y sorbete artesanal de albahaca fresca del huerto."),
@@ -326,7 +326,7 @@ products_def = [
         "name": "Smoked Truffle Old Fashioned",
         "description": "Aged Japanese whisky, black winter truffle essence, Angostura bitters and charred orange peel smoke.",
         "price": 22.0,
-        "image": "media/michelin/coctel-ahumado.webp",
+        "image": "/user-images/kebab/michelin/coctel-ahumado.webp",
         "customizations": [],
         "translations": {
             "es": ("Old Fashioned Ahumado a la Trufa Negra", "Whisky japonés reserva, infusión de trufa negra melanosporum, bíter aromático y humo de piel de naranja quemada."),
@@ -338,7 +338,7 @@ products_def = [
         "name": "Champagne Dom Pérignon Vintage Brut (Glass)",
         "description": "Iconic vintage champagne served in crystal flute. Fine bubbles, toasted brioche and white peach notes.",
         "price": 38.0,
-        "image": "media/michelin/champagne-domperignon.webp",
+        "image": "/user-images/kebab/michelin/champagne-domperignon.webp",
         "customizations": [],
         "translations": {
             "es": ("Copa de Champagne Dom Pérignon Vintage Brut", "Copa del emblemático champagne millésimé en copa de cristal fino. Burbuja delicada, brioche tostado y notas minerales."),
