@@ -37,9 +37,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public areas
                         .requestMatchers("/", "/menu/**", "/api/calculate-cart", "/api/calculate-confirmation", "/api/toast",
-                                "/api/create-order", "/api/order-status", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe", "/api/stripe/**").permitAll()
+                                "/api/create-order", "/api/order-status", "/api/order-status/live", "/order-confirmation/**", "/select-payment", "/signup", "/api/webhooks/stripe", "/api/stripe/**").permitAll()
                         .requestMatchers("/*/menu/**", "/*/api/calculate-cart", "/*/api/calculate-confirmation", "/*/api/toast",
-                                "/*/api/create-order", "/*/api/order-status", "/*/order-confirmation/**", "/*/select-payment", "/*/api/stripe/**").permitAll()
+                                "/*/api/create-order", "/*/api/order-status", "/*/api/order-status/live", "/*/order-confirmation/**", "/*/select-payment", "/*/api/stripe/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/user-images/**").permitAll()
                         .requestMatchers("/login", "/error", "/*/login", "/set-password").permitAll()
 
@@ -47,8 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/owner/**").hasRole("OWNER")
 
                         // Dashboard access (all staff roles + Owner)
-                        .requestMatchers("/dashboard", "/dashboard/**", "/counter/**", "/api/order/**", "/api/counter/**",
-                                "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/counter/**")
+                        .requestMatchers("/dashboard", "/dashboard/**", "/counter/**", "/api/order/**", "/api/orders/**", "/api/counter/**",
+                                "/*/dashboard/**", "/*/counter/**", "/*/api/order/**", "/*/api/orders/**", "/*/api/counter/**")
                         .hasAnyRole("ADMIN", "MANAGER", "CASHIER", "COOK", "WAITER", "OWNER")
 
                         // Maintenance access (strictly Admin or Owner)

@@ -107,26 +107,54 @@
         const FINISHED_STATUSES = ['COMPLETE', 'CANCELLED'];
 
         function startOrderProgressPolling() {
-            let timer;
-            const poll = () => fetch('api/order-status')
-                .then(res => {
-                    if (!res.ok) {
-                        clearInterval(timer); // no order in this session
-                        return null;
-                    }
-                    return res.json();
-                })
-                .then(order => {
-                    if (!order) return;
-                    updateProgressTracker(order.status);
-                    if (FINISHED_STATUSES.includes(order.status)) {
-                        clearInterval(timer);
-                    }
-                })
-                .catch(err => console.error('Polling order progress error:', err));
+            let eventSource = null;
+            let fallbackTimer = null;
 
-            poll();
-            timer = setInterval(poll, 5000);
+            const pollOnce = () => {
+                fetch('api/order-status')
+                    .then(res => res.ok ? res.json() : null)
+                    .then(order => {
+                        if (!order) return;
+                        updateProgressTracker(order.status);
+                        if (FINISHED_STATUSES.includes(order.status) && fallbackTimer) {
+                            clearInterval(fallbackTimer);
+                        }
+                    })
+                    .catch(err => console.error('Order status poll error:', err));
+            };
+
+            // Immediate initial poll
+            pollOnce();
+
+            if (window.EventSource) {
+                try {
+                    eventSource = new EventSource('api/order-status/live');
+                    eventSource.addEventListener('order-update', (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data && data.status) {
+                                updateProgressTracker(data.status);
+                                if (FINISHED_STATUSES.includes(data.status)) {
+                                    eventSource.close();
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse order-update event', e);
+                        }
+                    });
+
+                    eventSource.onerror = () => {
+                        if (!fallbackTimer) {
+                            fallbackTimer = setInterval(pollOnce, 5000);
+                        }
+                    };
+                    return;
+                } catch (e) {
+                    console.warn('SSE initialization failed, fallback to poll', e);
+                }
+            }
+
+            fallbackTimer = setInterval(pollOnce, 5000);
         }
 
         function updateProgressTracker(status) {

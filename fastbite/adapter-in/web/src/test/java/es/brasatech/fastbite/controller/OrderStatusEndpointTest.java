@@ -59,6 +59,8 @@ class OrderStatusEndpointTest {
     private OrderCheckoutService orderCheckoutService;
     @MockitoBean
     private TenantLocationService tenantLocationService;
+    @MockitoBean
+    private es.brasatech.fastbite.service.OrderLiveEventService orderLiveEventService;
 
     @Test
     void guestSeesTheStatusOfTheOrderInTheirSession() throws Exception {

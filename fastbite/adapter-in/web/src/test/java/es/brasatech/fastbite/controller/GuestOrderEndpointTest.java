@@ -79,6 +79,8 @@ class GuestOrderEndpointTest {
     private OrderCheckoutService orderCheckoutService;
     @MockitoBean
     private TenantLocationService tenantLocationService;
+    @MockitoBean
+    private es.brasatech.fastbite.service.OrderLiveEventService orderLiveEventService;
 
     @BeforeEach
     void setUp() {

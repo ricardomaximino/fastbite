@@ -1,10 +1,24 @@
 // Demo orders data
 let orders = [];
-const getOrderListUrl = '/api/order';
+
+function getTenantPrefix() {
+    const path = window.location.pathname;
+    const segments = path.split('/');
+    if (segments.length > 1) {
+        const firstSegment = segments[1];
+        const reserved = ["signup", "login", "css", "js", "images", "webjars", "stripe", "error", "favicon.ico", "actuator", "api", "counter", "backoffice", "dashboard", "logout", "menu", "select-payment", "order-confirmation", ".well-known", "appspecific"];
+        if (firstSegment && !reserved.includes(firstSegment)) {
+            return '/' + firstSegment;
+        }
+    }
+    return '';
+}
+
+const getOrderListUrl = () => getTenantPrefix() + '/api/order';
 const moveToNextStatusUrlTemplate = '/api/order/{id}/next';
 const moveToPreviousStatusUrlTemplate = '/api/order/{id}/previous';
-const batchNextStatusUrl = '/api/order/batch/next';
-const batchPreviousStatusUrl = '/api/order/batch/previous';
+const batchNextStatusUrl = () => getTenantPrefix() + '/api/order/batch/next';
+const batchPreviousStatusUrl = () => getTenantPrefix() + '/api/order/batch/previous';
 const cancelOrderUrlTemplate = '/api/order/{id}/cancel';
 const changeOrderStatusUrlTemplate = '/api/order/{id}/status';
 let currentCancelOrderId = null;
@@ -541,13 +555,45 @@ function showToast(message) {
     console.log(message);
 }
 
-// Start realtime updates (simulate with polling for demo)
+// Start realtime updates via Server-Sent Events (SSE) with fallback polling
 function startRealtimeUpdates() {
-    // In production, use WebSocket or Server-Sent Events
+    let sseSource = null;
+    let fallbackInterval = null;
+
+    // Periodic time-ago ticker
     setInterval(() => {
-        // Update time ago for all orders
         renderAllDashboards();
-    }, 30000); // Update every 30 seconds
+    }, 15000);
+
+    const sseUrl = getTenantPrefix() + '/api/orders/live';
+
+    if (window.EventSource) {
+        try {
+            sseSource = new EventSource(sseUrl);
+            sseSource.addEventListener('order-update', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.orderNumber) {
+                        showToast(`Order #${data.orderNumber} status changed: ${data.status}`);
+                    }
+                } catch (e) {
+                    console.debug('SSE event parse error', e);
+                }
+                updateOrders();
+            });
+
+            sseSource.onerror = () => {
+                if (!fallbackInterval) {
+                    fallbackInterval = setInterval(updateOrders, 5000);
+                }
+            };
+            return;
+        } catch (e) {
+            console.warn('Dashboard SSE failed, falling back to polling', e);
+        }
+    }
+
+    fallbackInterval = setInterval(updateOrders, 5000);
 }
 
 // Add demo order (for testing)
@@ -607,6 +653,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Add demo order every 3 seconds (for testing)
-    setInterval(updateOrders, 3000);
+    // Initial orders load
+    updateOrders();
 });

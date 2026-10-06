@@ -43,6 +43,7 @@ public class OrderController {
     private final TableService tableService;
     private final RestaurantSettingsService settingsService;
     private final OrderCheckoutService orderCheckoutService;
+    private final es.brasatech.fastbite.service.OrderLiveEventService orderLiveEventService;
 
     public record CreateOrderRequest(
         List<CartItem> items,
@@ -113,6 +114,24 @@ public class OrderController {
                 .flatMap(orderService::findById)
                 .map(order -> ResponseEntity.ok(Map.of("status", order.status().name())))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Real-time SSE stream for the guest's active order on confirmation page. */
+    @GetMapping(value = {"/{tenantId}/api/order-status/live", "/api/order-status/live"}, produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter liveOrderStatus(HttpSession session) {
+        String orderId = (String) session.getAttribute(SESSION_ORDER_ID);
+        if (orderId == null) {
+            org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter = new org.springframework.web.servlet.mvc.method.annotation.SseEmitter(1000L);
+            emitter.complete();
+            return emitter;
+        }
+        return orderLiveEventService.subscribeOrder(orderId);
+    }
+
+    /** Real-time SSE stream for staff kitchen & counter dashboards. */
+    @GetMapping(value = {"/{tenantId}/api/orders/live", "/api/orders/live"}, produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter liveOrdersStream(@PathVariable(required = false) String tenantId) {
+        return orderLiveEventService.subscribeTenant(tenantId);
     }
 
     @ResponseBody
