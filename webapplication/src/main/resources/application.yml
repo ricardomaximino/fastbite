@@ -114,8 +114,12 @@ image:
     # Allowed extensions
     allowed-extensions: jpg,jpeg,png,gif,webp
 
-# FastBite custom application settings
+# Cloud Storage configuration
 fastbite:
+  storage:
+    cloud:
+      bucket: ${GCS_BUCKET:}
+      public-url: ${GCS_PUBLIC_URL:https://storage.googleapis.com}
   # Trusted origin for emailed setup links; HTTPS in production. Never derived from request headers.
   public-url: ${FASTBITE_PUBLIC_URL:http://localhost:8080}
   tax:

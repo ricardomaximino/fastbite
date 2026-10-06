@@ -44,6 +44,8 @@ public class WebAdapterHints implements RuntimeHintsRegistrar {
         hints.resources().registerPattern("demo-templates.list");
         hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.DynamicDemoTemplateRegistry$TemplateManifest"), MemberCategory.values());
         hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.jpa.tenant.DynamicDemoTemplateRegistry$TemplateManifest$LocalizedText"), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.storage.CloudFileStorageService"), MemberCategory.values());
+        hints.reflection().registerType(TypeReference.of("es.brasatech.fastbite.storage.DiskFileStorageService"), MemberCategory.values());
         hints.resources().registerPattern("*.zip");
         hints.resources().registerResourceBundle("i18n/messages");
 

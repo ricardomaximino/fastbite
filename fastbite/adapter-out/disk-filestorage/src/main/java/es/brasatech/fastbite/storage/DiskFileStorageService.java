@@ -23,6 +23,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
+@org.springframework.context.annotation.Primary
 public class DiskFileStorageService implements FileStorageService {
 
     @Value("${image.upload.directory}")
