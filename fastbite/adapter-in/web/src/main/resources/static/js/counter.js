@@ -847,7 +847,7 @@ function getDefaultCustomizations(product) {
         customization.options.forEach((opt, idx) => {
             if (opt.isSelectedByDefault) {
                 defaults.push({
-                    id: `${custId}-opt-${idx}`,
+                    id: opt.id || `${custId}-opt-${idx}`,
                     name: opt.name,
                     price: opt.price,
                     quantity: 1
@@ -982,7 +982,7 @@ function saveCustomizations() {
 
     inputs.forEach(input => {
         customizations.push({
-            id: input.id,
+            id: input.dataset.optionId || input.id,
             name: input.value,
             price: parseFloat(input.dataset.price || 0),
             quantity: 1

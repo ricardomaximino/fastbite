@@ -222,7 +222,8 @@
                     th:type="${cust.type == 'radio' ? 'radio' : 'checkbox'}"
                     th:name="${cust.type == 'radio' ? cust.id : cust.id + '-opt-' + optIter.index}"
                     th:id="${cust.id + '-opt-' + optIter.index}" th:value="${opt.name}" th:data-price="${opt.price}"
-                    th:checked="${#lists.contains(selectedOptions, cust.id + '-opt-' + optIter.index)}">
+                    th:data-option-id="${opt.id}"
+                    th:checked="${#lists.contains(selectedOptions, opt.id) or #lists.contains(selectedOptions, cust.id + '-opt-' + optIter.index)}">
                 <label class="form-check-label d-flex justify-content-between w-100"
                     th:for="${cust.id + '-opt-' + optIter.index}">
                     <span th:text="${opt.name}">Option Name</span>

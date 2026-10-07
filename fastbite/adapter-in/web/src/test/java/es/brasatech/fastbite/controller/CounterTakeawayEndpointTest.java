@@ -192,4 +192,40 @@ class CounterTakeawayEndpointTest {
         assertThat(saved.getValue().items()).singleElement().extracting(CartItem::totalPrice)
                 .isEqualTo(new BigDecimal("13.00"));
     }
+
+    @Test
+    void orderCartFragmentCalculatesPricesWithValidCustomizations() throws Exception {
+        var opt = new es.brasatech.fastbite.domain.customization.CustomizationOptionDto("opt-cheese", "Extra Cheese", new BigDecimal("1.50"));
+        var cust = new es.brasatech.fastbite.domain.customization.CustomizationDto("c-cheese", "Cheese", "checkbox", List.of(opt), 1);
+        when(productService.findById("kebab")).thenReturn(Optional.of(new ProductDto("kebab", "Kebab",
+                new BigDecimal("6.50"), "Beef kebab", "/kebab.webp", Set.of("c-cheese"), true)));
+        when(customizationService.findById("c-cheese")).thenReturn(Optional.of(cust));
+        when(discountService.calculateDiscount(any(), any(), any(), eq(OrderChannel.COUNTER))).thenReturn(BigDecimal.ZERO);
+
+        String cartJson = """
+                [
+                    {
+                        "id": "item-1",
+                        "productId": "kebab",
+                        "itemId": "kebab",
+                        "name": "Kebab",
+                        "price": 6.50,
+                        "quantity": 1,
+                        "customizations": [
+                            {
+                                "id": "opt-cheese",
+                                "name": "Extra Cheese",
+                                "price": 1.50,
+                                "quantity": 1
+                            }
+                        ]
+                    }
+                ]
+                """;
+
+        mockMvc.perform(asCashier(post("/counter/fragments/order-cart")).content(cartJson))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("X-Cart-Subtotal", "8.00"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("X-Cart-Total", "8.00"));
+    }
 }
